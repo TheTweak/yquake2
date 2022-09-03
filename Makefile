@@ -281,7 +281,7 @@ endif
 # ----------
 
 # Extra CFLAGS for SDL.
-SDLCFLAGS := $(shell sdl2-config --cflags)
+SDLCFLAGS := $(shell sdl2-config --cflags | sed 's/\/SDL2//g')
 
 # ----------
 
@@ -359,7 +359,7 @@ endif
 
 # Extra LDFLAGS for SDL
 ifeq ($(YQ2_OSTYPE), Darwin)
-SDLLDFLAGS := -lSDL2
+SDLLDFLAGS := $(shell sdl2-config --libs)
 else # not Darwin
 SDLLDFLAGS := $(shell sdl2-config --libs)
 endif # Darwin
@@ -480,8 +480,8 @@ ifeq ($(WITH_OPENAL),yes)
 ifeq ($(YQ2_OSTYPE), OpenBSD)
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so"'
 else ifeq ($(YQ2_OSTYPE), Darwin)
-release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.dylib"' -I/usr/local/opt/openal-soft/include
-release/quake2 : LDFLAGS += -L/usr/local/opt/openal-soft/lib -rpath /usr/local/opt/openal-soft/lib
+release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.dylib"' -I/opt/homebrew/Cellar/openal-soft/1.22.2/include/
+release/quake2 : LDFLAGS += -L/opt/homebrew/Cellar/openal-soft/1.22.2/lib -rpath /usr/local/opt/openal-soft/lib
 else
 release/quake2 : CFLAGS += -DUSE_OPENAL -DDEFAULT_OPENAL_DRIVER='"libopenal.so.1"'
 endif
