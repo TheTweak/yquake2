@@ -1,4 +1,6 @@
 /build/
+!/xcodebuild/yq2.xcodeproj/
+/xcodebuild/
 /release/
 *.mk
 *.user
