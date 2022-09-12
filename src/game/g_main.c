@@ -88,7 +88,7 @@ cvar_t *gib_on;
 cvar_t *aimfix;
 cvar_t *g_machinegun_norecoil;
 
-void SpawnEntities(char *mapname, char *entities, char *spawnpoint) {};
+void SpawnEntities(char *mapname, char *entities, char *spawnpoint);
 void ClientThink(edict_t *ent, usercmd_t *cmd);
 bool ClientConnect(edict_t *ent, char *userinfo);
 void ClientUserinfoChanged(edict_t *ent, char *userinfo);
@@ -96,10 +96,10 @@ void ClientDisconnect(edict_t *ent);
 void ClientBegin(edict_t *ent);
 void ClientCommand(edict_t *ent);
 void RunEntity(edict_t *ent);
-void WriteGame(char *filename, bool autosave) {};
-void ReadGame(char *filename) {};
-void WriteLevel(char *filename) {};
-void ReadLevel(char *filename) {};
+void WriteGame(char *filename, bool autosave);
+void ReadGame(char *filename);
+void WriteLevel(char *filename);
+void ReadLevel(char *filename);
 void InitGame(void);
 void G_RunFrame(void);
 

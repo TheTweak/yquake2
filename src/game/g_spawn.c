@@ -577,7 +577,7 @@ G_FindTeams(void)
  * parsing textual entity definitions out of an ent file.
  */
 void
-SpawnEntities(const char *mapname, char *entities, const char *spawnpoint)
+SpawnEntities(char *mapname, char *entities, char *spawnpoint)
 {
 	edict_t *ent;
 	int inhibit;

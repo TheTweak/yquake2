@@ -782,7 +782,7 @@ ReadClient(FILE *f, gclient_t *client, short save_ver)
  * - help computer info
  */
 void
-WriteGame(const char *filename, bool autosave)
+WriteGame(char *filename, bool autosave)
 {
 	savegameHeader_t sv;
 	FILE *f;
@@ -828,7 +828,7 @@ WriteGame(const char *filename, bool autosave)
  * savegames is loaded.
  */
 void
-ReadGame(const char *filename)
+ReadGame(char *filename)
 {
 	savegameHeader_t sv;
 	FILE *f;
@@ -1011,7 +1011,7 @@ WriteLevelLocals(FILE *f)
  * into a file.
  */
 void
-WriteLevel(const char *filename)
+WriteLevel(char *filename)
 {
 	int i;
 	edict_t *ent;
@@ -1101,7 +1101,7 @@ ReadLevelLocals(FILE *f)
  * are connected to the server.
  */
 void
-ReadLevel(const char *filename)
+ReadLevel(char *filename)
 {
 	int entnum;
 	FILE *f;

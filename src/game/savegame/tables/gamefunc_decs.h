@@ -25,14 +25,14 @@
  * =======================================================================
  */
 
-extern void ReadLevel ( const char * filename ) ;
+extern void ReadLevel ( char * filename ) ;
 extern void ReadLevelLocals ( FILE * f ) ;
 extern void ReadEdict ( FILE * f , edict_t * ent ) ;
-extern void WriteLevel ( const char * filename ) ;
+extern void WriteLevel ( char * filename ) ;
 extern void WriteLevelLocals ( FILE * f ) ;
 extern void WriteEdict ( FILE * f , edict_t * ent ) ;
-extern void ReadGame ( const char * filename ) ;
-extern void WriteGame ( const char * filename , bool autosave ) ;
+extern void ReadGame ( char * filename ) ;
+extern void WriteGame ( char * filename , bool autosave ) ;
 extern void ReadClient ( FILE * f , gclient_t * client , short save_ver ) ;
 extern void WriteClient ( FILE * f , gclient_t * client ) ;
 extern void ReadField ( FILE * f , field_t * field , byte * base ) ;
@@ -725,7 +725,7 @@ extern void SVCmd_AddIP_f ( void ) ;
 extern bool SV_FilterPacket ( char * from ) ;
 extern void Svcmd_Test_f ( void ) ;
 extern void SP_worldspawn ( edict_t * ent ) ;
-extern void SpawnEntities ( const char * mapname , char * entities , const char * spawnpoint ) ;
+extern void SpawnEntities ( char * mapname , char * entities , char * spawnpoint ) ;
 extern void G_FindTeams ( void ) ;
 extern char * ED_ParseEdict ( char * data , edict_t * ent ) ;
 extern void ED_ParseField ( const char * key , const char * value , edict_t * ent ) ;
