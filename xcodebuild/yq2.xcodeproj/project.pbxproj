@@ -3024,10 +3024,10 @@
 					NOUNCRYPT,
 					IOAPI_NO_64,
 					HAVE_EXECINFO,
-					USE_CURL,
 					USE_OPENAL,
 					"'DEFAULT_OPENAL_DRIVER=\"libopenal.dylib\"'",
 					"$(inherited)",
+					USE_CURL,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = (

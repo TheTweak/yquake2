@@ -119,7 +119,7 @@ ShutdownGame(void)
  * with all entry points and global
  * variables
  */
-Q2_DLL_EXPORTED game_export_t *
+Q2_DLL_EXPORTED extern "C" game_export_t *
 GetGameAPI(game_import_t *import)
 {
 	gi = *import;

@@ -1964,7 +1964,7 @@ GL3_EndWorldRenderpass( void )
 	return true;
 }
 
-Q2_DLL_EXPORTED refexport_t
+Q2_DLL_EXPORTED extern "C" refexport_t
 GetRefAPI(refimport_t imp)
 {
 	refexport_t re = {0};
