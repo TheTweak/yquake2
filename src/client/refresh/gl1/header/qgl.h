@@ -99,7 +99,7 @@
 /*
  * This is responsible for setting up our QGL extension pointers
  */
-qboolean QGL_Init ( void );
+bool QGL_Init ( void );
 
 /*
  * Unloads the specified DLL then nulls out all the proc pointers.

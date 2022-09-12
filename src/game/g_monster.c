@@ -754,7 +754,7 @@ monster_death_use(edict_t *self)
 
 /* ================================================================== */
 
-qboolean
+bool
 monster_start(edict_t *self)
 {
 	if (!self)
@@ -854,8 +854,8 @@ monster_start_go(edict_t *self)
 	/* check for target to combat_point and change to combattarget */
 	if (self->target)
 	{
-		qboolean notcombat;
-		qboolean fixup;
+		bool notcombat;
+		bool fixup;
 		edict_t *target;
 
 		target = NULL;

@@ -296,7 +296,7 @@ SV_BeginDownload_f(void)
 	extern cvar_t *allow_download_models;
 	extern cvar_t *allow_download_sounds;
 	extern cvar_t *allow_download_maps;
-	extern qboolean file_from_protected_pak;
+	extern bool file_from_protected_pak;
 	int offset = 0;
 
 	name = Cmd_Argv(1);
@@ -507,7 +507,7 @@ SV_ExecuteClientMessage(client_t *cl)
 	int stringCmdCount;
 	int checksum, calculatedChecksum;
 	int checksumIndex;
-	qboolean move_issued;
+	bool move_issued;
 	int lastframe;
 
 	sv_client = cl;

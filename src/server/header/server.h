@@ -64,8 +64,8 @@ typedef struct
 {
 	server_state_t state;           /* precache commands are only valid during load */
 
-	qboolean attractloop;           /* running cinematics and demos for the local system only */
-	qboolean loadgame;              /* client begins should reuse existing entity */
+	bool attractloop;           /* running cinematics and demos for the local system only */
+	bool loadgame;              /* client begins should reuse existing entity */
 
 	unsigned time;                  /* always sv.framenum * 100 msec */
 	int framenum;
@@ -83,7 +83,7 @@ typedef struct
 
 	/* demo server information */
 	fileHandle_t demofile;
-	qboolean timedemo; /* don't time sync */
+	bool timedemo; /* don't time sync */
 } server_t;
 
 typedef enum
@@ -156,7 +156,7 @@ typedef struct
 
 typedef struct
 {
-	qboolean initialized;               /* sv_init has completed */
+	bool initialized;               /* sv_init has completed */
 	int realtime;                       /* always increasing, no clamping, etc */
 
 	char mapcmd[MAX_SAVE_TOKEN_CHARS];  /* ie: *intro.cin+base */
@@ -198,7 +198,7 @@ extern cvar_t *sv_downloadserver;			/* Download server. */
 extern client_t *sv_client;
 extern edict_t *sv_player;
 
-void SV_FinalMessage(char *message, qboolean reconnect);
+void SV_FinalMessage(char *message, bool reconnect);
 void SV_DropClient(client_t *drop);
 
 int SV_ModelIndex(char *name);
@@ -217,7 +217,7 @@ void Master_Heartbeat(void);
 void Master_Packet(void);
 
 void SV_InitGame(void);
-void SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isautosave);
+void SV_Map(bool attractloop, char *levelstring, bool loadgame, bool isautosave);
 
 void SV_PrepWorldFrame(void);
 
@@ -258,7 +258,7 @@ void SV_InitEdict(edict_t *e);
 void SV_WipeSavegame(char *savename);
 void SV_CopySaveGame(char *src, char *dst);
 void SV_WriteLevelFile(void);
-void SV_WriteServerFile(qboolean autosave);
+void SV_WriteServerFile(bool autosave);
 void SV_Loadgame_f(void);
 void SV_Savegame_f(void);
 

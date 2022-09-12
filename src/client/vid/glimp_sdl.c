@@ -44,7 +44,7 @@ static int last_display = 0;
 static int last_position_x = SDL_WINDOWPOS_UNDEFINED;
 static int last_position_y = SDL_WINDOWPOS_UNDEFINED;
 static SDL_Window* window = NULL;
-static qboolean initSuccessful = false;
+static bool initSuccessful = false;
 static char **displayindices = NULL;
 static int num_displays = 0;
 
@@ -81,7 +81,7 @@ ClearDisplayIndices(void)
 	}
 }
 
-static qboolean
+static bool
 CreateSDLWindow(int flags, int w, int h)
 {
 	if (SDL_WINDOWPOS_ISUNDEFINED(last_position_x) || SDL_WINDOWPOS_ISUNDEFINED(last_position_y) || last_position_x < 0 ||last_position_y < 24)
@@ -241,7 +241,7 @@ GetFullscreenType()
 	}
 }
 
-static qboolean
+static bool
 GetWindowSize(int* w, int* h)
 {
 	if (window == NULL || w == NULL || h == NULL)
@@ -267,12 +267,12 @@ GetWindowSize(int* w, int* h)
 static void
 InitDisplayIndices()
 {
-	displayindices = malloc((num_displays + 1) * sizeof(char *));
+	displayindices = reinterpret_cast<char**>(malloc((num_displays + 1) * sizeof(char *)));
 
 	for ( int i = 0; i < num_displays; i++ )
 	{
 		/* There are a maximum of 10 digits in 32 bit int + 1 for the NULL terminator. */
-		displayindices[ i ] = malloc(11 * sizeof( char ));
+		displayindices[ i ] = reinterpret_cast<char*>(malloc(11 * sizeof( char )));
 		YQ2_COM_CHECK_OOM(displayindices[i], "malloc()", 11 * sizeof( char ))
 
 		snprintf( displayindices[ i ], 11, "%d", i );
@@ -353,7 +353,7 @@ SetSDLIcon()
 
 // FIXME: We need a header for this.
 // Maybe we could put it in vid.h.
-void GLimp_GrabInput(qboolean grab);
+void GLimp_GrabInput(bool grab);
 
 /*
  * Shuts the SDL render backend down
@@ -396,7 +396,7 @@ ShutdownGraphics(void)
  * Initializes the SDL video subsystem. Must
  * be called before anything else.
  */
-qboolean
+bool
 GLimp_Init(void)
 {
 	vid_displayrefreshrate = Cvar_Get("vid_displayrefreshrate", "-1", CVAR_ARCHIVE);
@@ -458,7 +458,7 @@ GLimp_Shutdown(void)
 /*
  * (Re)initializes the actual window.
  */
-qboolean
+bool
 GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 {
 	int flags;
@@ -643,7 +643,7 @@ GLimp_ShutdownGraphics(void)
  * (Un)grab Input
  */
 void
-GLimp_GrabInput(qboolean grab)
+GLimp_GrabInput(bool grab)
 {
 	if(window != NULL)
 	{
@@ -710,7 +710,7 @@ GLimp_GetRefreshRate(void)
 /*
  * Detect current desktop mode
  */
-qboolean
+bool
 GLimp_GetDesktopMode(int *pwidth, int *pheight)
 {
 	// Declare display mode structure to be filled in.

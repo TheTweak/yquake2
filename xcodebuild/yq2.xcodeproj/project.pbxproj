@@ -157,6 +157,7 @@
 		7DB7821BCF1C4E1B98B3A45E /* sw_scan.c in Sources */ = {isa = PBXBuildFile; fileRef = 51582C7C79B143AFBE4DAFA6 /* sw_scan.c */; };
 		803790C32F664F7599021CC1 /* sw_surf.c in Sources */ = {isa = PBXBuildFile; fileRef = 21A923B0B51D48B1A72ED56A /* sw_surf.c */; };
 		808B04507DA748CDB5A3BF85 /* clientserver.c in Sources */ = {isa = PBXBuildFile; fileRef = 8217F725418E435C8C1F99F0 /* clientserver.c */; };
+		810B239B28CA232A00605FA8 /* cpp_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 810B239928CA232A00605FA8 /* cpp_test.cpp */; };
 		81508E1408F14085AB1B20B0 /* boss2.c in Sources */ = {isa = PBXBuildFile; fileRef = 703BE2E2CF4E4D94B378D01A /* boss2.c */; };
 		81DD34536CA74BBF8E603935 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = 97640A06242548DCA4471954 /* sv_world.c */; };
 		8237CD691CB442F3A25E1A25 /* gl3_lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 356D358068994DBC80E6FCD9 /* gl3_lightmap.c */; };
@@ -584,6 +585,8 @@
 		7C4B02A5F3A14BF19B8A01F0 /* boss2.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = boss2.h; path = src/game/monster/boss2/boss2.h; sourceTree = SOURCE_ROOT; };
 		7D832A70182F49D8AFC919D7 /* g_monster.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = g_monster.c; path = src/game/g_monster.c; sourceTree = SOURCE_ROOT; };
 		7DC3AEF74B3C4141A4B555F0 /* sound.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sound.h; path = src/client/sound/header/sound.h; sourceTree = SOURCE_ROOT; };
+		810B239928CA232A00605FA8 /* cpp_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cpp_test.cpp; sourceTree = "<group>"; };
+		810B239A28CA232A00605FA8 /* cpp_test.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = cpp_test.hpp; sourceTree = "<group>"; };
 		811B22B3A3E843D3801B47FA /* shared.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = shared.c; path = src/common/shared/shared.c; sourceTree = SOURCE_ROOT; };
 		8217F725418E435C8C1F99F0 /* clientserver.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = clientserver.c; path = src/common/clientserver.c; sourceTree = SOURCE_ROOT; };
 		8329794DB8894CE8A47CE3CE /* gl1_light.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = gl1_light.c; path = src/client/refresh/gl1/gl1_light.c; sourceTree = SOURCE_ROOT; };
@@ -885,6 +888,7 @@
 		2BA784CDB830431AA26B00DC /* Header Files */ = {
 			isa = PBXGroup;
 			children = (
+				810B239A28CA232A00605FA8 /* cpp_test.hpp */,
 				DC9B88B16C6247428E09D67D /* download.h */,
 				498BBE445CDF406692C647F0 /* qcurl.h */,
 				49CFFFC88B4644EF9626C8E6 /* client.h */,
@@ -1075,6 +1079,7 @@
 				D8DE78D4B7084AB4BAA6D01C /* sv_send.c */,
 				E287FB23A63640C1AF99EC35 /* sv_user.c */,
 				181CD382E37D4181BDF7A51E /* sv_world.c */,
+				810B239928CA232A00605FA8 /* cpp_test.cpp */,
 			);
 			name = "Source Files";
 			sourceTree = "<group>";
@@ -1788,6 +1793,7 @@
 				6E0B409356834B27A6AA9A65 /* cl_main.c in Sources */,
 				0BABC5F16D2D4F0088FF9872 /* cl_network.c in Sources */,
 				87B241D2A3A1496DA6CE935D /* cl_parse.c in Sources */,
+				810B239B28CA232A00605FA8 /* cpp_test.cpp in Sources */,
 				004D60979C194CFE84E75C05 /* cl_particles.c in Sources */,
 				B36A98FEC89A46BE80CC47F2 /* cl_prediction.c in Sources */,
 				4CB5632930F94B779EE8F447 /* cl_screen.c in Sources */,
@@ -2075,6 +2081,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/release/RelWithDebInfo";
 				EXECUTABLE_PREFIX = "";
@@ -2085,6 +2092,7 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -2153,6 +2161,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/release/Release";
 				EXECUTABLE_PREFIX = "";
@@ -2163,6 +2172,7 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -2233,6 +2243,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -2298,6 +2309,7 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -2458,6 +2470,7 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -2615,6 +2628,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -2941,6 +2955,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -2995,6 +3010,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/release/Debug";
 				EXECUTABLE_PREFIX = "";
@@ -3005,6 +3021,7 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -3028,12 +3045,12 @@
 				INSTALL_PATH = "";
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
 					"-fvisibility=hidden",
 					"$(inherited)",
+					"-std=c++17",
 				);
 				OTHER_LDFLAGS = (
 					"-Wl,-search_paths_first",
@@ -3073,6 +3090,7 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -3536,6 +3554,7 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -3588,6 +3607,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				COMBINE_HIDPI_IMAGES = YES;
 				CONFIGURATION_BUILD_DIR = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/release/MinSizeRel";
 				EXECUTABLE_PREFIX = "";
@@ -3598,6 +3618,7 @@
 				);
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
@@ -4085,6 +4106,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",

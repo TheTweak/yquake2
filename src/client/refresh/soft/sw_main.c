@@ -47,8 +47,8 @@ static int	vid_zminu, vid_zminv, vid_zmaxu, vid_zmaxv;
 // last position  on map
 static vec3_t	lastvieworg;
 static vec3_t	lastviewangles;
-qboolean	fastmoving;
-static qboolean	palette_changed;
+bool	fastmoving;
+static bool	palette_changed;
 
 refimport_t	ri;
 
@@ -65,7 +65,7 @@ pixel_t		*r_warpbuffer;
 
 typedef struct swstate_s
 {
-	qboolean	fullscreen;
+	bool	fullscreen;
 	int		prev_mode; // last valid SW mode
 
 	unsigned char	gammatable[256];
@@ -82,14 +82,14 @@ int	r_numallocatedtriangles;
 int	r_numallocatedlights;
 int	r_numallocatededgebasespans;
 float	r_aliasuvscale = 1.0;
-qboolean	r_outofsurfaces;
-qboolean	r_outofedges;
-qboolean	r_outofverts;
-qboolean	r_outoftriangles;
-qboolean	r_outoflights;
-qboolean	r_outedgebasespans;
+bool	r_outofsurfaces;
+bool	r_outofedges;
+bool	r_outofverts;
+bool	r_outoftriangles;
+bool	r_outoflights;
+bool	r_outedgebasespans;
 
-qboolean	r_dowarp;
+bool	r_dowarp;
 
 mvertex_t	*r_pcurrentvertbase;
 
@@ -259,7 +259,7 @@ VID_NoDamageZBuffer(void)
 	vid_zmaxv = 0;
 }
 
-qboolean
+bool
 VID_CheckDamageZBuffer(int u, int v, int ucount, int vcount)
 {
 	if (vid_zminv > (v + vcount) || vid_zmaxv < v)
@@ -438,14 +438,14 @@ R_UnRegister (void)
 static void RE_ShutdownContext(void);
 static void SWimp_CreateRender(int width, int height);
 static int RE_InitContext(void *win);
-static qboolean RE_SetMode(void);
+static bool RE_SetMode(void);
 
 /*
 ===============
 R_Init
 ===============
 */
-static qboolean
+static bool
 RE_Init(void)
 {
 	R_RegisterVariables ();
@@ -818,7 +818,7 @@ static void
 R_DrawEntitiesOnList (void)
 {
 	int			i;
-	qboolean	translucent_entities = false;
+	bool	translucent_entities = false;
 
 	if (!r_drawentities->value)
 		return;
@@ -1221,7 +1221,7 @@ R_CalcPalette
 static void
 R_CalcPalette (void)
 {
-	static qboolean modified;
+	static bool modified;
 	byte	palette[256][4], *in, *out;
 	int		i, j;
 	float	alpha, one_minus_alpha;
@@ -1487,7 +1487,7 @@ RE_BeginFrame( float camera_separation )
 R_SetMode
 ==================
 */
-static qboolean
+static bool
 RE_SetMode(void)
 {
 	int err;
@@ -1799,7 +1799,7 @@ void R_Printf(int level, const char* msg, ...)
 	va_end(argptr);
 }
 
-static qboolean
+static bool
 RE_IsVsyncActive(void)
 {
 	if (r_vsync->value)
@@ -1823,7 +1823,7 @@ static int RE_PrepareForWindow(void)
 RE_EndWorldRenderpass
 =====================
 */
-static qboolean
+static bool
 RE_EndWorldRenderpass( void )
 {
 	return true;

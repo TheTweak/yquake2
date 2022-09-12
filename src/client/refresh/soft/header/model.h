@@ -166,7 +166,7 @@ typedef struct model_s
 	//
 	// solid volume for clipping (sent from server)
 	//
-	qboolean	clipbox;
+	bool	clipbox;
 	vec3_t		clipmins, clipmaxs;
 
 	//

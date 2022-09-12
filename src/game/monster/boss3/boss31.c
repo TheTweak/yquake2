@@ -28,7 +28,7 @@
 #include "boss31.h"
 
 extern void SP_monster_makron(edict_t *self);
-qboolean visible(edict_t *self, edict_t *other);
+bool visible(edict_t *self, edict_t *other);
 
 static int sound_pain1;
 static int sound_pain2;
@@ -767,7 +767,7 @@ jorg_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* un
 	self->monsterinfo.currentmove = &jorg_move_death;
 }
 
-qboolean
+bool
 Jorg_CheckAttack(edict_t *self)
 {
 	vec3_t spot1, spot2;

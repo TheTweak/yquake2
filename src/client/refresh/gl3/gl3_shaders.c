@@ -897,7 +897,7 @@ enum {
 	GL3_BINDINGPOINT_UNILIGHTS
 };
 
-static qboolean
+static bool
 initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragSrc)
 {
 	GLuint shaders2D[2] = {0};
@@ -1000,7 +1000,7 @@ err_cleanup:
 	return false;
 }
 
-static qboolean
+static bool
 initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragSrc)
 {
 	GLuint shaders3D[2] = {0};
@@ -1186,7 +1186,7 @@ static void initUBOs(void)
 	gl3state.currentUBO = gl3state.uniLightsUBO;
 }
 
-static qboolean createShaders(void)
+static bool createShaders(void)
 {
 	if(!initShader2D(&gl3state.si2D, vertexSrc2D, fragmentSrc2D))
 	{
@@ -1293,7 +1293,7 @@ static qboolean createShaders(void)
 	return true;
 }
 
-qboolean GL3_InitShaders(void)
+bool GL3_InitShaders(void)
 {
 	initUBOs();
 
@@ -1320,7 +1320,7 @@ void GL3_ShutdownShaders(void)
 	gl3state.uniCommonUBO = gl3state.uni2DUBO = gl3state.uni3DUBO = gl3state.uniLightsUBO = 0;
 }
 
-qboolean GL3_RecreateShaders(void)
+bool GL3_RecreateShaders(void)
 {
 	// delete and recreate the existing shaders (but not the UBOs)
 	deleteShaders();

@@ -37,7 +37,7 @@ R_ImageList_f (void)
 {
 	int		i, used, texels;
 	image_t	*image;
-	qboolean	freeup;
+	bool	freeup;
 
 	R_Printf(PRINT_ALL, "------------------\n");
 	texels = 0;
@@ -797,7 +797,7 @@ R_FreeUnusedImages (void)
 	}
 }
 
-qboolean
+bool
 R_ImageHasFreeSpace(void)
 {
 	int		i, used;

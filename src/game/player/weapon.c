@@ -38,10 +38,10 @@
 #define GRENADE_MINSPEED 400
 #define GRENADE_MAXSPEED 800
 
-static qboolean is_quad;
+static bool is_quad;
 static byte is_silenced;
 
-void weapon_grenade_fire(edict_t *ent, qboolean held);
+void weapon_grenade_fire(edict_t *ent, bool held);
 
 void
 P_ProjectSource(edict_t *ent, vec3_t distance,
@@ -263,7 +263,7 @@ PlayerNoise(edict_t *who, vec3_t where, int type)
 	gi.linkentity(noise);
 }
 
-qboolean
+bool
 Pickup_Weapon(edict_t *ent, edict_t *other)
 {
 	int index;
@@ -756,7 +756,7 @@ Weapon_Generic(edict_t *ent, int FRAME_ACTIVATE_LAST, int FRAME_FIRE_LAST,
 /* GRENADE */
 
 void
-weapon_grenade_fire(edict_t *ent, qboolean held)
+weapon_grenade_fire(edict_t *ent, bool held)
 {
 	vec3_t offset;
 	vec3_t forward, right;
@@ -1084,7 +1084,7 @@ Weapon_RocketLauncher(edict_t *ent)
 
 void
 Blaster_Fire(edict_t *ent, vec3_t g_offset, int damage,
-		qboolean hyper, int effect)
+		bool hyper, int effect)
 {
 	vec3_t forward, right;
 	vec3_t start;

@@ -67,7 +67,7 @@ R_TextureAnimation (const entity_t *currententity, mtexinfo_t *tex)
 /*
  * Color light apply is not required
  */
-static qboolean
+static bool
 R_GreyscaledLight(const light3_t light)
 {
 	light3_t light_masked;

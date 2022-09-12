@@ -397,7 +397,7 @@ player_pain(edict_t *self /* unused */, edict_t *other /* unused */,
 	 * a pain callback */
 }
 
-qboolean
+bool
 IsFemale(edict_t *ent)
 {
 	char *info;
@@ -427,7 +427,7 @@ IsFemale(edict_t *ent)
 	return false;
 }
 
-qboolean
+bool
 IsNeutral(edict_t *ent)
 {
 	char *info;
@@ -465,7 +465,7 @@ ClientObituary(edict_t *self, edict_t *inflictor /* unused */,
 	int mod;
 	char *message;
 	char *message2;
-	qboolean ff;
+	bool ff;
 
 	if (!self || !inflictor)
 	{
@@ -714,7 +714,7 @@ TossClientWeapon(edict_t *self)
 {
 	gitem_t *item;
 	edict_t *drop;
-	qboolean quad;
+	bool quad;
 	float spread;
 
 	if (!self)
@@ -1996,7 +1996,7 @@ ClientUserinfoChanged(edict_t *ent, char *userinfo)
  * and eventually get to ClientBegin(). Changing levels will NOT
  * cause this to be called again, but loadgames will.
  */
-qboolean
+bool
 ClientConnect(edict_t *ent, char *userinfo)
 {
 	char *value;

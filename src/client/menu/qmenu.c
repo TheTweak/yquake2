@@ -129,7 +129,7 @@ Action_Draw(menuaction_s *a)
 	}
 }
 
-qboolean
+bool
 Field_DoEnter(menufield_s *f)
 {
 	if (f->generic.callback)
@@ -220,7 +220,7 @@ Field_Draw(menufield_s *f)
 
 extern int keydown[];
 
-qboolean
+bool
 Field_Key(menufield_s *f, int key)
 {
 	switch (key)
@@ -354,7 +354,7 @@ Menu_AdjustCursor(menuframework_s *m, int dir)
 	/* see if it's in a valid spot */
 	if ((m->cursor >= 0) && (m->cursor < m->nitems))
 	{
-		if ((citem = Menu_ItemAtCursor(m)) != 0)
+		if ((citem = reinterpret_cast<menucommon_s*>(Menu_ItemAtCursor(m))) != 0)
 		{
 			if (citem->type != MTYPE_SEPARATOR &&
 				(citem->flags & QMF_INACTIVE) != QMF_INACTIVE)
@@ -370,7 +370,7 @@ Menu_AdjustCursor(menuframework_s *m, int dir)
 
     while (cursor-- > 0)
     {
-		citem = Menu_ItemAtCursor(m);
+		citem = reinterpret_cast<menucommon_s*>(Menu_ItemAtCursor(m));
 
 		if (citem)
 		{
@@ -443,7 +443,7 @@ Menu_Draw(menuframework_s *menu)
 		}
 	}
 
-	item = Menu_ItemAtCursor(menu);
+	item = reinterpret_cast<menucommon_s*>(Menu_ItemAtCursor(menu));
 
 	if (item && item->cursordraw)
 	{
@@ -571,7 +571,7 @@ Menu_ItemAtCursor(menuframework_s *m)
 	return m->items[m->cursor];
 }
 
-qboolean
+bool
 Menu_SelectItem(menuframework_s *s)
 {
 	menucommon_s * item = ( menucommon_s * )Menu_ItemAtCursor(s);

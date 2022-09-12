@@ -40,11 +40,11 @@ extern int precache_model_skin;
 extern byte *precache_model;
 
 // Forces all downloads to UDP.
-static qboolean forceudp;
+static bool forceudp;
 
 // Gives HTTP downloads a second chance after
 // we've fallen trough to UDP downloads.
-static qboolean httpSecondChance = true;
+static bool httpSecondChance = true;
 
 /* This - and some more code down below - is the 'Crazy Fallback
    Magic'. First we're trying to download all files over HTTP with
@@ -59,10 +59,10 @@ static unsigned int precacherIteration;
 /* Another quirk: Don't restart texture downloading from the beginning,
    instead continue after the last requested texture. This is used to
    skip over a texture missing on the server. */
-static qboolean dont_restart_texture_stage;
+static bool dont_restart_texture_stage;
 
 // r1q2 searches the global filelist at /, q2pro at /gamedir...
-static qboolean gamedirForFilelist;
+static bool gamedirForFilelist;
 
 static const char *env_suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 
@@ -546,7 +546,7 @@ CL_DownloadFileName(char *dest, int destlen, char *fn)
  * Returns true if the file exists, otherwise it attempts
  * to start a download from the server.
  */
-qboolean
+bool
 CL_CheckOrDownloadFile(char *filename)
 {
 	FILE *fp;
@@ -710,7 +710,7 @@ CL_ParseDownload(void)
 {
 	char name[MAX_OSPATH];
 	int r, percent, size;
-	static qboolean second_try;
+	static bool second_try;
 
 	/* read the data */
 	size = MSG_ReadShort(&net_message);

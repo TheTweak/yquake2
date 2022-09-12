@@ -61,7 +61,7 @@
 
 typedef struct
 {
-	qboolean		valid; /* cleared if delta parsing was invalid */
+	bool		valid; /* cleared if delta parsing was invalid */
 	int				serverframe;
 	int				servertime; /* server time the message is valid for (in msec) */
 	int				deltaframe;
@@ -112,9 +112,9 @@ typedef struct
 	int			timedemo_frames;
 	int			timedemo_start;
 
-	qboolean	refresh_prepped; /* false if on new level or new ref dll */
-	qboolean	sound_prepped; /* ambient sounds can start */
-	qboolean	force_refdef; /* vid has changed, so we can't use a paused refdef */
+	bool	refresh_prepped; /* false if on new level or new ref dll */
+	bool	sound_prepped; /* ambient sounds can start */
+	bool	force_refdef; /* vid has changed, so we can't use a paused refdef */
 
 	int			parse_entities; /* index (not anded off) into cl_parse_entities[] */
 
@@ -157,10 +157,10 @@ typedef struct
 	int			cinematictime; /* cls.realtime for first cinematic frame */
 	int			cinematicframe;
 	unsigned char	cinematicpalette[768];
-	qboolean	cinematicpalette_active;
+	bool	cinematicpalette_active;
 
 	/* server state information */
-	qboolean	attractloop; /* running the attract loop, any key will menu */
+	bool	attractloop; /* running the attract loop, any key will menu */
 	int			servercount; /* server identification for prespawns */
 	char		gamedir[MAX_QPATH];
 	int			playernum;
@@ -234,7 +234,7 @@ typedef struct
 
 	int			challenge; /* from the server to use for connecting */
 
-	qboolean	forcePacket; /* Forces a package to be send at the next frame. */
+	bool	forcePacket; /* Forces a package to be send at the next frame. */
 
 	FILE		*download; /* file transfer from server */
 	char		downloadtempname[MAX_OSPATH];
@@ -245,8 +245,8 @@ typedef struct
 	int			downloadpercent;
 
 	/* demo recording info must be here, so it isn't cleared on level change */
-	qboolean	demorecording;
-	qboolean	demowaiting; /* don't record until a non-delta message is received */
+	bool	demorecording;
+	bool	demowaiting; /* don't record until a non-delta message is received */
 	FILE		*demofile;
 
 #ifdef USE_CURL
@@ -333,13 +333,13 @@ extern	entity_state_t	cl_parse_entities[MAX_PARSE_ENTITIES];
 extern	netadr_t	net_from;
 extern	sizebuf_t	net_message;
 
-extern qboolean paused_at_load;
+extern bool paused_at_load;
 
 void DrawString (int x, int y, char *s);
 void DrawStringScaled(int x, int y, char *s, float factor);
 void DrawAltString (int x, int y, char *s);	/* toggle high bit */
 void DrawAltStringScaled(int x, int y, char *s, float factor);
-qboolean	CL_CheckOrDownloadFile (char *filename);
+bool	CL_CheckOrDownloadFile (char *filename);
 
 void CL_AddNetgraph (void);
 

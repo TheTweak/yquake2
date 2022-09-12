@@ -138,7 +138,7 @@ typedef struct
 	int		api_version;
 
 	// called when the library is loaded
-	qboolean (EXPORT *Init) (void);
+	bool (EXPORT *Init) (void);
 
 	// called before the library is unloaded
 	void	(EXPORT *Shutdown) (void);
@@ -157,7 +157,7 @@ typedef struct
 	void	(EXPORT *ShutdownContext)(void);
 
 	// returns true if vsync is active, else false
-	qboolean (EXPORT *IsVSyncActive)(void);
+	bool (EXPORT *IsVSyncActive)(void);
 
 	// All data that will be used in a level should be
 	// registered before rendering any frames to prevent disk hits,
@@ -200,9 +200,9 @@ typedef struct
 	void	(EXPORT *SetPalette)( const unsigned char *palette);	// NULL = game palette
 	void	(EXPORT *BeginFrame)( float camera_separation );
 	void	(EXPORT *EndFrame) (void);
-	qboolean	(EXPORT *EndWorldRenderpass) (void); // finish world rendering, apply postprocess and switch to UI render pass
+	bool	(EXPORT *EndWorldRenderpass) (void); // finish world rendering, apply postprocess and switch to UI render pass
 
-	//void	(EXPORT *AppActivate)( qboolean activate );
+	//void	(EXPORT *AppActivate)( bool activate );
 } refexport_t;
 
 typedef struct
@@ -233,14 +233,14 @@ typedef struct
 	cvar_t	*(IMPORT *Cvar_Set) (char *name, char *value);
 	void	 (IMPORT *Cvar_SetValue) (char *name, float value);
 
-	qboolean	(IMPORT *Vid_GetModeInfo)(int *width, int *height, int mode);
+	bool	(IMPORT *Vid_GetModeInfo)(int *width, int *height, int mode);
 	void		(IMPORT *Vid_MenuInit)( void );
 	// called with image data of width*height pixel which comp bytes per pixel (must be 3 or 4 for RGB or RGBA)
 	// expects the pixels data to be row-wise, starting at top left
 	void		(IMPORT *Vid_WriteScreenshot)( int width, int height, int comp, const void* data );
 
-	qboolean	(IMPORT *GLimp_InitGraphics)(int fullscreen, int *pwidth, int *pheight);
-	qboolean	(IMPORT *GLimp_GetDesktopMode)(int *pwidth, int *pheight);
+	bool	(IMPORT *GLimp_InitGraphics)(int fullscreen, int *pwidth, int *pheight);
+	bool	(IMPORT *GLimp_GetDesktopMode)(int *pwidth, int *pheight);
 
 	void		(IMPORT *Vid_RequestRestart)(ref_restart_t rs);
 } refimport_t;
@@ -277,7 +277,7 @@ void Draw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data)
 //void R_Shutdown(void);
 void R_SetPalette(const unsigned char *palette);
 void R_BeginFrame(float camera_separation);
-qboolean R_EndWorldRenderpass(void);
+bool R_EndWorldRenderpass(void);
 void R_EndFrame(void);
 
 #endif

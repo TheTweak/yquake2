@@ -33,8 +33,8 @@
 static int
 glob_match_after_star(char *pattern, char *text)
 {
-	register char *p = pattern, *t = text;
-	register char c, c1;
+    char *p = pattern, *t = text;
+	char c, c1;
 
 	while ((c = *p++) == '?' || c == '*')
 	{
@@ -92,8 +92,8 @@ glob_match_after_star(char *pattern, char *text)
 int
 glob_match(char *pattern, char *text)
 {
-	register char *p = pattern, *t = text;
-	register char c;
+	char *p = pattern, *t = text;
+	char c;
 
 	while ((c = *p++) != '\0')
 	{
@@ -126,7 +126,7 @@ glob_match(char *pattern, char *text)
 
 			case '[':
 			{
-				register char c1 = *t++;
+				char c1 = *t++;
 				int invert;
 
 				if (!c1)
@@ -145,7 +145,7 @@ glob_match(char *pattern, char *text)
 
 				while (1)
 				{
-					register char cstart = c, cend = c;
+					char cstart = c, cend = c;
 
 					if (c == '\\')
 					{

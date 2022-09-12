@@ -110,8 +110,8 @@ int	numvisibility;
 int trace_contents;
 mapsurface_t map_surfaces[MAX_MAP_TEXINFO];
 mapsurface_t nullsurface;
-qboolean portalopen[MAX_MAP_AREAPORTALS];
-qboolean trace_ispoint; /* optimized case */
+bool portalopen[MAX_MAP_AREAPORTALS];
+bool trace_ispoint; /* optimized case */
 trace_t trace_trace;
 unsigned short	map_leafbrushes[MAX_MAP_LEAFBRUSHES];
 vec3_t trace_start, trace_end;
@@ -182,7 +182,7 @@ FloodAreaConnections(void)
 }
 
 void
-CM_SetAreaPortalState(int portalnum, qboolean open)
+CM_SetAreaPortalState(int portalnum, bool open)
 {
 	if (portalnum > numareaportals)
 	{
@@ -193,7 +193,7 @@ CM_SetAreaPortalState(int portalnum, qboolean open)
 	FloodAreaConnections();
 }
 
-qboolean
+bool
 CM_AreasConnected(int area1, int area2)
 {
 	if (map_noareas->value)
@@ -277,7 +277,7 @@ CM_ReadPortalState(fileHandle_t f)
  * Returns true if any leaf under headnode has a cluster that
  * is potentially visible
  */
-qboolean
+bool
 CM_HeadnodeVisible(int nodenum, byte *visbits)
 {
 	int leafnum1;
@@ -601,7 +601,7 @@ CM_ClipBoxToBrush(vec3_t mins, vec3_t maxs, vec3_t p1,
 	float enterfrac, leavefrac;
 	vec3_t ofs;
 	float d1, d2;
-	qboolean getout, startout;
+	bool getout, startout;
 	float f;
 	cbrushside_t *side, *leadside;
 
@@ -1124,7 +1124,7 @@ CM_TransformedBoxTrace(vec3_t start, vec3_t end, vec3_t mins, vec3_t maxs,
 	vec3_t a;
 	vec3_t forward, right, up;
 	vec3_t temp;
-	qboolean rotated;
+	bool rotated;
 
 	/* subtract origin offset */
 	VectorSubtract(start, origin, start_l);
@@ -1185,7 +1185,7 @@ CMod_LoadSubmodels(lump_t *l)
 	cmodel_t *out;
 	int i, j, count;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<dmodel_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1229,7 +1229,7 @@ CMod_LoadSurfaces(lump_t *l)
 	mapsurface_t *out;
 	int i, count;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<texinfo_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1268,7 +1268,7 @@ CMod_LoadNodes(lump_t *l)
 	cnode_t *out;
 	int i, j, count;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<dnode_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1310,7 +1310,7 @@ CMod_LoadBrushes(lump_t *l)
 	cbrush_t *out;
 	int i, count;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<dbrush_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1344,7 +1344,7 @@ CMod_LoadLeafs(lump_t *l)
 	dleaf_t *in;
 	int count;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<dleaf_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1414,7 +1414,7 @@ CMod_LoadPlanes(lump_t *l)
 	int count;
 	int bits;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<dplane_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1465,7 +1465,7 @@ CMod_LoadLeafBrushes(lump_t *l)
 	unsigned short *in;
 	int count;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<unsigned short*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1503,7 +1503,7 @@ CMod_LoadBrushSides(lump_t *l)
 	int count;
 	int num;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<dbrushside_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1544,7 +1544,7 @@ CMod_LoadAreas(lump_t *l)
 	darea_t *in;
 	int count;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<darea_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1577,7 +1577,7 @@ CMod_LoadAreaPortals(lump_t *l)
 	dareaportal_t *in;
 	int count;
 
-	in = (void *)(cmod_base + l->fileofs);
+	in = reinterpret_cast<dareaportal_t*>(cmod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -1666,7 +1666,7 @@ CMod_LoadEntityString(lump_t *l, char *name)
  * Loads in the map and all submodels
  */
 cmodel_t *
-CM_LoadMap(char *name, qboolean clientload, unsigned *checksum)
+CM_LoadMap(char *name, bool clientload, unsigned *checksum)
 {
 	unsigned *buf;
 	int i;

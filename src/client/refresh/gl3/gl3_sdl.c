@@ -33,7 +33,7 @@
 
 static SDL_Window* window = NULL;
 static SDL_GLContext context = NULL;
-static qboolean vsyncActive = false;
+static bool vsyncActive = false;
 
 // --------
 
@@ -127,7 +127,7 @@ void GL3_EndFrame(void)
 /*
  * Returns whether the vsync is enabled.
  */
-qboolean GL3_IsVsyncActive(void)
+bool GL3_IsVsyncActive(void)
 {
 	return vsyncActive;
 }

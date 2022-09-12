@@ -27,7 +27,7 @@
 #include "../../header/local.h"
 #include "boss32.h"
 
-qboolean visible(edict_t *self, edict_t *other);
+bool visible(edict_t *self, edict_t *other);
 
 void MakronRailgun(edict_t *self);
 void MakronSaveloc(edict_t *self);
@@ -937,7 +937,7 @@ makron_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* 
 	self->monsterinfo.currentmove = &makron_move_death2;
 }
 
-qboolean
+bool
 Makron_CheckAttack(edict_t *self)
 {
 	vec3_t spot1, spot2;

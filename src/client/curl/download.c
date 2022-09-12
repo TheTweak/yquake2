@@ -52,8 +52,8 @@ static CURLM  *multi = NULL;
 static int handleCount = 0;
 static int pendingCount = 0;
 static int abortDownloads = HTTPDL_ABORT_NONE;
-static qboolean downloadingPak = false;
-static qboolean	httpDown = false;
+static bool downloadingPak = false;
+static bool	httpDown = false;
 
 #if defined(CURLOPT_XFERINFODATA)
 typedef curl_off_t CL_Progresstype;
@@ -95,12 +95,12 @@ static size_t CL_HTTP_Recv(void *ptr, size_t size, size_t nmemb, void *stream)
 		}
 
 		dl->fileSize = ceil(length) + 1;
-		dl->tempBuffer = malloc(dl->fileSize);
+		dl->tempBuffer = static_cast<char*>(malloc(dl->fileSize));
 	}
 	else if (dl->position + bytes >= dl->fileSize)
 	{
 		dl->fileSize *= 2;
-		char *tempBuffer = realloc(dl->tempBuffer, dl->fileSize);
+		char *tempBuffer = static_cast<char*>(realloc(dl->tempBuffer, dl->fileSize));
 		if (!tempBuffer) {
 			free(dl->tempBuffer);
 			dl->tempBuffer = 0;
@@ -187,7 +187,7 @@ static void CL_EscapeHTTPPath(const char *filePath, char *escaped)
 /*
  * Removes an entry from the download queue.
  */
-static qboolean CL_RemoveFromQueue(dlqueue_t *entry)
+static bool CL_RemoveFromQueue(dlqueue_t *entry)
 {
 	dlqueue_t *last = &cls.downloadQueue;
 	dlqueue_t *cur = last->next;
@@ -308,7 +308,7 @@ static void CL_StartHTTPDownload (dlqueue_t *entry, dlhandle_t *dl)
 
 	if ((ret = qcurl_multi_add_handle(multi, dl->curl)) != CURLM_OK)
 	{
-		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(ret));
+		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(static_cast<CURLcode>(ret) ));
 		CL_RemoveFromQueue(entry);
 
 		return;
@@ -368,7 +368,7 @@ static void CL_CheckAndQueueDownload(char *path)
 
 	// These file extensions must be in sync with
 	// fs_packtypes in filesystem.c!
-	qboolean pak = false;
+	bool pak = false;
 
 	if (!strcmp (ext, "pak") || !strcmp (ext, "pk2") ||
 			!strcmp(ext, "pk3") || !strcmp(ext, "zip"))
@@ -391,7 +391,7 @@ static void CL_CheckAndQueueDownload(char *path)
 	// wouldn't download conchars.pcx because it already exists in
 	// the global scope. If it's prefixed with @ it's downloaded
 	// anyways if it doesn't exists in the current game dir.
-	qboolean gameLocal = false;
+	bool gameLocal = false;
 
 	if (path[0] == '@')
 	{
@@ -429,7 +429,7 @@ static void CL_CheckAndQueueDownload(char *path)
 	}
 
 	// Let's see if we've already got that file.
-	qboolean exists = false;
+	bool exists = false;
 
 	if (gameLocal || pak)
 	{
@@ -549,7 +549,7 @@ static void CL_FinishHTTPDownload(void)
 	char tempName[MAX_OSPATH];
 	dlhandle_t *dl = NULL;
 	int	msgs_in_queue;
-	qboolean isFile;
+	bool isFile;
 	size_t i;
 
 	do
@@ -623,6 +623,7 @@ static void CL_FinishHTTPDownload(void)
 		{
 			case CURLE_HTTP_RETURNED_ERROR:
 			case CURLE_OK:
+            {
 				qcurl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &responseCode);
 
 				if (responseCode == 404)
@@ -675,12 +676,14 @@ static void CL_FinishHTTPDownload(void)
 
 					break;
 				}
+            }
 
 
 			// Everything that's not 200 and 404 is fatal, fall through.
 			case CURLE_COULDNT_RESOLVE_HOST:
 			case CURLE_COULDNT_CONNECT:
 			case CURLE_COULDNT_RESOLVE_PROXY:
+            {
 				Com_Printf("HTTP download: %s - Server broken, aborting\n", dl->queueEntry->quakePath);
 
 				// The download failed. Reset pak downloading state...
@@ -719,8 +722,9 @@ static void CL_FinishHTTPDownload(void)
 				dl->queueEntry = NULL;
 
 				break;
-
+            }
 			default:
+            {
 				Com_Printf ("HTTP download: cURL error - %s\n", qcurl_easy_strerror(result));
 
 				// The download failed. Clear the Remove the temporary file...
@@ -736,6 +740,7 @@ static void CL_FinishHTTPDownload(void)
 				dl->queueEntry = NULL;
 
 				break;
+            }
 		}
 
 		if (isFile)
@@ -867,7 +872,7 @@ void CL_InitHTTPDownloads (void)
  * Resets the internal state and - in case
  * of full shutdown - shuts CURL down.
  */
-void CL_HTTP_Cleanup(qboolean fullShutdown)
+void CL_HTTP_Cleanup(bool fullShutdown)
 {
 	if (fullShutdown && httpDown)
 	{
@@ -1025,7 +1030,7 @@ void CL_SetHTTPServer (const char *URL)
 /*
  * Cancels all downloads and clears the queue.
  */
-void CL_CancelHTTPDownloads(qboolean permKill)
+void CL_CancelHTTPDownloads(bool permKill)
 {
 	if (permKill)
 	{
@@ -1063,7 +1068,7 @@ void CL_CancelHTTPDownloads(qboolean permKill)
  * for the requested files are possible. Queues the download
  * and returns true if yes, returns fales if not.
  */
-qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist)
+bool CL_QueueHTTPDownload(const char *quakePath, bool gamedirForFilelist)
 {
 	// Not HTTP servers were send by the server, HTTP is disabled
 	// or the client is shutting down and we're wrapping up.
@@ -1074,7 +1079,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
 
 	// Mkay, now that the first download is queued we want
 	// the generic(!) filelist.
-	qboolean needList = false;
+	bool needList = false;
 
 	if (dlquirks.filelist && cl_http_filelists->value)
 	{
@@ -1097,7 +1102,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
 		}
 	}
 
-	q->next = malloc(sizeof(*q));
+	q->next = static_cast<dlqueue_s*>(malloc(sizeof(*q)));
 
 	YQ2_COM_CHECK_OOM(q->next, "malloc(sizeof(*q))", sizeof(*q))
 
@@ -1164,7 +1169,7 @@ qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist
  * phase to determine if it's necessary to wait for
  * outstanding download.
  */
-qboolean CL_PendingHTTPDownloads(void)
+bool CL_PendingHTTPDownloads(void)
 {
 	if (!cls.downloadServer[0])
 	{
@@ -1206,7 +1211,7 @@ void CL_RunHTTPDownloads(void)
 	// Somethings gone very wrong.
 	if (ret != CURLM_OK)
 	{
-		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(ret));
+		Com_Printf("HTTP download: cURL error - %s\n", qcurl_easy_strerror(static_cast<CURLcode>(ret)));
 		CL_CancelHTTPDownloads(true);
 	}
 

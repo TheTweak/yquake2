@@ -74,7 +74,7 @@ typedef struct
 	int numFiles;
 	FILE *pak;
 	unzFile *pk3;
-	qboolean isProtectedPak;
+	bool isProtectedPak;
 	fsPackFile_t *files;
 } fsPack_t;
 
@@ -113,7 +113,7 @@ fsPackTypes_t fs_packtypes[] = {
 
 char datadir[MAX_OSPATH];
 char fs_gamedir[MAX_OSPATH];
-qboolean file_from_protected_pak;
+bool file_from_protected_pak;
 
 cvar_t *fs_basedir;
 cvar_t *fs_cddir;
@@ -128,7 +128,7 @@ fsHandle_t *FS_GetFileByHandle(fileHandle_t f);
 // bath is build from this one.
 typedef struct fsRawPath_s {
 	char path[MAX_OSPATH];
-	qboolean create;
+	bool create;
 	struct fsRawPath_s *next;
 } fsRawPath_t;
 
@@ -205,7 +205,7 @@ Com_FilePath(const char *path, char *dst, int dstSize)
 {
 	char *pos; /* Position of the last '/'. */
 
-	if ((pos = strrchr(path, '/')) != NULL)
+	if ((pos = strdup(strrchr(path, '/'))) != NULL)
 	{
 		pos--;
 
@@ -371,7 +371,7 @@ FS_FCloseFile(fileHandle_t f)
  * for streaming data out of either a pak file or a seperate file.
  */
 int
-FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
+FS_FOpenFile(const char *rawname, fileHandle_t *f, bool gamedir_only)
 {
 	char path[MAX_OSPATH], lwrName[MAX_OSPATH];
 	fsHandle_t *handle;
@@ -503,7 +503,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 #ifdef _WIN32
 						handle->zip = unzOpen2(pack->name, &zlib_file_api);
 #else
-						handle->zip = unzOpen(pack->name);
+						handle->zip = reinterpret_cast<unzFile*>(unzOpen(pack->name));
 #endif
 
 						if (handle->zip)
@@ -568,7 +568,7 @@ FS_FOpenFile(const char *rawname, fileHandle_t *f, qboolean gamedir_only)
 int
 FS_Read(void *buffer, int size, fileHandle_t f)
 {
-	qboolean tried = false;    /* Tried to read from a CD. */
+	bool tried = false;    /* Tried to read from a CD. */
 	byte *buf;        /* Buffer. */
 	int r;         /* Number of bytes read. */
 	int remaining;        /* Remaining bytes. */
@@ -628,7 +628,7 @@ FS_Read(void *buffer, int size, fileHandle_t f)
 int
 FS_FRead(void *buffer, int size, int count, fileHandle_t f)
 {
-	qboolean tried = false;    /* Tried to read from a CD. */
+	bool tried = false;    /* Tried to read from a CD. */
 	byte *buf;        /* Buffer. */
 	int loops;         /* Loop indicator. */
 	int r;         /* Number of bytes read. */
@@ -721,7 +721,7 @@ FS_LoadFile(char *path, void **buffer)
 		return size;
 	}
 
-	buf = Z_Malloc(size);
+	buf = reinterpret_cast<byte*>(Z_Malloc(size));
 	*buffer = buf;
 
 	FS_Read(buf, size, f);
@@ -838,14 +838,14 @@ FS_LoadPAK(const char *packPath)
 				__func__, packPath, numFiles, MAX_FILES_IN_PACK);
 	}
 
-	info = malloc(header.dirlen);
+	info = reinterpret_cast<dpackfile_t*>(malloc(header.dirlen));
 	if (!info)
 	{
 		Com_Error(ERR_FATAL, "%s: '%s' is to big for read %d",
 				__func__, packPath, header.dirlen);
 	}
 
-	files = Z_Malloc(numFiles * sizeof(fsPackFile_t));
+	files = reinterpret_cast<fsPackFile_t*>(Z_Malloc(numFiles * sizeof(fsPackFile_t)));
 
 	fseek(handle, header.dirofs, SEEK_SET);
 	fread(info, 1, header.dirlen, handle);
@@ -859,7 +859,7 @@ FS_LoadPAK(const char *packPath)
 	}
 	free(info);
 
-	pack = Z_Malloc(sizeof(fsPack_t));
+	pack = reinterpret_cast<fsPack_t*>(Z_Malloc(sizeof(fsPack_t)));
 	Q_strlcpy(pack->name, packPath, sizeof(pack->name));
 	pack->pak = handle;
 	pack->pk3 = NULL;
@@ -893,7 +893,7 @@ FS_LoadPK3(const char *packPath)
 #ifdef _WIN32
 	handle = unzOpen2(packPath, &zlib_file_api);
 #else
-	handle = unzOpen(packPath);
+	handle = reinterpret_cast<unzFile*>(unzOpen(packPath));
 #endif
 
 	if (handle == NULL)
@@ -916,7 +916,7 @@ FS_LoadPK3(const char *packPath)
 				__func__, packPath, numFiles);
 	}
 
-	files = Z_Malloc(numFiles * sizeof(fsPackFile_t));
+	files = reinterpret_cast<fsPackFile_t*>(Z_Malloc(numFiles * sizeof(fsPackFile_t)));
 
 	/* Parse the directory. */
 	status = unzGoToFirstFile(handle);
@@ -933,7 +933,7 @@ FS_LoadPK3(const char *packPath)
 		status = unzGoToNextFile(handle);
 	}
 
-	pack = Z_Malloc(sizeof(fsPack_t));
+	pack = reinterpret_cast<fsPack_t*>(Z_Malloc(sizeof(fsPack_t)));
 	Q_strlcpy(pack->name, packPath, sizeof(pack->name));
 	pack->pak = NULL;
 	pack->pk3 = handle;
@@ -1064,7 +1064,7 @@ FS_Link_f(void)
 	}
 
 	/* Create a new link. */
-	l = Z_Malloc(sizeof(*l));
+	l = reinterpret_cast<fsLink_t*>(Z_Malloc(sizeof(*l)));
 	l->next = fs_links;
 	fs_links = l;
 	l->from = CopyString(Cmd_Argv(1));
@@ -1112,7 +1112,7 @@ FS_ListFiles(char *findname, int *numfiles,
 	*numfiles = nfiles;
 
 	/* Allocate the list. */
-	list = calloc(nfiles, sizeof(char *));
+	list = reinterpret_cast<char**>(calloc(nfiles, sizeof(char *)));
 	YQ2_COM_CHECK_OOM(list, "calloc()", (size_t)nfiles*sizeof(char*))
 
 	/* Fill the list. */
@@ -1141,11 +1141,11 @@ FS_ListFiles(char *findname, int *numfiles,
  * attributes then a copy of the matching string will be placed there (with
  * SFF_SUBDIR it changes).
  */
-qboolean
+bool
 ComparePackFiles(const char *findname, const char *name, unsigned musthave,
 		unsigned canthave, char *output, int size)
 {
-	qboolean retval;
+	bool retval;
 	char *ptr;
 	char buffer[MAX_OSPATH];
 
@@ -1215,7 +1215,7 @@ FS_ListFiles2(char *findname, int *numfiles,
 	char path[MAX_OSPATH]; /* Temporary path. */
 
 	nfiles = 0;
-	list = malloc(sizeof(char *));
+	list = reinterpret_cast<char**>(malloc(sizeof(char *)));
 	YQ2_COM_CHECK_OOM(list, "malloc()", sizeof(char*))
 
 	for (search = fs_searchPaths; search != NULL; search = search->next)
@@ -1242,7 +1242,7 @@ FS_ListFiles2(char *findname, int *numfiles,
 			}
 
 			nfiles += j;
-			list = realloc(list, nfiles * sizeof(char *));
+			list = reinterpret_cast<char**>(realloc(list, nfiles * sizeof(char *)));
 			YQ2_COM_CHECK_OOM(list, "realloc()", (size_t)nfiles*sizeof(char*))
 
 			for (i = 0, j = nfiles - j; i < search->pack->numFiles; i++)
@@ -1267,7 +1267,7 @@ FS_ListFiles2(char *findname, int *numfiles,
 		{
 			tmpnfiles--;
 			nfiles += tmpnfiles;
-			list = realloc(list, nfiles * sizeof(char *));
+			list = reinterpret_cast<char**>(realloc(list, nfiles * sizeof(char *)));
 			YQ2_COM_CHECK_OOM(list, "2nd realloc()", (size_t)nfiles*sizeof(char*))
 
 			for (i = 0, j = nfiles - tmpnfiles; i < tmpnfiles; i++, j++)
@@ -1304,7 +1304,7 @@ FS_ListFiles2(char *findname, int *numfiles,
 	if (tmpnfiles > 0)
 	{
 		nfiles -= tmpnfiles;
-		tmplist = malloc(nfiles * sizeof(char *));
+		tmplist = reinterpret_cast<char**>(malloc(nfiles * sizeof(char *)));
 		YQ2_COM_CHECK_OOM(tmplist, "malloc()", (size_t)nfiles*sizeof(char*))
 
 		for (i = 0, j = 0; i < nfiles + tmpnfiles; i++)
@@ -1323,7 +1323,7 @@ FS_ListFiles2(char *findname, int *numfiles,
 	if (nfiles > 0)
 	{
 		nfiles++;
-		list = realloc(list, nfiles * sizeof(char *));
+		list = reinterpret_cast<char**>(realloc(list, nfiles * sizeof(char *)));
 		YQ2_COM_CHECK_OOM(list, "3rd realloc()", (size_t)nfiles*sizeof(char*))
 		list[nfiles - 1] = NULL;
 	}
@@ -1366,7 +1366,7 @@ FS_ListMods(int *nummods)
 	char findnamepattern[MAX_OSPATH], modname[MAX_QPATH], searchpath[MAX_OSPATH];
 	char **dirchildren, **packsinchilddir, **modnames;
 
-	modnames = malloc((MAX_QPATH + 1) * (MAX_MODS + 1));
+	modnames = reinterpret_cast<char**>(malloc((MAX_QPATH + 1) * (MAX_MODS + 1)));
 	memset(modnames, 0, (MAX_QPATH + 1) * (MAX_MODS + 1));
 
 	// iterate over all Raw paths
@@ -1418,7 +1418,7 @@ FS_ListMods(int *nummods)
 					// if this dir has some pack files, add it if not already in the list
 					if (numpacksinchilddir > 0)
 					{
-						qboolean matchfound = false;
+						bool matchfound = false;
 
 						Com_sprintf(modname, sizeof(modname), "%s", strrchr(dirchildren[i], '/') + 1);
 
@@ -1433,7 +1433,7 @@ FS_ListMods(int *nummods)
 
 						if (!matchfound)
 						{
-							modnames[nmods] = malloc(strlen(modname) + 1);
+							modnames[nmods] = reinterpret_cast<char*>(malloc(strlen(modname) + 1));
 							strcpy(modnames[nmods], modname);
 
 							nmods++;
@@ -1510,7 +1510,7 @@ FS_Dir_f(void)
  * in a pak, somthing in the file system itself) exists in the
  * current gamedir.
  */
-qboolean
+bool
 FS_FileInGamedir(const char *file)
 {
 	char path[MAX_OSPATH];
@@ -1534,7 +1534,7 @@ FS_FileInGamedir(const char *file)
  * fs_gamedir. There's no need to load from other dirs since
  * fs_gamedir is the only dir written to at runtime.
  */
-qboolean
+bool
 FS_AddPAKFromGamedir(const char *pak)
 {
 	char path[MAX_OSPATH];
@@ -1582,7 +1582,7 @@ FS_AddPAKFromGamedir(const char *pak)
 		else
 		{
 			// Add it.
-			fsSearchPath_t *search = Z_Malloc(sizeof(fsSearchPath_t));
+			fsSearchPath_t *search = reinterpret_cast<fsSearchPath_t*>(Z_Malloc(sizeof(fsSearchPath_t)));
 			search->pack = pakfile;
 			search->next = fs_searchPaths;
 			fs_searchPaths = search;
@@ -1636,7 +1636,7 @@ static char* basename( char* n )
 #endif // _MSC_VER
 
 void
-FS_AddDirToSearchPath(char *dir, qboolean create) {
+FS_AddDirToSearchPath(char *dir, bool create) {
 	char *file;
 	char **list;
 	char path[MAX_OSPATH];
@@ -1645,7 +1645,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	int nfiles;
 	fsPack_t *pack = NULL;
 	fsSearchPath_t *search;
-	qboolean nextpak;
+	bool nextpak;
 	size_t len = strlen(dir);
 
 	// The directory must not end with an /. It would
@@ -1666,7 +1666,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 	}
 
 	// Add the directory itself.
-	search = Z_Malloc(sizeof(fsSearchPath_t));
+	search = reinterpret_cast<fsSearchPath_t*>(Z_Malloc(sizeof(fsSearchPath_t)));
 	Q_strlcpy(search->path, dir, sizeof(search->path));
 	search->next = fs_searchPaths;
 	fs_searchPaths = search;
@@ -1709,7 +1709,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 				continue;
 			}
 
-			search = Z_Malloc(sizeof(fsSearchPath_t));
+			search = reinterpret_cast<fsSearchPath_t*>(Z_Malloc(sizeof(fsSearchPath_t)));
 			search->pack = pack;
 			search->next = fs_searchPaths;
 			fs_searchPaths = search;
@@ -1779,7 +1779,7 @@ FS_AddDirToSearchPath(char *dir, qboolean create) {
 
 			pack->isProtectedPak = false;
 
-			search = Z_Malloc(sizeof(fsSearchPath_t));
+			search = reinterpret_cast<fsSearchPath_t*>(Z_Malloc(sizeof(fsSearchPath_t)));
 			search->pack = pack;
 			search->next = fs_searchPaths;
 			fs_searchPaths = search;
@@ -1825,7 +1825,7 @@ void FS_BuildGenericSearchPath(void) {
 // here.
 #ifndef DEDICATED_ONLY
 // Variables
-extern qboolean menu_startdemoloop;
+extern bool menu_startdemoloop;
 
 // Functions
 void CL_WriteConfiguration(void);
@@ -1965,7 +1965,7 @@ const char* FS_GetFilenameForHandle(fileHandle_t f)
 
 // --------
 
-static void FS_AddDirToRawPath (const char *rawdir, qboolean create, qboolean required) {
+static void FS_AddDirToRawPath (const char *rawdir, bool create, bool required) {
 	char dir[MAX_OSPATH] = {0};
 
 	// Get the realpath.
@@ -2011,7 +2011,7 @@ static void FS_AddDirToRawPath (const char *rawdir, qboolean create, qboolean re
 	}
 
 	// Add the directory.
-	fsRawPath_t *search = Z_Malloc(sizeof(fsRawPath_t));
+	fsRawPath_t *search = reinterpret_cast<fsRawPath_t*>(Z_Malloc(sizeof(fsRawPath_t)));
 	Q_strlcpy(search->path, dir, sizeof(search->path));
 	search->create = create;
 	search->next = fs_rawPath;

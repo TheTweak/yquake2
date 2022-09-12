@@ -383,7 +383,7 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 	return rserr_ok;
 }
 
-static qboolean
+static bool
 GL3_SetMode(void)
 {
 	int err;
@@ -449,7 +449,7 @@ GL3_SetMode(void)
 // only needed (and allowed!) if using OpenGL compatibility profile, it's not in 3.2 core
 enum { QGL_POINT_SPRITE = 0x8861 };
 
-static qboolean
+static bool
 GL3_Init(void)
 {
 	Swap_Init(); // FIXME: for fucks sake, this doesn't have to be done at runtime!
@@ -936,8 +936,8 @@ static void
 GL3_DrawParticles(void)
 {
 	// TODO: stereo
-	//qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
-	//qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+	//bool stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	//bool stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
 	//if (!(stereo_split_tb || stereo_split_lr))
 	{
@@ -1248,9 +1248,9 @@ GL3_SetGL2D(void)
 
 #if 0 // TODO: stereo
 	/* set 2D virtual screen size */
-	qboolean drawing_left_eye = gl_state.camera_separation < 0;
-	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
-	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+	bool drawing_left_eye = gl_state.camera_separation < 0;
+	bool stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	bool stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
 	if(stereo_split_lr) {
 		w =  w / 2;
@@ -1355,9 +1355,9 @@ SetupGL(void)
 	h = y - y2;
 
 #if 0 // TODO: stereo stuff
-	qboolean drawing_left_eye = gl_state.camera_separation < 0;
-	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
-	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+	bool drawing_left_eye = gl_state.camera_separation < 0;
+	bool stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	bool stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
 	if(stereo_split_lr) {
 		w = w / 2;
@@ -1497,7 +1497,7 @@ GL3_RenderView(refdef_t *fd)
 #if 0 // TODO: keep stereo stuff?
 	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
 
-		qboolean drawing_left_eye = gl_state.camera_separation < 0;
+		bool drawing_left_eye = gl_state.camera_separation < 0;
 		switch (gl_state.stereo_mode) {
 			case STEREO_MODE_ANAGLYPH:
 				{
@@ -1541,7 +1541,7 @@ GL3_RenderView(refdef_t *fd)
 			case STEREO_MODE_COLUMN_INTERLEAVED:
 			case STEREO_MODE_PIXEL_INTERLEAVED:
 				{
-					qboolean flip_eyes = true;
+					bool flip_eyes = true;
 					int client_x, client_y;
 
 					//GLimp_GetClientAreaOffset(&client_x, &client_y);
@@ -1739,7 +1739,7 @@ GL3_RenderFrame(refdef_t *fd)
 {
 	GL3_RenderView(fd);
 	GL3_SetLightLevel(NULL);
-	qboolean usedFBO = gl3state.ppFBObound; // if it was/is used this frame
+	bool usedFBO = gl3state.ppFBObound; // if it was/is used this frame
 	if(usedFBO)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // now render to default framebuffer
@@ -1958,7 +1958,7 @@ GL3_SetPalette(const unsigned char *palette)
 GL3_EndWorldRenderpass
 =====================
 */
-static qboolean
+static bool
 GL3_EndWorldRenderpass( void )
 {
 	return true;

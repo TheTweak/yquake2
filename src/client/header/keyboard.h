@@ -27,7 +27,7 @@
 #ifndef CL_HEADER_KEYBOARD_H
 #define CL_HEADER_KEYBOARD_H
 
-#include "../../common/header/shared.h" /* for qboolean etc */
+#include "../../common/header/shared.h" /* for bool etc */
 
 /* Max length of a console command line. 1024
  * chars allow for a vertical resolution of
@@ -44,7 +44,7 @@
  * the joystick altselector key is pressed
  * => K_BTN_x turns into K_BTN_x_ALT
  */
-extern qboolean joy_altselector_pressed;
+extern bool joy_altselector_pressed;
 
 /* these are the key numbers that should be passed to Key_Event
    they must be matched by the low level key event processing! */
@@ -274,10 +274,10 @@ extern int		anykeydown;
 extern char		chat_buffer[];
 extern int		chat_bufferlen;
 extern int		chat_cursorpos;
-extern qboolean	chat_team;
+extern bool	chat_team;
 
 void Char_Event(int key);
-void Key_Event(int key, qboolean down, qboolean special);
+void Key_Event(int key, bool down, bool special);
 void Key_Init(void);
 void Key_Shutdown(void);
 void Key_WriteBindings(FILE *f);

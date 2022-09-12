@@ -53,7 +53,7 @@ typedef struct
 	int groundcontents;
 
 	vec3_t previous_origin;
-	qboolean ladder;
+	bool ladder;
 } pml_t;
 
 pmove_t *pm;
@@ -918,7 +918,7 @@ PM_CheckSpecialMovement(void)
 }
 
 void
-PM_FlyMove(qboolean doclip)
+PM_FlyMove(bool doclip)
 {
 	float speed, drop, friction, control, newspeed;
 	float currentspeed, addspeed, accelspeed;
@@ -1108,7 +1108,7 @@ PM_DeadMove(void)
 	}
 }
 
-qboolean
+bool
 PM_GoodPosition(void)
 {
 	trace_t trace;

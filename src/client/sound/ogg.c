@@ -49,7 +49,7 @@ static int ogg_numbufs;           /* Number of buffers for OpenAL */
 static int ogg_numsamples;        /* Number of sambles read from the current file */
 static ogg_status_t ogg_status;   /* Status indicator. */
 static stb_vorbis *ogg_file;      /* Ogg Vorbis file. */
-static qboolean ogg_started;      /* Initialization flag. */
+static bool ogg_started;      /* Initialization flag. */
 
 enum { MAX_NUM_OGGTRACKS = 128 };
 static char* ogg_tracks[MAX_NUM_OGGTRACKS];
@@ -62,7 +62,7 @@ enum GameType {
 };
 
 struct {
-	qboolean saved;
+	bool saved;
 	int curfile;
 	int numsamples;
 } ogg_saved_state;
@@ -727,7 +727,7 @@ OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
 	}
 
 	/* load vorbis file from memory */
-	ogg2wav_file = stb_vorbis_open_memory(temp_buffer, size, &res, NULL);
+	ogg2wav_file = stb_vorbis_open_memory(static_cast<const unsigned char*>(temp_buffer), size, &res, NULL);
 	if (!res && ogg2wav_file->channels > 0)
 	{
 		int read_samples = 0;
@@ -742,7 +742,7 @@ OGG_LoadAsWav(char *filename, wavinfo_t *info, void **buffer)
 		info->dataofs = 0;
 
 		/* alloc memory for uncompressed wav */
-		final_buffer = Z_Malloc(info->samples * sizeof(short) * ogg2wav_file->channels);
+		final_buffer = static_cast<short*>(Z_Malloc(info->samples * sizeof(short) * ogg2wav_file->channels));
 
 		/* load sampleas to buffer */
 		read_samples = stb_vorbis_get_samples_short_interleaved(

@@ -36,7 +36,7 @@ game_export_t *ge;
  * Sends the contents of the mutlicast buffer to a single client
  */
 void
-PF_Unicast(edict_t *ent, qboolean reliable)
+PF_Unicast(edict_t *ent, bool reliable)
 {
 	int p;
 	client_t *client;
@@ -276,7 +276,7 @@ PF_WriteAngle(float f)
 /*
  * Also checks portalareas so that doors block sight
  */
-qboolean
+bool
 PF_inPVS(vec3_t p1, vec3_t p2)
 {
 	int leafnum;
@@ -309,7 +309,7 @@ PF_inPVS(vec3_t p1, vec3_t p2)
 /*
  * Also checks portalareas so that doors block sound
  */
-qboolean
+bool
 PF_inPHS(vec3_t p1, vec3_t p2)
 {
 	int leafnum;

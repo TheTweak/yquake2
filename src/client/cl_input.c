@@ -50,7 +50,7 @@ unsigned old_sys_frame_time;
  * state bit 2 is edge triggered on the down to up transition
  *
  *
- * Key_Event (int key, qboolean down, unsigned time);
+ * Key_Event (int key, bool down, unsigned time);
  *
  *   +mlook src time
  */

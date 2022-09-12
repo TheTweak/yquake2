@@ -471,7 +471,7 @@ R_ClipSkyPolygon(int nump, vec3_t vecs, int stage)
 {
 	float *norm;
 	float *v;
-	qboolean front, back;
+	bool front, back;
 	float d, e;
 	float dists[MAX_CLIP_VERTS];
 	int sides[MAX_CLIP_VERTS];

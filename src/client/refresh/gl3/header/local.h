@@ -116,11 +116,11 @@ typedef struct
 
 	// ----
 
-	qboolean anisotropic; // is GL_EXT_texture_filter_anisotropic supported?
-	qboolean debug_output; // is GL_ARB_debug_output supported?
-	qboolean stencil; // Do we have a stencil buffer?
+	bool anisotropic; // is GL_EXT_texture_filter_anisotropic supported?
+	bool debug_output; // is GL_ARB_debug_output supported?
+	bool stencil; // Do we have a stencil buffer?
 
-	qboolean useBigVBO; // workaround for AMDs windows driver for fewer calls to glBufferData()
+	bool useBigVBO; // workaround for AMDs windows driver for fewer calls to glBufferData()
 
 	// ----
 
@@ -197,7 +197,7 @@ enum {
 typedef struct
 {
 	// TODO: what of this do we need?
-	qboolean fullscreen;
+	bool fullscreen;
 
 	int prev_mode;
 
@@ -215,7 +215,7 @@ typedef struct
 	GLuint ppFBtex; // ppFBO's texture for color buffer
 	int ppFBtexWidth, ppFBtexHeight;
 	GLuint ppFBrbo; // ppFBO's renderbuffer object for depth and stencil buffer
-	qboolean ppFBObound; // is it currently bound (rendered to)?
+	bool ppFBObound; // is it currently bound (rendered to)?
 
 	//float camera_separation;
 	//enum stereo_modes stereo_mode;
@@ -301,8 +301,8 @@ typedef struct image_s
 	struct msurface_s *texturechain;    /* for sort-by-texture world drawing */
 	GLuint texnum;                      /* gl texture binding */
 	float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
-	// qboolean scrap; // currently unused
-	qboolean has_alpha;
+	// bool scrap; // currently unused
+	bool has_alpha;
 
 } gl3image_t;
 
@@ -381,13 +381,13 @@ GL3_BindEBO(GLuint ebo)
 
 extern void GL3_BufferAndDraw3D(const gl3_3D_vtx_t* verts, int numVerts, GLenum drawMode);
 
-extern qboolean GL3_CullBox(vec3_t mins, vec3_t maxs);
+extern bool GL3_CullBox(vec3_t mins, vec3_t maxs);
 extern void GL3_RotateForEntity(entity_t *e);
 
 // gl3_sdl.c
 extern int GL3_InitContext(void* win);
 extern int GL3_PrepareForWindow(void);
-extern qboolean GL3_IsVsyncActive(void);
+extern bool GL3_IsVsyncActive(void);
 extern void GL3_EndFrame(void);
 extern void GL3_SetVsync(void);
 extern void GL3_ShutdownContext(void);
@@ -446,7 +446,7 @@ extern gl3image_t *GL3_FindImage(char *name, imagetype_t type);
 extern gl3image_t *GL3_RegisterSkin(char *name);
 extern void GL3_ShutdownImages(void);
 extern void GL3_FreeUnusedImages(void);
-extern qboolean GL3_ImageHasFreeSpace(void);
+extern bool GL3_ImageHasFreeSpace(void);
 extern void GL3_ImageList_f(void);
 
 // gl3_light.c
@@ -460,7 +460,7 @@ extern void GL3_BuildLightMap(msurface_t *surf, int offsetInLMbuf, int stride);
 
 extern void GL3_LM_InitBlock(void);
 extern void GL3_LM_UploadBlock(void);
-extern qboolean GL3_LM_AllocBlock(int w, int h, int *x, int *y);
+extern bool GL3_LM_AllocBlock(int w, int h, int *x, int *y);
 extern void GL3_LM_BuildPolygonFromSurface(gl3model_t *currentmodel, msurface_t *fa);
 extern void GL3_LM_CreateSurfaceLightmap(msurface_t *surf);
 extern void GL3_LM_BeginBuildingLightmaps(gl3model_t *m);
@@ -495,8 +495,8 @@ extern void GL3_ShutdownMeshes(void);
 
 // gl3_shaders.c
 
-extern qboolean GL3_RecreateShaders(void);
-extern qboolean GL3_InitShaders(void);
+extern bool GL3_RecreateShaders(void);
+extern bool GL3_InitShaders(void);
 extern void GL3_ShutdownShaders(void);
 extern void GL3_UpdateUBOCommon(void);
 extern void GL3_UpdateUBO2D(void);

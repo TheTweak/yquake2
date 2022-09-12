@@ -757,7 +757,7 @@ COM_DefaultExtension(char *path, const char *extension)
  * ============================================================================
  */
 
-qboolean bigendien;
+bool bigendien;
 
 /* can't just use function pointers, or dll linkage can
    mess up when qcommon is included in multiple places */
@@ -1337,7 +1337,7 @@ Info_RemoveKey(char *s, char *key)
  * Some characters are illegal in info strings
  * because they can mess up the server's parsing
  */
-qboolean
+bool
 Info_Validate(char *s)
 {
 	if (strstr(s, "\""))

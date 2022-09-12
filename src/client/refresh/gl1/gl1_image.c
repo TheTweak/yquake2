@@ -30,7 +30,7 @@ image_t gltextures[MAX_GLTEXTURES];
 int numgltextures;
 static int image_max = 0;
 int base_textureid; /* gltextures[i] = base_textureid+i */
-extern qboolean scrap_dirty;
+extern bool scrap_dirty;
 extern byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];
 
 static byte intensitytable[256];
@@ -40,9 +40,9 @@ cvar_t *intensity;
 
 unsigned d_8to24table[256];
 
-qboolean R_Upload8(byte *data, int width, int height,
-		qboolean mipmap, qboolean is_sky);
-qboolean R_Upload32(unsigned *data, int width, int height, qboolean mipmap);
+bool R_Upload8(byte *data, int width, int height,
+		bool mipmap, bool is_sky);
+bool R_Upload32(unsigned *data, int width, int height, bool mipmap);
 
 int gl_solid_format = GL_RGB;
 int gl_alpha_format = GL_RGBA;
@@ -124,7 +124,7 @@ typedef struct
 	}
 
 int upload_width, upload_height;
-qboolean uploaded_paletted;
+bool uploaded_paletted;
 
 void
 R_SetTexturePalette(unsigned palette[256])
@@ -215,12 +215,12 @@ R_TextureMode(char *string)
 
 	const char* nolerplist = gl_nolerp_list->string;
 	const char* lerplist = r_lerp_list->string;
-	qboolean unfiltered2D = r_2D_unfiltered->value != 0;
+	bool unfiltered2D = r_2D_unfiltered->value != 0;
 
 	/* change all the existing mipmap texture objects */
 	for (i = 0, glt = gltextures; i < numgltextures; i++, glt++)
 	{
-		qboolean nolerp = false;
+		bool nolerp = false;
 		/* r_2D_unfiltered and r_nolerp_list allow rendering stuff unfiltered even if gl_filter_* is filtered */
 		if (unfiltered2D && glt->type == it_pic)
 		{
@@ -313,7 +313,7 @@ R_ImageList_f(void)
 {
 	int i, used, texels;
 	image_t *image;
-	qboolean	freeup;
+	bool	freeup;
 	const char *palstrings[2] = {
 		"RGB",
 		"PAL"
@@ -443,7 +443,7 @@ R_FloodFillSkin(byte *skin, int skinwidth, int skinheight)
  */
 void
 R_LightScaleTexture(unsigned *in, int inwidth,
-		int inheight, qboolean only_gamma)
+		int inheight, bool only_gamma)
 {
 	if (only_gamma)
 	{
@@ -534,8 +534,8 @@ R_BuildPalettedTexture(unsigned char *paletted_texture, unsigned char *scaled,
 #define GL_GENERATE_MIPMAP 0x8191
 #endif
 
-qboolean
-R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
+bool
+R_Upload32Native(unsigned *data, int width, int height, bool mipmap)
 {
 	// This is for GL 2.x so no palettes, no scaling, no messing around with the data here. :)
 	int samples;
@@ -570,8 +570,8 @@ R_Upload32Native(unsigned *data, int width, int height, qboolean mipmap)
 }
 
 
-qboolean
-R_Upload32Soft(unsigned *data, int width, int height, qboolean mipmap)
+bool
+R_Upload32Soft(unsigned *data, int width, int height, bool mipmap)
 {
 	int samples;
 	unsigned scaled[256 * 256];
@@ -752,10 +752,10 @@ done:
 	return samples == gl_alpha_format;
 }
 
-qboolean
-R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
+bool
+R_Upload32(unsigned *data, int width, int height, bool mipmap)
 {
-	qboolean res;
+	bool res;
 
 	if (gl_config.npottextures)
 	{
@@ -789,8 +789,8 @@ R_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 /*
  * Returns has_alpha
  */
-qboolean
-R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
+bool
+R_Upload8(byte *data, int width, int height, bool mipmap, bool is_sky)
 {
 	int s = width * height;
 
@@ -846,7 +846,7 @@ R_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 			}
 		}
 
-		qboolean ret = R_Upload32(trans, width, height, mipmap);
+		bool ret = R_Upload32(trans, width, height, mipmap);
 		free(trans);
 		return ret;
 	}
@@ -862,7 +862,7 @@ R_LoadPic(char *name, byte *pic, int width, int realwidth,
 	image_t *image;
 	int i;
 
-	qboolean nolerp = false;
+	bool nolerp = false;
 	if (r_2D_unfiltered->value && type == it_pic)
 	{
 		// if r_2D_unfiltered is true(ish), nolerp should usually be true,
@@ -1413,7 +1413,7 @@ R_FreeUnusedImages(void)
 	}
 }
 
-qboolean
+bool
 R_ImageHasFreeSpace(void)
 {
 	int		i, used;

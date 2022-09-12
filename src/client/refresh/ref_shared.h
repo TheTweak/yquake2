@@ -80,8 +80,8 @@ extern void R_Printf(int level, const char* msg, ...) PRINTF_ATTR(2, 3);
 extern void LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height);
 extern void GetPCXInfo(char *filename, int *width, int *height);
 
-extern qboolean LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
-extern qboolean ResizeSTB(byte *input_pixels, int input_width, int input_height,
+extern bool LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height);
+extern bool ResizeSTB(byte *input_pixels, int input_width, int input_height,
 			  byte *output_pixels, int output_width, int output_height);
 extern void SmoothColorImage(unsigned *dst, size_t size, size_t rstep);
 extern void scale2x(byte *src, byte *dst, int width, int height);

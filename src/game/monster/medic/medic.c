@@ -27,7 +27,7 @@
 #include "../../header/local.h"
 #include "medic.h"
 
-qboolean visible(edict_t *self, edict_t *other);
+bool visible(edict_t *self, edict_t *other);
 
 static int sound_idle1;
 static int sound_pain1;
@@ -963,7 +963,7 @@ medic_attack(edict_t *self)
 	}
 }
 
-qboolean
+bool
 medic_checkattack(edict_t *self)
 {
 	if (!self)

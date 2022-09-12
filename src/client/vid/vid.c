@@ -41,7 +41,7 @@ static unsigned char*
 compress_for_stbiw(unsigned char *data, int data_len, int *out_len, int quality)
 {
 	uLongf bufSize = compressBound(data_len);
-	unsigned char* buf = malloc(bufSize);
+	unsigned char* buf = reinterpret_cast<unsigned char*>(malloc(bufSize));
 
 	if (buf == NULL)
 	{
@@ -264,7 +264,7 @@ VID_ListModes_f(void)
 /*
  * Returns informations about the given mode.
  */
-qboolean
+bool
 VID_GetModeInfo(int *width, int *height, int mode)
 {
 	if ((mode < 0) || (mode >= VID_NUM_MODES))
@@ -298,7 +298,7 @@ refexport_t	re;
 void *reflib_handle = NULL;
 
 // Is a renderer loaded and active?
-qboolean ref_active = false;
+bool ref_active = false;
 
 // Renderer restart type requested.
 ref_restart_t restart_state = RESTART_UNDEF;
@@ -324,7 +324,7 @@ VID_GetRendererLibPath(const char *renderer, char *path, size_t len)
 /*
  * Checks if a renderer DLL is available.
  */
-qboolean
+bool
 VID_HasRenderer(const char *renderer)
 {
 	char reflib_path[MAX_OSPATH] = {0};
@@ -384,7 +384,7 @@ VID_ShutdownRenderer(void)
 /*
  * Loads and initializes a renderer.
  */
-qboolean
+bool
 VID_LoadRenderer(void)
 {
 	refimport_t	ri;
@@ -413,7 +413,7 @@ VID_LoadRenderer(void)
 	}
 
 	// Mkay, let's load the requested renderer.
-	GetRefAPI = Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle);
+	GetRefAPI = reinterpret_cast<refexport_t (*)(refimport_t)>(Sys_LoadLibrary(reflib_path, "GetRefAPI", &reflib_handle));
 
 	// Okay, we couldn't load it. It's up to the
 	// caller to recover from this.
@@ -761,7 +761,7 @@ R_BeginFrame(float camera_separation)
 	}
 }
 
-qboolean
+bool
 R_EndWorldRenderpass(void)
 {
 	if(ref_active)
@@ -780,7 +780,7 @@ R_EndFrame(void)
 	}
 }
 
-qboolean
+bool
 R_IsVSyncActive(void)
 {
 	if (ref_active)

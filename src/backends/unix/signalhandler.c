@@ -114,7 +114,7 @@ signalhandler(int sig)
 	raise(sig);
 }
 
-extern qboolean quitnextframe;
+extern bool quitnextframe;
 
 void
 terminate(int sig)

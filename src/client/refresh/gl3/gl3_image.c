@@ -89,12 +89,12 @@ GL3_TextureMode(char *string)
 
 	const char* nolerplist = gl_nolerp_list->string;
 	const char* lerplist = r_lerp_list->string;
-	qboolean unfiltered2D = r_2D_unfiltered->value != 0;
+	bool unfiltered2D = r_2D_unfiltered->value != 0;
 
 	/* change all the existing texture objects */
 	for (i = 0, glt = gl3textures; i < numgl3textures; i++, glt++)
 	{
-		qboolean nolerp = false;
+		bool nolerp = false;
 		/* r_2D_unfiltered and gl_nolerp_list allow rendering stuff unfiltered even if gl_filter_* is filtered */
 		if (unfiltered2D && glt->type == it_pic)
 		{
@@ -186,10 +186,10 @@ GL3_BindLightmap(int lightmapnum)
 /*
  * Returns has_alpha
  */
-qboolean
-GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
+bool
+GL3_Upload32(unsigned *data, int width, int height, bool mipmap)
 {
-	qboolean res;
+	bool res;
 
 	int i;
 	int c = width * height;
@@ -237,8 +237,8 @@ GL3_Upload32(unsigned *data, int width, int height, qboolean mipmap)
 /*
  * Returns has_alpha
  */
-qboolean
-GL3_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
+bool
+GL3_Upload8(byte *data, int width, int height, bool mipmap, bool is_sky)
 {
 	int s = width * height;
 	unsigned *trans = malloc(s * sizeof(unsigned));
@@ -280,7 +280,7 @@ GL3_Upload8(byte *data, int width, int height, qboolean mipmap, qboolean is_sky)
 		}
 	}
 
-	qboolean ret = GL3_Upload32(trans, width, height, mipmap);
+	bool ret = GL3_Upload32(trans, width, height, mipmap);
 	free(trans);
 	return ret;
 }
@@ -382,7 +382,7 @@ GL3_LoadPic(char *name, byte *pic, int width, int realwidth,
 	GLuint texNum=0;
 	int i;
 
-	qboolean nolerp = false;
+	bool nolerp = false;
 	if (r_2D_unfiltered->value && type == it_pic)
 	{
 		// if r_2D_unfiltered is true(ish), nolerp should usually be true,
@@ -977,7 +977,7 @@ GL3_FreeUnusedImages(void)
 	}
 }
 
-qboolean
+bool
 GL3_ImageHasFreeSpace(void)
 {
 	int		i, used;
@@ -1023,7 +1023,7 @@ GL3_ShutdownImages(void)
 	}
 }
 
-static qboolean IsNPOT(int v)
+static bool IsNPOT(int v)
 {
 	unsigned int uv = v;
 	// just try all the power of two values between 1 and 1 << 15 (32k)
@@ -1043,7 +1043,7 @@ void
 GL3_ImageList_f(void)
 {
 	int i, used, texels;
-	qboolean	freeup;
+	bool	freeup;
 	gl3image_t *image;
 	const char *formatstrings[2] = {
 		"RGB ",
@@ -1062,7 +1062,7 @@ GL3_ImageList_f(void)
 	{
 		int w, h;
 		char *in_use = "";
-		qboolean isNPOT = false;
+		bool isNPOT = false;
 		if (image->texnum == 0)
 		{
 			continue;

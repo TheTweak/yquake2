@@ -79,8 +79,8 @@ Hunk_Begin(int maxsize)
 	prot |= PROT_MAX(prot);
 #endif
 
-	membase = mmap(0, maxhunksize, prot,
-			flags, -1, 0);
+	membase = reinterpret_cast<byte*>(mmap(0, maxhunksize, prot,
+			flags, -1, 0));
 
 	if ((membase == NULL) || (membase == (byte *)-1))
 	{

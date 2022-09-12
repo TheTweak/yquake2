@@ -64,14 +64,14 @@ typedef struct {
 	float a;
 	float gain_hf;
 	portable_samplepair_t history[2];
-	qboolean is_history_initialized;
+	bool is_history_initialized;
 } LpfContext;
 
 static const int lpf_reference_frequency = 5000;
 static const float lpf_default_gain_hf = 0.25F;
 
 static LpfContext lpf_context;
-static qboolean lpf_is_enabled;
+static bool lpf_is_enabled;
 
 static void
 lpf_initialize(LpfContext* lpf_context, float gain_hf, int target_frequency)
@@ -909,7 +909,7 @@ SDL_UpdateScaletable(void)
  * necessary endianess convertions are
  * performed.
  */
-qboolean
+bool
 SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data, short volume,
 		  int begin_length, int  end_length,
 		  int attack_length, int fade_length)
@@ -931,7 +931,7 @@ SDL_Cache(sfx_t *sfx, wavinfo_t *info, byte *data, short volume,
 	}
 
 	len = len * info->width * info->channels;
-	sc = sfx->cache = Z_Malloc(len + sizeof(sfxcache_t));
+	sc = sfx->cache = static_cast<sfxcache_t*>(Z_Malloc(len + sizeof(sfxcache_t)));
 
 	if (!sc)
 	{
@@ -1310,7 +1310,7 @@ SDL_Callback(void *data, Uint8 *stream, int length)
  * Initializes the SDL sound
  * backend and sets up SDL.
  */
-qboolean
+bool
 SDL_BackendInit(void)
 {
 	char reqdriver[128];
@@ -1439,7 +1439,7 @@ SDL_BackendInit(void)
 	backend->submission_chunk = 1;
 	backend->speed = obtained.freq;
 	samplesize = (backend->samples * (backend->samplebits / 8));
-	backend->buffer = calloc(1, samplesize);
+	backend->buffer = static_cast<unsigned char*>(calloc(1, samplesize));
 	s_numchannels = MAX_CHANNELS;
 
 	s_underwater->modified = true;

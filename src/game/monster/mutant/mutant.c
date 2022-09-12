@@ -535,7 +535,7 @@ mutant_jump(edict_t *self)
 	self->monsterinfo.currentmove = &mutant_move_jump;
 }
 
-qboolean
+bool
 mutant_check_melee(edict_t *self)
 {
 	if (!self)
@@ -551,7 +551,7 @@ mutant_check_melee(edict_t *self)
 	return false;
 }
 
-qboolean
+bool
 mutant_check_jump(edict_t *self)
 {
 	vec3_t v;
@@ -593,7 +593,7 @@ mutant_check_jump(edict_t *self)
 	return true;
 }
 
-qboolean
+bool
 mutant_checkattack(edict_t *self)
 {
 	if (!self)

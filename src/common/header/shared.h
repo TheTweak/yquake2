@@ -46,59 +46,19 @@
  #undef false
 #endif
 
-typedef enum {false, true}  qboolean;
 typedef unsigned char byte;
 
 #ifndef NULL
  #define NULL ((void *)0)
 #endif
 
-// stuff to align variables/arrays and for noreturn
-#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L // C11 or newer
-	#define YQ2_ALIGNAS_SIZE(SIZE)  _Alignas(SIZE)
-	#define YQ2_ALIGNAS_TYPE(TYPE)  _Alignas(TYPE)
-	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
-	#define YQ2_ATTR_NORETURN       _Noreturn
-#elif defined(__GNUC__) // GCC and clang should support this attribute
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __attribute__(( __aligned__(SIZE) ))
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __attribute__(( __aligned__(__alignof__(TYPE)) ))
-	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
-	#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
-	#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
-#elif defined(_MSC_VER)
-	// Note: We prefer VS2019 16.8 or newer in C11 mode (/std:c11),
-	//       then the __STDC_VERSION__ >= 201112L case above is used
 
-	#define YQ2_ALIGNAS_SIZE(SIZE)  __declspec(align(SIZE))
-	// FIXME: for some reason, the following line doesn't work
-	//#define YQ2_ALIGNAS_TYPE( TYPE )  __declspec(align(__alignof(TYPE)))
-
-  #ifdef _WIN64 // (hopefully) good enough workaround
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec(align(8))
-  #else // 32bit
-	#define YQ2_ALIGNAS_TYPE(TYPE)  __declspec(align(4))
-  #endif // _WIN64
-
-	// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
-	#define YQ2_ATTR_NORETURN       __declspec(noreturn)
-   	#define YQ2_ATTR_MALLOC         __declspec(restrict)
-#else
-	#warning "Please add a case for your compiler here to align correctly"
-	#define YQ2_ALIGNAS_SIZE(SIZE)
-	#define YQ2_ALIGNAS_TYPE(TYPE)
-	#define YQ2_ATTR_NORETURN
-   	#define YQ2_ATTR_MALLOC
-#endif
-
-#if defined(__GNUC__)
-	/* ISO C11 _Noreturn can't be attached to function pointers, so
-	 * use the gcc/clang-specific version for function pointers, even
-	 * in C11 mode. MSVC __declspec(noreturn) seems to have the same
-	 * restriction as _Noreturn so can't be used here either. */
-	#define YQ2_ATTR_NORETURN_FUNCPTR  __attribute__ ((noreturn))
-#else
-	#define YQ2_ATTR_NORETURN_FUNCPTR  /* nothing */
-#endif
+#define YQ2_ALIGNAS_SIZE(SIZE)  __attribute__(( __aligned__(SIZE) ))
+#define YQ2_ALIGNAS_TYPE(TYPE)  __attribute__(( __aligned__(__alignof__(TYPE)) ))
+// must be used as prefix (YQ2_ATTR_NORETURN void bla();)!
+#define YQ2_ATTR_NORETURN       __attribute__ ((noreturn))
+#define YQ2_ATTR_MALLOC         __attribute__ ((__malloc__))
+#define YQ2_ATTR_NORETURN_FUNCPTR  __attribute__ ((noreturn))
 
 /* angle indexes */
 #define PITCH 0                     /* up / down */
@@ -343,7 +303,7 @@ char *va(char *format, ...)  PRINTF_ATTR(1, 2);
 char *Info_ValueForKey(char *s, char *key);
 void Info_RemoveKey(char *s, char *key);
 void Info_SetValueForKey(char *s, char *key, char *value);
-qboolean Info_Validate(char *s);
+bool Info_Validate(char *s);
 
 /* ============================================= */
 
@@ -365,8 +325,8 @@ extern int curtime; /* time returned by last Sys_Milliseconds */
 
 int Sys_Milliseconds(void);
 void Sys_Mkdir(const char *path);
-qboolean Sys_IsDir(const char *path);
-qboolean Sys_IsFile(const char *path);
+bool Sys_IsDir(const char *path);
+bool Sys_IsFile(const char *path);
 
 /* large block stack allocation routines */
 YQ2_ATTR_MALLOC void *Hunk_Begin(int maxsize);
@@ -415,7 +375,7 @@ typedef struct cvar_s
 	char *string;
 	char *latched_string; /* for CVAR_LATCH vars */
 	int flags;
-	qboolean modified; /* set each time the cvar is changed */
+	bool modified; /* set each time the cvar is changed */
 	float value;
 	struct cvar_s *next;
 
@@ -544,8 +504,8 @@ typedef struct mapsurface_s  /* used internally due to name len probs */
 /* a trace is returned when a box is swept through the world */
 typedef struct
 {
-	qboolean allsolid;      /* if true, plane is not valid */
-	qboolean startsolid;    /* if true, the initial point was in a solid area */
+	bool allsolid;      /* if true, plane is not valid */
+	bool startsolid;    /* if true, the initial point was in a solid area */
 	float fraction;         /* time completed, 1.0 = didn't hit anything */
 	vec3_t endpos;          /* final position */
 	cplane_t plane;         /* surface normal at impact */
@@ -618,7 +578,7 @@ typedef struct
 
 	/* command (in) */
 	usercmd_t cmd;
-	qboolean snapinitial;           /* if s has been changed outside pmove */
+	bool snapinitial;           /* if s has been changed outside pmove */
 
 	/* results (out) */
 	int numtouch;

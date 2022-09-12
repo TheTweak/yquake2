@@ -71,7 +71,7 @@ GL3_LM_UploadBlock(void)
 /*
  * returns a texture number and the position inside it
  */
-qboolean
+bool
 GL3_LM_AllocBlock(int w, int h, int *x, int *y)
 {
 	int i, j;

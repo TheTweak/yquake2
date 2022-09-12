@@ -39,7 +39,7 @@
 static int m_cursor_width = 0;
 
 /* Signals the file system to start the demo loop. */
-qboolean menu_startdemoloop;
+bool menu_startdemoloop;
 
 static char *menu_in_sound = "misc/menu1.wav";
 static char *menu_move_sound = "misc/menu2.wav";
@@ -69,7 +69,7 @@ static void M_Menu_Quit_f(void);
 
 void M_Menu_Credits(void);
 
-qboolean m_entersound; /* play after drawing a frame, so caching won't disrupt the sound */
+bool m_entersound; /* play after drawing a frame, so caching won't disrupt the sound */
 
 void (*m_drawfunc)(void);
 const char *(*m_keyfunc)(int key);
@@ -86,7 +86,7 @@ typedef struct
 menulayer_t m_layers[MAX_MENU_DEPTH];
 int m_menudepth;
 
-static qboolean
+static bool
 M_IsGame(const char *gamename)
 {
 	cvar_t *game = Cvar_Get("game", "", CVAR_LATCH | CVAR_SERVERINFO);
@@ -286,7 +286,7 @@ Default_MenuKey(menuframework_s *m, int key)
     {
         menucommon_s *item;
 
-        if ((item = Menu_ItemAtCursor(m)) != 0)
+        if ((item = static_cast<menucommon_s*>(Menu_ItemAtCursor(m))) != 0)
         {
             if (item->type == MTYPE_FIELD)
             {
@@ -404,7 +404,7 @@ static void
 M_DrawCursor(int x, int y, int f)
 {
     char cursorname[80];
-    static qboolean cached;
+    static bool cached;
 	float scale = SCR_GetMenuScale();
 
     if (!cached)
@@ -1610,9 +1610,9 @@ static menuslider_s s_gyro_pitchsensitivity_slider;
 static menuseparator_s s_calibrating_text[2];
 static menuaction_s s_calibrate_gyro;
 
-extern qboolean gyro_hardware;
+extern bool gyro_hardware;
 extern void StartCalibration(void);
-extern qboolean IsCalibrationZero(void);
+extern bool IsCalibrationZero(void);
 
 static void
 CalibrateGyroFunc(void *unused)
@@ -1796,7 +1796,7 @@ ConfigGyroFunc(void *unused)
 static void
 Joy_MenuInit(void)
 {
-    extern qboolean show_haptic;
+    extern bool show_haptic;
     int y = 0;
 
     s_joy_menu.x = (int)(viddef.width * 0.50f);
@@ -3182,10 +3182,10 @@ M_Menu_Game_f(void)
 // the comment string length set in SV_WriteServerFile()!
 
 static char m_quicksavestring[32];
-static qboolean m_quicksavevalid;
+static bool m_quicksavevalid;
 
 static char m_savestrings[MAX_SAVESLOTS][32];
-static qboolean m_savevalid[MAX_SAVESLOTS];
+static bool m_savevalid[MAX_SAVESLOTS];
 
 static int m_loadsave_page;
 static char m_loadsave_statusbar[32];
@@ -3198,7 +3198,7 @@ static menuaction_s s_savegame_actions[MAX_SAVESLOTS + 1]; // One for quick
 
 /* DELETE SAVEGAME */
 
-static qboolean menukeyitem_delete = false;
+static bool menukeyitem_delete = false;
 
 static void
 DeleteSaveGameFunc(void * self)
@@ -3391,7 +3391,7 @@ LoadGame_MenuKey(int key)
 
     if (menukeyitem_delete) {
 
-        item = Menu_ItemAtCursor( m );
+        item = static_cast<menucommon_s*>(Menu_ItemAtCursor( m ));
         menukeyitem_delete = false;
 
         if ( menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y' ) {
@@ -3439,7 +3439,7 @@ LoadGame_MenuKey(int key)
         return menu_move_sound;
 
     case K_BACKSPACE:
-		if ((item = Menu_ItemAtCursor(m)) != NULL)
+		if ((item = static_cast<menucommon_s*>(Menu_ItemAtCursor(m))) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
 			{
@@ -3561,7 +3561,7 @@ SaveGame_MenuKey(int key)
 
     if (menukeyitem_delete) {
 
-        item = Menu_ItemAtCursor( m );
+        item = static_cast<menucommon_s*>(Menu_ItemAtCursor( m ));
         menukeyitem_delete = false;
 
         if ( menu_key == K_ENTER || menu_key == 'y' || menu_key == 'Y' ) {
@@ -3609,7 +3609,7 @@ SaveGame_MenuKey(int key)
         return menu_move_sound;
 
     case K_BACKSPACE:
-		if ((item = Menu_ItemAtCursor(m)) != NULL)
+		if ((item = static_cast<menucommon_s*>(Menu_ItemAtCursor(m))) != NULL)
 		{
 			if (item->type == MTYPE_ACTION)
 			{
@@ -4042,7 +4042,7 @@ StartServer_MenuInit(void)
         }
 
         nummapslen = sizeof(char *) * (nummaps + 1);
-        mapnames = malloc(nummapslen);
+        mapnames = static_cast<char**>(malloc(nummapslen));
 
         YQ2_COM_CHECK_OOM(mapnames, "malloc(sizeof(char *) * (nummaps + 1))", nummapslen)
 
@@ -5041,7 +5041,7 @@ FreeFileList(char **list, int n)
     free(list);
 }
 
-static qboolean
+static bool
 IconOfSkinExists(char *skin, char **pcxfiles, int npcxfiles)
 {
     int i;
@@ -5064,7 +5064,7 @@ IconOfSkinExists(char *skin, char **pcxfiles, int npcxfiles)
 
 extern char **FS_ListFiles(char *, int *, unsigned, unsigned);
 
-static qboolean
+static bool
 PlayerConfig_ScanDirectories(void)
 {
 	char scratch[1024];
@@ -5145,7 +5145,7 @@ PlayerConfig_ScanDirectories(void)
 			continue;
 		}
 
-		skinnames = malloc(sizeof(char *) * (nskins + 1));
+		skinnames = static_cast<char**>(malloc(sizeof(char *) * (nskins + 1)));
 		YQ2_COM_CHECK_OOM(skinnames, "malloc()", sizeof(char *) * (nskins + 1))
 
 		memset(skinnames, 0, sizeof(char *) * (nskins + 1));
@@ -5247,7 +5247,7 @@ pmicmpfnc(const void *_a, const void *_b)
     return strcmp(a->directory, b->directory);
 }
 
-static qboolean
+static bool
 PlayerConfig_MenuInit(void)
 {
     extern cvar_t *name;

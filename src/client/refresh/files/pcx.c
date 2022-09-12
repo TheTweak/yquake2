@@ -124,7 +124,7 @@ LoadPCX(char *origname, byte **pic, byte **palette, int *width, int *height)
 	int x, y;
 	int len, full_size;
 	int pcx_width, pcx_height;
-	qboolean image_issues = false;
+	bool image_issues = false;
 	int dataByte, runLength;
 	byte *out, *pix;
 	char filename[256];

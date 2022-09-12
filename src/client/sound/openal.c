@@ -54,7 +54,7 @@
 
 /* Globals */
 int active_buffers;
-static qboolean streamPlaying;
+static bool streamPlaying;
 static ALuint s_srcnums[MAX_CHANNELS - 1];
 static ALuint streamSource;
 static int s_framecount;
@@ -197,7 +197,7 @@ AL_UploadSfx(sfx_t *s, wavinfo_t *s_info, byte *data, short volume,
 	}
 
 	/* allocate placeholder sfxcache */
-	sc = s->cache = Z_TagMalloc(sizeof(*sc), 0);
+	sc = s->cache = static_cast<sfxcache_t*>(Z_TagMalloc(sizeof(*sc), 0));
 	sc->length = s_info->samples * 1000 / s_info->rate;
 	sc->loopstart = s_info->loopstart;
 	sc->width = s_info->width;
@@ -588,7 +588,7 @@ AL_UpdateUnderwater()
 {
 	int i;
 	float gain_hf;
-	qboolean update = false;
+	bool update = false;
 	ALuint filter;
 
 	if (underwaterFilter == 0) {
@@ -828,7 +828,7 @@ AL_InitUnderwaterFilter()
 /*
  * Initializes the OpenAL backend
  */
-qboolean
+bool
 AL_Init(void)
 {
 	int i;

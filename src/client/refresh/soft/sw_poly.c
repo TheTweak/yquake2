@@ -590,7 +590,7 @@ R_ClipPolyFace (int nump, clipplane_t *pclipplane)
 /*
 ** R_PolygonDrawSpans
 */
-// iswater was qboolean. changed to allow passing more flags
+// iswater was bool. changed to allow passing more flags
 static void
 R_PolygonDrawSpans(espan_t *pspan, int iswater, float d_ziorigin, float d_zistepu, float d_zistepv)
 {
@@ -915,9 +915,9 @@ R_PolygonScanRightEdge(espan_t *s_polygon_spans)
 /*
 ** R_ClipAndDrawPoly
 */
-// isturbulent was qboolean. changed to int to allow passing more flags
+// isturbulent was bool. changed to int to allow passing more flags
 void
-R_ClipAndDrawPoly ( float alpha, int isturbulent, qboolean textured )
+R_ClipAndDrawPoly ( float alpha, int isturbulent, bool textured )
 {
 	vec_t		*pv;
 	int		i, nump;
@@ -1161,7 +1161,7 @@ R_PolygonCalculateGradients (float *p_ziorigin, float *p_zistepu, float *p_ziste
 **
 ** This should NOT be called externally since it doesn't do clipping!
 */
-// iswater was qboolean. changed to support passing more flags
+// iswater was bool. changed to support passing more flags
 static void
 R_DrawPoly(int iswater, espan_t *spans)
 {

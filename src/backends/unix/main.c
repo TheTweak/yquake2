@@ -35,6 +35,7 @@
 #endif
 
 #include "../../common/header/common.h"
+#include "../../../cpp_test.hpp"
 
 void registerHandler(void);
 

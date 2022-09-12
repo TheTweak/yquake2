@@ -45,7 +45,7 @@ void LM_BeginBuildingLightmaps(model_t *m);
 
 //===============================================================================
 
-static qboolean
+static bool
 Mod_HasFreeSpace(void)
 {
 	int		i, used;
@@ -127,7 +127,7 @@ Mod_Modellist_f(void)
 {
 	int i, total, used;
 	model_t *mod;
-	qboolean freeup;
+	bool freeup;
 
 	total = 0;
 	used = 0;
@@ -170,7 +170,7 @@ Mod_Init(void)
  * Loads in a model for the given name
  */
 static model_t *
-Mod_ForName (char *name, model_t *parent_model, qboolean crash)
+Mod_ForName (char *name, model_t *parent_model, bool crash)
 {
 	model_t *mod;
 	unsigned *buf;

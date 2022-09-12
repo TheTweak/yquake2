@@ -37,7 +37,7 @@ int registration_sequence;
 
 //===============================================================================
 
-static qboolean
+static bool
 Mod_HasFreeSpace(void)
 {
 	int		i, used;
@@ -119,7 +119,7 @@ GL3_Mod_Modellist_f(void)
 {
 	int i, total, used;
 	gl3model_t *mod;
-	qboolean freeup;
+	bool freeup;
 
 	total = 0;
 	used = 0;
@@ -970,7 +970,7 @@ extern void GL3_LoadSP2(gl3model_t *mod, void *buffer, int modfilelen);
  * Loads in a model for the given name
  */
 static gl3model_t *
-Mod_ForName (char *name, gl3model_t *parent_model, qboolean crash)
+Mod_ForName (char *name, gl3model_t *parent_model, bool crash)
 {
 	gl3model_t *mod;
 	unsigned *buf;

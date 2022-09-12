@@ -30,7 +30,7 @@
 float scr_con_current; /* aproaches scr_conlines at scr_conspeed */
 float scr_conlines; /* 0.0 to 1.0 lines of console to display */
 
-qboolean scr_initialized; /* ready to draw */
+bool scr_initialized; /* ready to draw */
 
 int scr_draw_loading;
 
@@ -901,7 +901,7 @@ SizeHUDString(char *string, int *w, int *h)
 }
 
 void
-DrawHUDStringScaled(char *string, int x, int y, int centerwidth, int xor, float factor)
+DrawHUDStringScaled(char *string, int x, int y, int centerwidth, int xor_, float factor)
 {
 	int margin;
 	char line[1024];
@@ -934,7 +934,7 @@ DrawHUDStringScaled(char *string, int x, int y, int centerwidth, int xor, float 
 
 		for (i = 0; i < width; i++)
 		{
-			Draw_CharScaled(x, y, line[i] ^ xor, factor);
+			Draw_CharScaled(x, y, line[i] ^ xor_, factor);
 			x += 8*factor;
 		}
 
@@ -947,9 +947,9 @@ DrawHUDStringScaled(char *string, int x, int y, int centerwidth, int xor, float 
 }
 
 void
-DrawHUDString(char *string, int x, int y, int centerwidth, int xor)
+DrawHUDString(char *string, int x, int y, int centerwidth, int xor_)
 {
-	DrawHUDStringScaled(string, x, y, centerwidth, xor, 1.0f);
+	DrawHUDStringScaled(string, x, y, centerwidth, xor_, 1.0f);
 }
 
 void

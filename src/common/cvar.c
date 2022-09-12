@@ -28,12 +28,11 @@
 
 cvar_t *cvar_vars;
 
-
-typedef struct
+struct replacement_t
 {
-	char *old;
-	char *new;
-} replacement_t;
+	char* old;
+	char* new_;
+};
 
 /* An ugly hack to rewrite CVARs loaded from config.cfg */
 replacement_t replacements[] = {
@@ -93,7 +92,7 @@ replacement_t replacements[] = {
 };
 
 
-static qboolean
+static bool
 Cvar_InfoValidate(char *s)
 {
 	if (strstr(s, "\\"))
@@ -125,9 +124,9 @@ Cvar_FindVar(const char *var_name)
 	{
 		if (!strcmp(var_name, replacements[i].old))
 		{
-			Com_Printf("cvar %s ist deprecated, use %s instead\n", replacements[i].old, replacements[i].new);
+			Com_Printf("cvar %s ist deprecated, use %s instead\n", replacements[i].old, replacements[i].new_);
 
-			var_name = replacements[i].new;
+			var_name = replacements[i].new_;
 		}
 	}
 
@@ -142,7 +141,7 @@ Cvar_FindVar(const char *var_name)
 	return NULL;
 }
 
-static qboolean
+static bool
 Cvar_IsFloat(const char *s)
 {
 	int dot = '.';
@@ -266,7 +265,7 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 		var_value = "";
 	}
 
-	var = Z_Malloc(sizeof(*var));
+	var = reinterpret_cast<cvar_t*>(Z_Malloc(sizeof(*var)));
 	var->name = CopyString(var_name);
 	var->string = CopyString(var_value);
 	var->default_string = CopyString(var_value);
@@ -288,7 +287,7 @@ Cvar_Get(char *var_name, char *var_value, int flags)
 }
 
 cvar_t *
-Cvar_Set2(char *var_name, char *value, qboolean force)
+Cvar_Set2(char *var_name, char *value, bool force)
 {
 	cvar_t *var;
 
@@ -487,7 +486,7 @@ Cvar_GetLatchedVars(void)
 /*
  * Handles variable inspection and changing from the console
  */
-qboolean
+bool
 Cvar_Command(void)
 {
 	cvar_t *v;
@@ -543,7 +542,7 @@ Cvar_Set_f(void)
 	{
 		if (!strcmp(firstarg, replacements[i].old))
 		{
-			firstarg = replacements[i].new;
+			firstarg = replacements[i].new_;
 		}
 	}
 
@@ -663,7 +662,7 @@ Cvar_List_f(void)
 	Com_Printf("%i cvars\n", i);
 }
 
-qboolean userinfo_modified;
+bool userinfo_modified;
 
 char *
 Cvar_BitInfo(int bit)

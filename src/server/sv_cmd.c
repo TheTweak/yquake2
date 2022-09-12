@@ -86,7 +86,7 @@ SV_SetMaster_f(void)
 /*
  * Sets sv_client and sv_player to the player with idnum Cmd_Argv(1)
  */
-qboolean
+bool
 SV_SetPlayer(void)
 {
 	client_t *cl;
@@ -178,7 +178,7 @@ SV_GameMap_f(void)
 	char *map;
 	int i;
 	client_t *cl;
-	qboolean *savedInuse;
+	bool *savedInuse;
 
 	if (Cmd_Argc() != 2)
 	{
@@ -206,9 +206,9 @@ SV_GameMap_f(void)
 			/* clear all the client inuse flags before saving so that
 			   when the level is re-entered, the clients will spawn
 			   at spawn points instead of occupying body shells */
-			savedInuse = malloc(maxclients->value * sizeof(qboolean));
+			savedInuse = reinterpret_cast<bool*>(malloc(maxclients->value * sizeof(bool)));
 
-			YQ2_COM_CHECK_OOM(savedInuse, "malloc()", maxclients->value * sizeof(qboolean))
+			YQ2_COM_CHECK_OOM(savedInuse, "malloc()", maxclients->value * sizeof(bool))
 
 			for (i = 0, cl = svs.clients; i < maxclients->value; i++, cl++)
 			{
@@ -238,7 +238,7 @@ SV_GameMap_f(void)
 	//       but so far we haven't run into problems with that anyway
 	char mapPath[MAX_QPATH];
 	{
-		qboolean haveStar = (map[0] == '*');
+		bool haveStar = (map[0] == '*');
 		snprintf(mapPath, sizeof(mapPath), "maps/%s.bsp", haveStar ? map+1 : map);
 
 		fileHandle_t f = -1;

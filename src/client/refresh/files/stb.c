@@ -52,7 +52,7 @@
  * type: extension of the type we wanna open ("jpg", "png" or "tga")
  * pic: pointer RGBA pixel data will be assigned to
  */
-qboolean
+bool
 LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *height)
 {
 	char filename[256];
@@ -95,7 +95,7 @@ LoadSTB(const char *origname, const char* type, byte **pic, int *width, int *hei
 	return true;
 }
 
-qboolean
+bool
 ResizeSTB(byte *input_pixels, int input_width, int input_height,
 			  byte *output_pixels, int output_width, int output_height)
 {

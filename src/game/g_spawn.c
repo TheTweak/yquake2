@@ -439,7 +439,7 @@ ED_ParseField(const char *key, const char *value, edict_t *ent)
 char *
 ED_ParseEdict(char *data, edict_t *ent)
 {
-	qboolean init;
+	bool init;
 	char keyname[256];
 	const char *com_token;
 

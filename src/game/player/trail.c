@@ -42,7 +42,7 @@
 
 edict_t *trail[TRAIL_LENGTH];
 int trail_head;
-qboolean trail_active = false;
+bool trail_active = false;
 
 void
 PlayerTrail_Init(void)

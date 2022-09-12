@@ -679,7 +679,7 @@ G_TouchSolids(edict_t *ent)
  * proposed new positioning of ent. Ent s
  * hould be unlinked before calling this!
  */
-qboolean
+bool
 KillBox(edict_t *ent)
 {
 	trace_t tr;

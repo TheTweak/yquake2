@@ -44,7 +44,7 @@ void S_RawSamples(int samples, int rate, int width, int channels,
 		byte *data, float volume);
 void S_StopAllSounds(void);
 void S_Update(vec3_t origin, vec3_t forward, vec3_t right, vec3_t up);
-void S_Activate(qboolean active);
+void S_Activate(bool active);
 void S_BeginRegistration(void);
 struct sfx_s *S_RegisterSound(char *name);
 void S_EndRegistration(void);

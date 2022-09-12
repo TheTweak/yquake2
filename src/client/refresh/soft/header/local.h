@@ -64,7 +64,7 @@ typedef struct image_s
 	imagetype_t	type;
 	int		width, height;
 	int		asset_width, asset_height;	// asset texture size
-	qboolean	transparent;		// true if any 255 pixels in image
+	bool	transparent;		// true if any 255 pixels in image
 	int		registration_sequence;  // 0 = free
 	byte		*pixels[NUM_MIPS];	// mip levels
 	int		mip_levels; // count of mip levels
@@ -307,7 +307,7 @@ typedef struct surf_s
 	msurface_t	*msurf;
 	entity_t	*entity;
 	float		nearzi; // nearest 1/z on surface, for mipmapping
-	qboolean	insubmodel;
+	bool	insubmodel;
 	float		d_ziorigin, d_zistepu, d_zistepv;
 } surf_t;
 
@@ -339,7 +339,7 @@ extern int	r_framecount; // sequence # of current frame since Quake
 			      //  started
 extern float	r_aliasuvscale; // scale-up factor for screen u and v
 				//  on Alias vertices passed to driver
-extern qboolean	r_dowarp;
+extern bool	r_dowarp;
 
 extern affinetridesc_t	r_affinetridesc;
 
@@ -472,7 +472,7 @@ void R_DrawAlphaSurfaces(const entity_t *currententity);
 
 void R_DrawSprite(entity_t *currententity, const model_t *currentmodel);
 
-void R_RenderFace(entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags, qboolean insubmodel);
+void R_RenderFace(entity_t *currententity, const model_t *currentmodel, msurface_t *fa, int clipflags, bool insubmodel);
 void R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf, int r_currentbkey);
 void R_TransformFrustum(void);
 
@@ -527,12 +527,12 @@ extern	int	r_aliasblendcolor;
 
 extern float	aliasxscale, aliasyscale, aliasxcenter, aliasycenter;
 
-extern qboolean	r_outofsurfaces;
-extern qboolean	r_outofedges;
-extern qboolean	r_outofverts;
-extern qboolean	r_outoftriangles;
-extern qboolean	r_outoflights;
-extern qboolean	r_outedgebasespans;
+extern bool	r_outofsurfaces;
+extern bool	r_outofedges;
+extern bool	r_outofverts;
+extern bool	r_outoftriangles;
+extern bool	r_outoflights;
+extern bool	r_outedgebasespans;
 
 extern mvertex_t	*r_pcurrentvertbase;
 
@@ -593,7 +593,7 @@ void	R_ShutdownImages(void);
 image_t	*R_FindImage(char *name, imagetype_t type);
 byte	*Get_BestImageSize(const image_t *image, int *req_width, int *req_height);
 void	R_FreeUnusedImages(void);
-qboolean R_ImageHasFreeSpace(void);
+bool R_ImageHasFreeSpace(void);
 pixel_t	R_ApplyLight(pixel_t pix, const light3_t light);
 
 void R_InitSkyBox(model_t *loadmodel);
@@ -603,9 +603,9 @@ void R_IMFlatShadedQuad( const vec3_t a, const vec3_t b, const vec3_t c, const v
 void VID_DamageBuffer(int u, int v);
 
 // VID zBuffer damage
-extern qboolean	fastmoving;
+extern bool	fastmoving;
 void VID_DamageZBuffer(int u, int v);
-qboolean VID_CheckDamageZBuffer(int u, int v, int ucount, int vcount);
+bool VID_CheckDamageZBuffer(int u, int v, int ucount, int vcount);
 
 /*
 ====================================================================

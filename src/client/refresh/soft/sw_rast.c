@@ -50,7 +50,7 @@ static float	r_nearzi;
 static float	r_u1, r_v1, r_lzi1;
 static int	r_ceilv1;
 
-static qboolean		r_lastvertvalid;
+static bool		r_lastvertvalid;
 static int		r_skyframe;
 
 static msurface_t	*r_skyfaces;
@@ -156,7 +156,7 @@ R_EmitSkyBox
 ================
 */
 static void
-R_EmitSkyBox(entity_t *currententity, const model_t *currentmodel, qboolean insubmodel)
+R_EmitSkyBox(entity_t *currententity, const model_t *currentmodel, bool insubmodel)
 {
 	int		i, j;
 	int		oldkey;
@@ -203,7 +203,7 @@ R_EmitEdge
 ================
 */
 static void
-R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1, medge_t *r_pedge, qboolean r_nearzionly)
+R_EmitEdge (mvertex_t *pv0, mvertex_t *pv1, medge_t *r_pedge, bool r_nearzionly)
 {
 	edge_t	*edge, *pcheck;
 	int	u_check;
@@ -387,8 +387,8 @@ R_ClipEdge
 */
 static void
 R_ClipEdge (mvertex_t *pv0, mvertex_t *pv1, clipplane_t *clip, medge_t *r_pedge,
-		qboolean *r_leftclipped, qboolean *r_rightclipped,
-		qboolean r_nearzionly)
+		bool *r_leftclipped, bool *r_rightclipped,
+		bool r_nearzionly)
 {
 	if (clip)
 	{
@@ -518,7 +518,7 @@ R_RenderFace
 */
 void
 R_RenderFace (entity_t *currententity, const model_t *currentmodel, msurface_t *fa,
-	int clipflags, qboolean insubmodel)
+	int clipflags, bool insubmodel)
 {
 	int		i;
 	unsigned	mask;
@@ -527,9 +527,9 @@ R_RenderFace (entity_t *currententity, const model_t *currentmodel, msurface_t *
 	vec3_t		p_normal;
 	medge_t		*pedges, tedge;
 	clipplane_t	*pclip;
-	qboolean	r_leftclipped, r_rightclipped;
-	qboolean	makeleftedge, makerightedge;
-	qboolean	r_nearzionly;
+	bool	r_leftclipped, r_rightclipped;
+	bool	makeleftedge, makerightedge;
+	bool	r_nearzionly;
 
 	// translucent surfaces are not drawn by the edge renderer
 	if (fa->texinfo->flags & (SURF_TRANS33|SURF_TRANS66))
@@ -752,9 +752,9 @@ R_RenderBmodelFace(entity_t *currententity, bedge_t *pedges, msurface_t *psurf, 
 	vec3_t		p_normal;
 	medge_t		tedge;
 	clipplane_t	*pclip;
-	qboolean	r_leftclipped, r_rightclipped;
-	qboolean	makeleftedge, makerightedge;
-	qboolean	r_nearzionly;
+	bool	r_leftclipped, r_rightclipped;
+	bool	makeleftedge, makerightedge;
+	bool	r_nearzionly;
 
 	if (psurf->texinfo->flags & (SURF_TRANS33|SURF_TRANS66))
 	{

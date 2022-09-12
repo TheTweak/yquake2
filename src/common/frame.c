@@ -53,7 +53,7 @@ cvar_t *showtrace;
 // Forward declarations
 #ifndef DEDICATED_ONLY
 int GLimp_GetRefreshRate(void);
-qboolean R_IsVSyncActive(void);
+bool R_IsVSyncActive(void);
 #endif
 
 /* host_speeds times */
@@ -72,14 +72,14 @@ void SCR_EndLoadingPlaque(void);
 #endif
 
 // Is the game portable?
-qboolean is_portable;
+bool is_portable;
 
 // Game given by user
 char userGivenGame[MAX_QPATH];
 
 // Game should quit next frame.
 // Hack for the signal handlers.
-qboolean quitnextframe;
+bool quitnextframe;
 
 #ifndef DEDICATED_ONLY
 static inline void Sys_CpuPause(void)
@@ -204,7 +204,7 @@ Qcommon_Mainloop(void)
 	}
 }
 
-void Qcommon_ExecConfigs(qboolean gameStartUp)
+void Qcommon_ExecConfigs(bool gameStartUp)
 {
 	Cbuf_AddText("exec default.cfg\n");
 	Cbuf_AddText("exec yq2.cfg\n");
@@ -220,7 +220,7 @@ void Qcommon_ExecConfigs(qboolean gameStartUp)
 	Cbuf_Execute();
 }
 
-static qboolean checkForHelp(int argc, char **argv)
+static bool checkForHelp(int argc, char **argv)
 {
 	const char* helpArgs[] = { "--help", "-h", "-help", "-?", "/?" };
 	const int numHelpArgs = sizeof(helpArgs)/sizeof(helpArgs[0]);
@@ -453,12 +453,12 @@ Qcommon_Frame(int usec)
 	   more often the movement prediction in pmove.c
 	   breaks. That's the Q2 variant if the famous
 	   125hz bug. */
-	qboolean packetframe = true;
+	bool packetframe = true;
 
 	/* A rendererframe runs the renderer, but not the
 	   client or the server. The minimal interval is
 	   about 1000 microseconds. */
-	qboolean renderframe = true;
+	bool renderframe = true;
 
 
 	/* Tells the client to shutdown.
@@ -734,7 +734,7 @@ Qcommon_Frame(int usec)
 	   more often the movement prediction in pmove.c
 	   breaks. That's the Q2 variant if the famous
 	   125hz bug. */
-	qboolean packetframe = true;
+	bool packetframe = true;
 
 
 	/* Tells the client to shutdown.

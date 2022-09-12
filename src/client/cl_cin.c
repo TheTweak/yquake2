@@ -43,7 +43,7 @@ typedef struct
 
 typedef struct
 {
-	qboolean restart_sound;
+	bool restart_sound;
 	int s_rate;
 	int s_width;
 	int s_channels;
@@ -101,7 +101,7 @@ SCR_LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height)
 	}
 
 	full_size = (pcx->ymax + 1) * (pcx->xmax + 1);
-	out = Z_Malloc(full_size);
+	out = reinterpret_cast<byte*>(Z_Malloc(full_size));
 
 	*pic = out;
 
@@ -109,7 +109,7 @@ SCR_LoadPCX(char *filename, byte **pic, byte **palette, int *width, int *height)
 
 	if (palette)
 	{
-		*palette = Z_Malloc(768);
+		*palette = reinterpret_cast<byte*>(Z_Malloc(768));
 		memcpy(*palette, (byte *)pcx + len - 768, 768);
 	}
 
@@ -264,7 +264,7 @@ Huff1TableInit(void)
 	byte counts[256];
 	int numhnodes;
 
-	cin.hnodes1 = Z_Malloc(256 * 256 * 2 * 4);
+	cin.hnodes1 = reinterpret_cast<int*>(Z_Malloc(256 * 256 * 2 * 4));
 	memset(cin.hnodes1, 0, 256 * 256 * 2 * 4);
 
 	for (prev = 0; prev < 256; prev++)
@@ -326,7 +326,7 @@ Huff1Decompress(cblock_t in)
 	/* get decompressed count */
 	count = in.data[0] + (in.data[1] << 8) + (in.data[2] << 16) + (in.data[3] << 24);
 	input = in.data + 4;
-	out_p = out.data = Z_Malloc(count);
+	out_p = out.data = reinterpret_cast<byte*>(Z_Malloc(count));
 
 	/* read bits */
 	hnodesbase = cin.hnodes1 - 256 * 2; /* nodes 0-255 aren't stored */
@@ -542,7 +542,7 @@ SCR_MinimalColor(void)
  * Returns true if a cinematic is active, meaning the
  * view rendering should be skipped
  */
-qboolean
+bool
 SCR_DrawCinematic(void)
 {
 	int x, y, w, h, color;

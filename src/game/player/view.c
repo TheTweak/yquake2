@@ -754,8 +754,8 @@ P_FallingDamage(edict_t *ent)
 void
 P_WorldEffects(void)
 {
-	qboolean breather;
-	qboolean envirosuit;
+	bool breather;
+	bool envirosuit;
 	int waterlevel, old_waterlevel;
 
 	if (current_player->movetype == MOVETYPE_NOCLIP)
@@ -1129,7 +1129,7 @@ void
 G_SetClientFrame(edict_t *ent)
 {
 	gclient_t *client;
-	qboolean duck, run;
+	bool duck, run;
 
 	if (!ent)
 	{

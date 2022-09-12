@@ -237,7 +237,7 @@ SV_ReadLevelFile(void)
 }
 
 void
-SV_WriteServerFile(qboolean autosave)
+SV_WriteServerFile(bool autosave)
 {
 	FILE *f;
 	cvar_t *var;
@@ -417,7 +417,7 @@ SV_Loadgame_f(void)
 	char name[MAX_OSPATH];
 	FILE *f;
 	char *dir;
-	qboolean isautosave;
+	bool isautosave;
 
 	if (Cmd_Argc() != 2)
 	{

@@ -139,7 +139,7 @@ R_RotateBmodel(const entity_t *currententity)
 }
 
 
-static qboolean
+static bool
 R_AreaVisible(mleaf_t *pleaf)
 {
 	int area;
@@ -172,7 +172,7 @@ R_RecursiveClipBPoly(entity_t *currententity, bedge_t *pedges, mnode_t *pnode, m
 	cplane_t	*splitplane, tplane;
 	mvertex_t	*pvert, *plastvert, *ptvert;
 	mnode_t		*pn;
-	qboolean	makeclippededge;
+	bool	makeclippededge;
 	mvertex_t	*pfrontenter = bverts, *pfrontexit = bverts;
 
 	psideedges[0] = psideedges[1] = NULL;
@@ -479,7 +479,7 @@ R_RecursiveWorldNode
 */
 static void
 R_RecursiveWorldNode (entity_t *currententity, const model_t *currentmodel, mnode_t *node,
-	int clipflags, qboolean insubmodel)
+	int clipflags, bool insubmodel)
 {
 	int c;
 	vec3_t acceptpt, rejectpt;

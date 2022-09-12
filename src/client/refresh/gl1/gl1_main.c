@@ -145,7 +145,7 @@ refimport_t ri;
 /*
  * Returns true if the box is completely outside the frustom
  */
-qboolean
+bool
 R_CullBox(vec3_t mins, vec3_t maxs)
 {
 	int i;
@@ -523,8 +523,8 @@ R_DrawParticles2(int num_particles, const particle_t particles[],
 void
 R_DrawParticles(void)
 {
-	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
-	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+	bool stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	bool stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
 	if (r_newrefdef.num_particles <= 0) /* avoiding VLA with no size and vertexes built on it */
 	{
@@ -789,9 +789,9 @@ R_SetupGL(void)
 	w = x2 - x;
 	h = y - y2;
 
-	qboolean drawing_left_eye = gl_state.camera_separation < 0;
-	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
-	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+	bool drawing_left_eye = gl_state.camera_separation < 0;
+	bool stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	bool stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
 	if(stereo_split_lr) {
 		w = w / 2;
@@ -932,9 +932,9 @@ R_SetGL2D(void)
 {
 	int x, w, y, h;
 	/* set 2D virtual screen size */
-	qboolean drawing_left_eye = gl_state.camera_separation < 0;
-	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
-	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+	bool drawing_left_eye = gl_state.camera_separation < 0;
+	bool stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	bool stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
 	x = 0;
 	w = vid.width;
@@ -972,7 +972,7 @@ R_RenderView(refdef_t *fd)
 {
 	if ((gl_state.stereo_mode != STEREO_MODE_NONE) && gl_state.camera_separation) {
 
-		qboolean drawing_left_eye = gl_state.camera_separation < 0;
+		bool drawing_left_eye = gl_state.camera_separation < 0;
 		switch (gl_state.stereo_mode) {
 			case STEREO_MODE_ANAGLYPH:
 				{
@@ -1016,7 +1016,7 @@ R_RenderView(refdef_t *fd)
 			case STEREO_MODE_COLUMN_INTERLEAVED:
 			case STEREO_MODE_PIXEL_INTERLEAVED:
 				{
-					qboolean flip_eyes = true;
+					bool flip_eyes = true;
 					int client_x, client_y;
 
 					//GLimp_GetClientAreaOffset(&client_x, &client_y);
@@ -1337,7 +1337,7 @@ SetMode_impl(int *pwidth, int *pheight, int mode, int fullscreen)
 	return rserr_ok;
 }
 
-qboolean
+bool
 R_SetMode(void)
 {
 	rserr_t err;
@@ -1399,7 +1399,7 @@ R_SetMode(void)
 	return true;
 }
 
-qboolean
+bool
 RI_Init(void)
 {
 	int j;
@@ -1642,9 +1642,9 @@ RI_BeginFrame(float camera_separation)
 	// FIXME: just call R_SetGL2D();
 
 	int x, w, y, h;
-	qboolean drawing_left_eye = gl_state.camera_separation < 0;
-	qboolean stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
-	qboolean stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
+	bool drawing_left_eye = gl_state.camera_separation < 0;
+	bool stereo_split_tb = ((gl_state.stereo_mode == STEREO_SPLIT_VERTICAL) && gl_state.camera_separation);
+	bool stereo_split_lr = ((gl_state.stereo_mode == STEREO_SPLIT_HORIZONTAL) && gl_state.camera_separation);
 
 	x = 0;
 	w = vid.width;
@@ -1902,7 +1902,7 @@ extern void RDraw_FadeScreen(void);
 extern void RDraw_StretchRaw(int x, int y, int w, int h, int cols, int rows, byte *data);
 
 extern void RI_SetPalette(const unsigned char *palette);
-extern qboolean RI_IsVSyncActive(void);
+extern bool RI_IsVSyncActive(void);
 extern void RI_EndFrame(void);
 
 /*
@@ -1910,7 +1910,7 @@ extern void RI_EndFrame(void);
 RI_EndWorldRenderpass
 =====================
 */
-static qboolean
+static bool
 RI_EndWorldRenderpass( void )
 {
 	return true;

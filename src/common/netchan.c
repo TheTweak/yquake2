@@ -139,7 +139,8 @@ Netchan_OutOfBand(int net_socket, netadr_t adr, int length, byte *data)
 	SZ_Write(&send, data, length);
 
 	/* send the datagram */
-	NET_SendPacket(net_socket, send.cursize, send.data, adr);
+    netsrc_t s = net_socket == 0 ? NS_CLIENT : NS_SERVER;
+	NET_SendPacket(s, send.cursize, send.data, adr);
 }
 
 /*
@@ -180,7 +181,7 @@ Netchan_Setup(netsrc_t sock, netchan_t *chan, netadr_t adr, int qport)
 /*
  * Returns true if the last reliable message has acked
  */
-qboolean
+bool
 Netchan_CanReliable(netchan_t *chan)
 {
 	if (chan->reliable_length)
@@ -191,10 +192,10 @@ Netchan_CanReliable(netchan_t *chan)
 	return true;
 }
 
-qboolean
+bool
 Netchan_NeedReliable(netchan_t *chan)
 {
-	qboolean send_reliable;
+	bool send_reliable;
 
 	/* if the remote side dropped the last reliable message, resend it */
 	send_reliable = false;
@@ -225,7 +226,7 @@ Netchan_Transmit(netchan_t *chan, int length, byte *data)
 {
 	sizebuf_t send;
 	byte send_buf[MAX_MSGLEN];
-	qboolean send_reliable;
+	bool send_reliable;
 	unsigned w1, w2;
 
 	/* check for message overflow */
@@ -310,7 +311,7 @@ Netchan_Transmit(netchan_t *chan, int length, byte *data)
  * called when the current net_message is from remote_address
  * modifies net_message so that it points to the packet payload
  */
-qboolean
+bool
 Netchan_Process(netchan_t *chan, sizebuf_t *msg)
 {
 	unsigned sequence, sequence_ack;

@@ -37,7 +37,7 @@
 
 static SDL_Window* window = NULL;
 static SDL_GLContext context = NULL;
-static qboolean vsyncActive = false;
+static bool vsyncActive = false;
 
 // ----
 
@@ -62,7 +62,7 @@ RI_GetProcAddress(const char* proc)
 /*
  * Returns whether the vsync is enabled.
  */
-qboolean RI_IsVSyncActive(void)
+bool RI_IsVSyncActive(void)
 {
 	return vsyncActive;
 }

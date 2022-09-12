@@ -29,7 +29,7 @@
 #define HEALTH_IGNORE_MAX 1
 #define HEALTH_TIMED 2
 
-qboolean Pickup_Weapon(edict_t *ent, edict_t *other);
+bool Pickup_Weapon(edict_t *ent, edict_t *other);
 void Use_Weapon(edict_t *ent, gitem_t *inv);
 void Drop_Weapon(edict_t *ent, gitem_t *inv);
 
@@ -184,7 +184,7 @@ SetRespawn(edict_t *ent, float delay)
 
 /* ====================================================================== */
 
-qboolean
+bool
 Pickup_Powerup(edict_t *ent, edict_t *other)
 {
 	int quantity;
@@ -230,7 +230,7 @@ Drop_General(edict_t *ent, gitem_t *item)
 
 /* ====================================================================== */
 
-qboolean
+bool
 Pickup_Adrenaline(edict_t *ent, edict_t *other)
 {
 	if (!ent || !other)
@@ -256,7 +256,7 @@ Pickup_Adrenaline(edict_t *ent, edict_t *other)
 	return true;
 }
 
-qboolean
+bool
 Pickup_AncientHead(edict_t *ent, edict_t *other)
 {
 	if (!ent || !other)
@@ -274,7 +274,7 @@ Pickup_AncientHead(edict_t *ent, edict_t *other)
 	return true;
 }
 
-qboolean
+bool
 Pickup_Bandolier(edict_t *ent, edict_t *other)
 {
 	gitem_t *item;
@@ -343,7 +343,7 @@ Pickup_Bandolier(edict_t *ent, edict_t *other)
 	return true;
 }
 
-qboolean
+bool
 Pickup_Pack(edict_t *ent, edict_t *other)
 {
 	gitem_t *item;
@@ -607,7 +607,7 @@ Use_Silencer(edict_t *ent, gitem_t *item)
 
 /* ====================================================================== */
 
-qboolean
+bool
 Pickup_Key(edict_t *ent, edict_t *other)
 {
 	if (!ent || !other)
@@ -648,7 +648,7 @@ Pickup_Key(edict_t *ent, edict_t *other)
 
 /* ====================================================================== */
 
-qboolean
+bool
 Add_Ammo(edict_t *ent, gitem_t *item, int count)
 {
 	int index;
@@ -710,12 +710,12 @@ Add_Ammo(edict_t *ent, gitem_t *item, int count)
 	return true;
 }
 
-qboolean
+bool
 Pickup_Ammo(edict_t *ent, edict_t *other)
 {
 	int oldcount;
 	int count;
-	qboolean weapon;
+	bool weapon;
 
 	if (!ent || !other)
 	{
@@ -827,7 +827,7 @@ MegaHealth_think(edict_t *self)
 	}
 }
 
-qboolean
+bool
 Pickup_Health(edict_t *ent, edict_t *other)
 {
 	if (!ent || !other)
@@ -906,7 +906,7 @@ ArmorIndex(edict_t *ent)
 	return 0;
 }
 
-qboolean
+bool
 Pickup_Armor(edict_t *ent, edict_t *other)
 {
 	int old_armor_index;
@@ -1075,7 +1075,7 @@ Use_PowerArmor(edict_t *ent, gitem_t *item)
 	}
 }
 
-qboolean
+bool
 Pickup_PowerArmor(edict_t *ent, edict_t *other)
 {
 	int quantity;
@@ -1128,7 +1128,7 @@ Drop_PowerArmor(edict_t *ent, gitem_t *item)
 void
 Touch_Item(edict_t *ent, edict_t *other, cplane_t *plane /* unused */, csurface_t *surf /* unused */)
 {
-	qboolean taken;
+	bool taken;
 
 	if (!ent || !other)
 	{

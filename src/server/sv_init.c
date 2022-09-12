@@ -34,7 +34,7 @@ server_static_t svs; /* persistant server info */
 server_t sv; /* local server */
 
 int
-SV_FindIndex(char *name, int start, int max, qboolean create)
+SV_FindIndex(char *name, int start, int max, bool create)
 {
 	int i;
 
@@ -127,7 +127,7 @@ SV_CreateBaseline(void)
 }
 
 void
-SV_CheckForSavegame(qboolean isautosave)
+SV_CheckForSavegame(bool isautosave)
 {
 	char name[MAX_OSPATH];
 	FILE *f;
@@ -183,7 +183,7 @@ SV_CheckForSavegame(qboolean isautosave)
  */
 void
 SV_SpawnServer(char *server, char *spawnpoint, server_state_t serverstate,
-		qboolean attractloop, qboolean loadgame, qboolean isautosave)
+		bool attractloop, bool loadgame, bool isautosave)
 {
 	int i;
 	unsigned checksum;
@@ -432,9 +432,9 @@ SV_InitGame(void)
 	}
 
 	svs.spawncount = randk();
-	svs.clients = Z_Malloc(sizeof(client_t) * maxclients->value);
+	svs.clients = reinterpret_cast<client_t*>(Z_Malloc(sizeof(client_t) * maxclients->value));
 	svs.num_client_entities = maxclients->value * UPDATE_BACKUP * 64;
-	svs.client_entities = Z_Malloc( sizeof(entity_state_t) * svs.num_client_entities);
+	svs.client_entities = reinterpret_cast<entity_state_t*>(Z_Malloc( sizeof(entity_state_t) * svs.num_client_entities));
 
 	/* init network stuff */
 	if (dedicated->value)
@@ -483,7 +483,7 @@ SV_InitGame(void)
  *  map tram.cin+jail_e3
  */
 void
-SV_Map(qboolean attractloop, char *levelstring, qboolean loadgame, qboolean isautosave)
+SV_Map(bool attractloop, char *levelstring, bool loadgame, bool isautosave)
 {
 	char level[MAX_QPATH];
 	char *ch;

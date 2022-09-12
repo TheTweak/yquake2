@@ -189,7 +189,7 @@ NET_Init()
 {
 }
 
-qboolean
+bool
 NET_CompareAdr(netadr_t a, netadr_t b)
 {
 	if (a.type != b.type)
@@ -225,7 +225,7 @@ NET_CompareAdr(netadr_t a, netadr_t b)
 /*
  * Compares without the port
  */
-qboolean
+bool
 NET_CompareBaseAdr(netadr_t a, netadr_t b)
 {
 	if (a.type != b.type)
@@ -282,17 +282,17 @@ NET_BaseAdrToString(netadr_t a)
 	switch (a.type)
 	{
 		case NA_IP:
-		case NA_LOOPBACK:
+        case NA_LOOPBACK: {
 			Com_sprintf(s, sizeof(s), "%i.%i.%i.%i", a.ip[0],
 				a.ip[1], a.ip[2], a.ip[3]);
 			break;
-
-		case NA_BROADCAST:
+        }
+        case NA_BROADCAST: {
 			Com_sprintf(s, sizeof(s), "255.255.255.255");
 			break;
-
+        }
 		case NA_IP6:
-		case NA_MULTICAST6:
+        case NA_MULTICAST6: {
 			memset(&ss, 0, sizeof(ss));
 			s6 = (struct sockaddr_in6 *)&ss;
 
@@ -348,10 +348,11 @@ NET_BaseAdrToString(netadr_t a)
 			}
 
 			break;
-
-		default:
+        }
+        default: {
 			Com_sprintf(s, sizeof(s), "invalid IP address family type");
 			break;
+        }
 	}
 
 	return s;
@@ -369,7 +370,7 @@ NET_AdrToString(netadr_t a)
 	return s;
 }
 
-qboolean
+bool
 NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 {
 	char copy[128];
@@ -440,7 +441,7 @@ NET_StringToSockaddr(const char *s, struct sockaddr_storage *sadr)
 	return true;
 }
 
-qboolean
+bool
 NET_StringToAdr(const char *s, netadr_t *a)
 {
 	struct sockaddr_storage sadr;
@@ -463,13 +464,13 @@ NET_StringToAdr(const char *s, netadr_t *a)
 	return true;
 }
 
-qboolean
+bool
 NET_IsLocalAddress(netadr_t adr)
 {
 	return NET_CompareAdr(adr, net_local_adr);
 }
 
-qboolean
+bool
 NET_GetLoopPacket(netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message)
 {
 	int i;
@@ -511,7 +512,7 @@ NET_SendLoopPacket(netsrc_t sock, int length, void *data, netadr_t to)
 	loop->msgs[i].datalen = length;
 }
 
-qboolean
+bool
 NET_GetPacket(netsrc_t sock, netadr_t *net_from, sizebuf_t *net_message)
 {
 	int ret;
@@ -771,7 +772,7 @@ NET_OpenIP(void)
  * A single player game will only use the loopback code
  */
 void
-NET_Config(qboolean multiplayer)
+NET_Config(bool multiplayer)
 {
 	if (!multiplayer)
 	{
@@ -815,7 +816,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 	int newsocket, Error;
 	struct sockaddr_storage ss;
 	struct addrinfo hints, *res, *ai;
-	qboolean _true = true;
+	bool _true = true;
 	int i = 1;
 
 	struct ipv6_mreq mreq;
@@ -830,7 +831,7 @@ NET_Socket(char *net_interface, int port, netsrc_t type, int family)
 	if (!net_interface || !net_interface[0] ||
 		!Q_stricmp(net_interface, "localhost"))
 	{
-		Host = (family == AF_INET6) ? "::" : "0.0.0.0";
+		Host = (family == AF_INET6) ? strdup("::") : strdup("0.0.0.0");
 	}
 	else
 	{
@@ -992,7 +993,7 @@ NET_Sleep(int msec)
 	struct timeval timeout;
 	fd_set fdset;
 	extern cvar_t *dedicated;
-	extern qboolean stdin_active;
+	extern bool stdin_active;
 
 	if ((!ip_sockets[NS_SERVER] &&
 		 !ip6_sockets[NS_SERVER]) || (dedicated && !dedicated->value))

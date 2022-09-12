@@ -29,14 +29,14 @@
 
 int scrap_allocated[MAX_SCRAPS][BLOCK_WIDTH];
 byte scrap_texels[MAX_SCRAPS][BLOCK_WIDTH * BLOCK_HEIGHT];
-qboolean scrap_dirty;
+bool scrap_dirty;
 int scrap_uploads;
 
-qboolean R_Upload8(byte *data,
+bool R_Upload8(byte *data,
 		int width,
 		int height,
-		qboolean mipmap,
-		qboolean is_sky);
+		bool mipmap,
+		bool is_sky);
 
 /* returns a texture number and the position inside it */
 int

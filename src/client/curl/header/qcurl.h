@@ -37,7 +37,7 @@
 // --------
 
 // True if cURL is initialized.
-extern qboolean qcurlInitialized;
+extern bool qcurlInitialized;
 
 // Function pointers to cURL.
 extern void (*qcurl_easy_cleanup)(CURL *curl);
@@ -59,7 +59,7 @@ extern CURLMcode (*qcurl_multi_remove_handle)(CURLM *multi_handle, CURL *curl_ha
 // --------
 
 // Loads and initialized cURL.
-qboolean qcurlInit(void);
+bool qcurlInit(void);
 
 // Shuts cURL down and unloads it.
 void qcurlShutdown(void);

@@ -68,7 +68,7 @@ check_dodge(edict_t *self, vec3_t start, vec3_t dir, int speed)
 /*
  * Used for all impact (hit/punch/slash) attacks
  */
-qboolean
+bool
 fire_hit(edict_t *self, vec3_t aim, int damage, int kick)
 {
 	trace_t tr;
@@ -181,7 +181,7 @@ fire_lead(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick,
 	float r;
 	float u;
 	vec3_t water_start;
-	qboolean water = false;
+	bool water = false;
 	int content_mask = MASK_SHOT | MASK_WATER;
 
 	if (!self)
@@ -446,7 +446,7 @@ blaster_touch(edict_t *self, edict_t *other, cplane_t *plane, csurface_t *surf)
 
 void
 fire_blaster(edict_t *self, vec3_t start, vec3_t dir, int damage,
-		int speed, int effect, qboolean hyper)
+		int speed, int effect, bool hyper)
 {
 	edict_t *bolt;
 	trace_t tr;
@@ -685,7 +685,7 @@ fire_grenade(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed,
 
 void
 fire_grenade2(edict_t *self, vec3_t start, vec3_t aimdir, int damage,
-		int speed, float timer, float damage_radius, qboolean held)
+		int speed, float timer, float damage_radius, bool held)
 {
 	edict_t *grenade;
 	vec3_t dir;
@@ -875,7 +875,7 @@ fire_rail(edict_t *self, vec3_t start, vec3_t aimdir, int damage, int kick)
 	trace_t tr;
 	edict_t *ignore;
 	int mask;
-	qboolean water;
+	bool water;
 
 	if (!self)
 	{

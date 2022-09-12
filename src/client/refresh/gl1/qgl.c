@@ -63,7 +63,7 @@ QGL_Shutdown ( void )
 
 /* ========================================================================= */
 
-qboolean
+bool
 QGL_Init (void)
 {
 	// Reset GL extension pointers

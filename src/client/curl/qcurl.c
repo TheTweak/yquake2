@@ -36,7 +36,7 @@
 // --------
 
 // True if cURL is initialized.
-qboolean qcurlInitialized;
+bool qcurlInitialized;
 
 // Pointer to the dynamic library.
 static void *curlhandle;
@@ -67,7 +67,7 @@ CURLMcode (*qcurl_multi_remove_handle)(CURLM *multi_handle, CURL *curl_handle);
  * Load libcurl, connect the function pointer
  * and call cURLs global init function.
  */
-qboolean qcurlInit(void)
+bool qcurlInit(void)
 {
 	Com_Printf("------- curl initialization -------\n");
 
@@ -140,28 +140,19 @@ qboolean qcurlInit(void)
 	}
 
 	// libcurl loaded sucessfully, connect the pointers.
-	#define CONCURL(var, sym) do { \
-		var = Sys_GetProcAddress(curlhandle, sym); \
-		if (!var) goto error; \
-	} while(0)
-	
-	CONCURL(qcurl_easy_cleanup, "curl_easy_cleanup");
-	CONCURL(qcurl_easy_init, "curl_easy_init");
-	CONCURL(qcurl_easy_getinfo, "curl_easy_getinfo");
-	CONCURL(qcurl_easy_setopt, "curl_easy_setopt");
-	CONCURL(qcurl_easy_strerror, "curl_easy_strerror");
-
-	CONCURL(qcurl_global_cleanup, "curl_global_cleanup");
-	CONCURL(qcurl_global_init, "curl_global_init");
-
-	CONCURL(qcurl_multi_add_handle, "curl_multi_add_handle");
-	CONCURL(qcurl_multi_cleanup, "curl_multi_cleanup");
-	CONCURL(qcurl_multi_info_read, "curl_multi_info_read");
-	CONCURL(qcurl_multi_init, "curl_multi_init");
-	CONCURL(qcurl_multi_perform, "curl_multi_perform");
-	CONCURL(qcurl_multi_remove_handle, "curl_multi_remove_handle");
-
-	#undef CONCURL
+    qcurl_easy_cleanup = reinterpret_cast<void (*)(CURL *)>(Sys_GetProcAddress(curlhandle, "curl_easy_cleanup"));
+    qcurl_easy_strerror = reinterpret_cast<const char *(*)(CURLcode)>(Sys_GetProcAddress(curlhandle, "curl_easy_strerror"));
+    qcurl_global_cleanup = reinterpret_cast<void (*)()>(Sys_GetProcAddress(curlhandle, "curl_global_cleanup"));
+    qcurl_global_init = reinterpret_cast<CURLcode (*)(long)>(Sys_GetProcAddress(curlhandle, "curl_global_init"));
+    qcurl_multi_add_handle = reinterpret_cast<CURLMcode (*)(CURLM *, CURL *)>(Sys_GetProcAddress(curlhandle, "curl_multi_add_handle"));
+    qcurl_multi_cleanup = reinterpret_cast<CURLMcode (*)(CURLM *)>(Sys_GetProcAddress(curlhandle, "curl_multi_cleanup"));
+    qcurl_multi_info_read = reinterpret_cast<CURLMsg *(*)(CURLM *, int *)>(Sys_GetProcAddress(curlhandle, "curl_multi_info_read"));
+    qcurl_multi_init = reinterpret_cast<CURLM *(*)()>(Sys_GetProcAddress(curlhandle, "curl_multi_init"));
+    qcurl_multi_perform = reinterpret_cast<CURLMcode (*)(CURLM *, int *)>(Sys_GetProcAddress(curlhandle, "curl_multi_perform"));
+    qcurl_multi_remove_handle = reinterpret_cast<CURLMcode (*)(CURLM *, CURL *)>(Sys_GetProcAddress(curlhandle, "curl_multi_remove_handle"));
+    qcurl_easy_setopt = reinterpret_cast<CURLcode (*)(CURL *, CURLoption, ...)>(Sys_GetProcAddress(curlhandle, "curl_easy_setopt"));
+    qcurl_easy_init = reinterpret_cast<CURL *(*)()>(Sys_GetProcAddress(curlhandle, "curl_easy_init"));
+    qcurl_easy_getinfo = reinterpret_cast<CURLcode (*)(CURL *, CURLINFO, ...)>(Sys_GetProcAddress(curlhandle, "curl_easy_"));
 
 	// And finally the global cURL initialization.
 	qcurl_global_init(CURL_GLOBAL_NOTHING);

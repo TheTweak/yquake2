@@ -79,7 +79,7 @@ void CL_BlueBlasterParticles(vec3_t org, vec3_t dir);
 
 void CL_ExplosionParticles(vec3_t org);
 void CL_Explosion_Particle(vec3_t org, float size,
-		qboolean large, qboolean rocket);
+		bool large, bool rocket);
 
 #define EXPLOSION_PARTICLES(x) CL_ExplosionParticles((x));
 

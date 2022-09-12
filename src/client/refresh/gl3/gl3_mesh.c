@@ -73,7 +73,7 @@ GL3_ShutdownMeshes(void)
 }
 
 static void
-LerpVerts(qboolean powerUpEffect, int nverts, dtrivertx_t *v, dtrivertx_t *ov,
+LerpVerts(bool powerUpEffect, int nverts, dtrivertx_t *v, dtrivertx_t *ov,
 		dtrivertx_t *verts, float *lerp, float move[3],
 		float frontv[3], float backv[3])
 {
@@ -125,7 +125,7 @@ DrawAliasFrameLerp(dmdl_t *paliashdr, entity_t* entity, vec3_t shadelight)
 	float frontlerp = 1.0 - backlerp;
 	float *lerp;
 	// draw without texture? used for quad damage effect etc, I think
-	qboolean colorOnly = 0 != (entity->flags &
+	bool colorOnly = 0 != (entity->flags &
 			(RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE |
 			 RF_SHELL_HALF_DAM));
 
@@ -486,7 +486,7 @@ DrawAliasShadow(gl3_shadowinfo_t* shadowInfo)
 	glDrawElements(GL_TRIANGLES, da_count(idxBuf), GL_UNSIGNED_SHORT, NULL);
 }
 
-static qboolean
+static bool
 CullAliasModel(vec3_t bbox[8], entity_t *e)
 {
 	int i;

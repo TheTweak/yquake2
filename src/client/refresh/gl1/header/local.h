@@ -109,10 +109,10 @@ typedef struct image_s
 	struct msurface_s *texturechain;    /* for sort-by-texture world drawing */
 	int texnum;                         /* gl texture binding */
 	float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
-	qboolean scrap;
-	qboolean has_alpha;
+	bool scrap;
+	bool has_alpha;
 
-	qboolean paletted;
+	bool paletted;
 } image_t;
 
 typedef enum
@@ -266,7 +266,7 @@ void R_DrawAlphaSurfaces(void);
 void R_InitParticleTexture(void);
 void Draw_InitLocal(void);
 void R_SubdivideSurface(model_t *loadmodel, msurface_t *fa);
-qboolean R_CullBox(vec3_t mins, vec3_t maxs);
+bool R_CullBox(vec3_t mins, vec3_t maxs);
 void R_RotateForEntity(entity_t *e);
 void R_MarkLeaves(void);
 
@@ -295,7 +295,7 @@ void R_InitImages(void);
 void R_ShutdownImages(void);
 
 void R_FreeUnusedImages(void);
-qboolean R_ImageHasFreeSpace(void);
+bool R_ImageHasFreeSpace(void);
 
 void R_TextureAlphaMode(char *string);
 void R_TextureSolidMode(char *string);
@@ -322,10 +322,10 @@ typedef struct
 
 	// ----
 
-	qboolean anisotropic;
-	qboolean npottextures;
-	qboolean palettedtexture;
-	qboolean pointparameters;
+	bool anisotropic;
+	bool npottextures;
+	bool palettedtexture;
+	bool pointparameters;
 
 	// ----
 
@@ -335,7 +335,7 @@ typedef struct
 typedef struct
 {
 	float inverse_intensity;
-	qboolean fullscreen;
+	bool fullscreen;
 
 	int prev_mode;
 
@@ -350,7 +350,7 @@ typedef struct
 	float camera_separation;
 	enum stereo_modes stereo_mode;
 
-	qboolean stencil;
+	bool stencil;
 } glstate_t;
 
 typedef struct

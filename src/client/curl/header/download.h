@@ -63,8 +63,8 @@ typedef struct dlhandle_s
 
 typedef struct dlquirks_s
 {
-	qboolean error;
-	qboolean filelist;
+	bool error;
+	bool filelist;
 	char gamedir[MAX_QPATH];
 } dlquirks_t;
 
@@ -78,13 +78,13 @@ extern cvar_t *cl_http_show_dw_progress;
 extern cvar_t *cl_http_bw_limit_rate;
 extern cvar_t *cl_http_bw_limit_tmout;
 
-void CL_CancelHTTPDownloads(qboolean permKill);
+void CL_CancelHTTPDownloads(bool permKill);
 void CL_InitHTTPDownloads(void);
-qboolean CL_QueueHTTPDownload(const char *quakePath, qboolean gamedirForFilelist);
+bool CL_QueueHTTPDownload(const char *quakePath, bool gamedirForFilelist);
 void CL_RunHTTPDownloads(void);
-qboolean CL_PendingHTTPDownloads(void);
+bool CL_PendingHTTPDownloads(void);
 void CL_SetHTTPServer(const char *URL);
-void CL_HTTP_Cleanup(qboolean fullShutdown);
+void CL_HTTP_Cleanup(bool fullShutdown);
 
 #endif // DOWNLOAD_H
 #endif // USE_CURL

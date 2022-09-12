@@ -61,7 +61,7 @@ static float joystick_yaw, joystick_pitch;
 static float joystick_forwardmove, joystick_sidemove;
 static float joystick_up;
 static float gyro_yaw, gyro_pitch;
-static qboolean mlooking;
+static bool mlooking;
 
 // The last time input events were processed.
 // Used throughout the client.
@@ -69,7 +69,7 @@ int sys_frame_time;
 
 // the joystick altselector that turns K_BTN_X into K_BTN_X_ALT
 // is pressed
-qboolean joy_altselector_pressed = false;
+bool joy_altselector_pressed = false;
 
 // Console Variables
 cvar_t *freelook;
@@ -101,7 +101,7 @@ struct hapric_effects_cache {
 	int effect_z;
 };
 
-qboolean show_haptic;
+bool show_haptic;
 
 static SDL_Haptic *joystick_haptic = NULL;
 static SDL_GameController *controller = NULL;
@@ -149,10 +149,10 @@ static cvar_t *gyro_yawsensitivity;
 static cvar_t *gyro_pitchsensitivity;
 
 // Gyro availability
-qboolean gyro_hardware = false;
+bool gyro_hardware = false;
 
 // Gyro is being used in this very moment
-static qboolean gyro_active = false;
+static bool gyro_active = false;
 
 // Gyro calibration
 static float gyro_accum[3];
@@ -163,7 +163,7 @@ static cvar_t *gyro_calibration_y;
 static cvar_t *gyro_calibration_z;
 
 // To ignore SDL_JOYDEVICEADDED at game init. Allows for hot plugging of game controller afterwards.
-static qboolean first_init = true;
+static bool first_init = true;
 
 // Countdown of calls to IN_Update(), needed for controller init and gyro calibration
 static unsigned int updates_countdown = 30;
@@ -503,8 +503,8 @@ IN_TranslateGamepadBtnToQ2Key(int btn)
 	return 0;
 }
 
-static void IN_Controller_Init(qboolean notify_user);
-static void IN_Controller_Shutdown(qboolean notify_user);
+static void IN_Controller_Init(bool notify_user);
+static void IN_Controller_Shutdown(bool notify_user);
 
 /* ------------------------------------------------------------------ */
 
@@ -516,12 +516,12 @@ static void IN_Controller_Shutdown(qboolean notify_user);
 void
 IN_Update(void)
 {
-	qboolean want_grab;
+	bool want_grab;
 	SDL_Event event;
 	unsigned int key;
 
-	static qboolean left_trigger = false;
-	static qboolean right_trigger = false;
+	static bool left_trigger = false;
+	static bool right_trigger = false;
 
 	static int consoleKeyCode = 0;
 
@@ -586,7 +586,7 @@ IN_Update(void)
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
 			{
-				qboolean down = (event.type == SDL_KEYDOWN);
+				bool down = (event.type == SDL_KEYDOWN);
 
 				/* workaround for AZERTY-keyboards, which don't have 1, 2, ..., 9, 0 in first row:
 				 * always map those physical keys (scancodes) to those keycodes anyway
@@ -669,7 +669,7 @@ IN_Update(void)
 			case SDL_CONTROLLERBUTTONUP:
 			case SDL_CONTROLLERBUTTONDOWN:
 			{
-				qboolean down = (event.type == SDL_CONTROLLERBUTTONDOWN);
+				bool down = (event.type == SDL_CONTROLLERBUTTONDOWN);
 
 				// Handle Back Button first, to override its original key
 				if (event.cbutton.button == sdl_back_button)
@@ -797,7 +797,7 @@ IN_Update(void)
 
 				if (strcmp(direction_type, "triggerleft") == 0)
 				{
-					qboolean new_left_trigger = abs(axis_value) > (32767 / 4);
+					bool new_left_trigger = abs(axis_value) > (32767 / 4);
 
 					if (new_left_trigger != left_trigger)
 					{
@@ -807,7 +807,7 @@ IN_Update(void)
 				}
 				else if (strcmp(direction_type, "triggerright") == 0)
 				{
-					qboolean new_right_trigger = abs(axis_value) > (32767 / 4);
+					bool new_right_trigger = abs(axis_value) > (32767 / 4);
 
 					if (new_right_trigger != right_trigger)
 					{
@@ -1384,7 +1384,7 @@ StartCalibration(void)
 	countdown_reason = REASON_GYROCALIBRATION;
 }
 
-qboolean
+bool
 IsCalibrationZero(void)
 {
 	return (!gyro_calibration_x->value && !gyro_calibration_y->value && !gyro_calibration_z->value);
@@ -1394,7 +1394,7 @@ IsCalibrationZero(void)
  * Game Controller
  */
 static void
-IN_Controller_Init(qboolean notify_user)
+IN_Controller_Init(bool notify_user)
 {
 	cvar_t *in_sdlbackbutton;
 	int nummappings;
@@ -1666,7 +1666,7 @@ IN_Haptic_Shutdown(void)
 }
 
 static void
-IN_Controller_Shutdown(qboolean notify_user)
+IN_Controller_Shutdown(bool notify_user)
 {
 	if (notify_user)
 	{

@@ -36,8 +36,8 @@ msurface_t *r_alpha_surfaces;
 gllightmapstate_t gl_lms;
 
 void LM_InitBlock(void);
-void LM_UploadBlock(qboolean dynamic);
-qboolean LM_AllocBlock(int w, int h, int *x, int *y);
+void LM_UploadBlock(bool dynamic);
+bool LM_AllocBlock(int w, int h, int *x, int *y);
 
 void R_SetCacheState(msurface_t *surf);
 void R_BuildLightMap(msurface_t *surf, byte *dest, int stride);
@@ -443,7 +443,7 @@ R_RenderBrushPoly(entity_t *currententity, msurface_t *fa)
 {
 	int maps;
 	image_t *image;
-	qboolean is_dynamic = false;
+	bool is_dynamic = false;
 
 	c_brush_polys++;
 
@@ -730,7 +730,7 @@ R_DrawBrushModel(entity_t *currententity, const model_t *currentmodel)
 {
 	vec3_t mins, maxs;
 	int i;
-	qboolean rotated;
+	bool rotated;
 
 	if (currentmodel->nummodelsurfaces == 0)
 	{

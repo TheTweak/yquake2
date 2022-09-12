@@ -1257,7 +1257,7 @@ void door_go_down(edict_t *self);
  */
 
 void
-door_use_areaportals(edict_t *self, qboolean open)
+door_use_areaportals(edict_t *self, bool open)
 {
 	edict_t *t = NULL;
 
@@ -2245,7 +2245,7 @@ train_next(edict_t *self)
 
 	edict_t *ent;
 	vec3_t dest;
-	qboolean first;
+	bool first;
 
 	first = true;
 

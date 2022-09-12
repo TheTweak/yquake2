@@ -227,7 +227,7 @@ Com_Error(int code, char *fmt, ...)
 {
 	va_list argptr;
 	static char msg[MAXPRINTMSG];
-	static qboolean recursive;
+	static bool recursive;
 
 	if (recursive)
 	{

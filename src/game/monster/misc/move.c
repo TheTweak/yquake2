@@ -36,7 +36,7 @@ int c_yes, c_no;
  * bottom of the entity is off an edge
  * that is not a staircase.
  */
-qboolean
+bool
 M_CheckBottom(edict_t *ent)
 {
 	vec3_t mins, maxs, start, stop;
@@ -129,8 +129,8 @@ realcheck:
  * returned, and pr_global_struct->trace_normal
  * is set to the normal of the blocking wall
  */
-qboolean
-SV_movestep(edict_t *ent, vec3_t move, qboolean relink)
+bool
+SV_movestep(edict_t *ent, vec3_t move, bool relink)
 {
 	float dz;
 	vec3_t oldorg, neworg, end;
@@ -431,7 +431,7 @@ M_ChangeYaw(edict_t *ent)
  * Turns to the movement direction, and
  * walks the current distance if facing it.
  */
-qboolean
+bool
 SV_StepDirection(edict_t *ent, float yaw, float dist)
 {
 	vec3_t move, oldorigin;
@@ -608,7 +608,7 @@ SV_NewChaseDir(edict_t *actor, edict_t *enemy, float dist)
 	}
 }
 
-qboolean
+bool
 SV_CloseEnough(edict_t *ent, edict_t *goal, float dist)
 {
 	int i;
@@ -667,7 +667,7 @@ M_MoveToGoal(edict_t *ent, float dist)
 	}
 }
 
-qboolean
+bool
 M_walkmove(edict_t *ent, float yaw, float dist)
 {
 	vec3_t move;

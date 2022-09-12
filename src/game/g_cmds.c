@@ -61,7 +61,7 @@ ClientTeam(edict_t *ent, char* value)
 	return ++p;
 }
 
-qboolean
+bool
 OnSameTeam(edict_t *ent1, edict_t *ent2)
 {
 	char ent1Team[512];
@@ -218,7 +218,7 @@ Cmd_Give_f(edict_t *ent)
 	gitem_t *it;
 	int index;
 	int i;
-	qboolean give_all;
+	bool give_all;
 	edict_t *it_ent;
 
 	if (!ent)
@@ -1062,7 +1062,7 @@ Cmd_Wave_f(edict_t *ent)
 }
 
 void
-Cmd_Say_f(edict_t *ent, qboolean team, qboolean arg0)
+Cmd_Say_f(edict_t *ent, bool team, bool arg0)
 {
 	int i, j;
 	edict_t *other;
@@ -1292,12 +1292,12 @@ Cmd_ListEntities_f(edict_t *ent)
 	}
 
 	/* What to print? */
-	qboolean all = false;
-	qboolean ammo = false;
-	qboolean items = false;
-	qboolean keys = false;
-	qboolean monsters = false;
-	qboolean weapons = false;
+	bool all = false;
+	bool ammo = false;
+	bool items = false;
+	bool keys = false;
+	bool monsters = false;
+	bool weapons = false;
 
 	for (int i = 1; i < gi.argc(); i++)
 	{
@@ -1337,7 +1337,7 @@ Cmd_ListEntities_f(edict_t *ent)
 	for (int i = 0; i < globals.num_edicts; i++)
 	{
 		edict_t *cur = &g_edicts[i];
-		qboolean print = false;
+		bool print = false;
 
 		/* Ensure that the entity is valid. */
 		if (!cur->classname)

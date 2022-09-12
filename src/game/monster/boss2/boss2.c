@@ -29,7 +29,7 @@
 
 void BossExplode(edict_t *self);
 
-qboolean infront(edict_t *self, edict_t *other);
+bool infront(edict_t *self, edict_t *other);
 
 static int sound_pain1;
 static int sound_pain2;
@@ -667,7 +667,7 @@ boss2_die(edict_t *self, edict_t *inflictor /* unused */, edict_t *attacker /* u
 	self->monsterinfo.currentmove = &boss2_move_death;
 }
 
-qboolean
+bool
 Boss2_CheckAttack(edict_t *self)
 {
 	vec3_t spot1, spot2;

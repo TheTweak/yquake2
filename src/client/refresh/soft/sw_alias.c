@@ -89,7 +89,7 @@ R_AliasCheckFrameBBox( daliasframe_t *frame, float worldxf[3][4] )
 	int           i;
 	vec3_t        mins, maxs;
 	vec3_t        transformed_min, transformed_max;
-	qboolean      zfullyclipped = true;
+	bool      zfullyclipped = true;
 
 	/*
 	** get the exact frame bounding box
@@ -498,7 +498,7 @@ R_AliasProjectAndClipTestFinalVert( finalvert_t *fv )
 R_AliasSetupSkin
 ===============
 */
-static qboolean
+static bool
 R_AliasSetupSkin(const entity_t *currententity, const model_t *currentmodel)
 {
 	image_t *pskindesc;

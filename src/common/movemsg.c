@@ -196,7 +196,7 @@ MSG_WriteChar(sizebuf_t *sb, int c)
 {
 	byte *buf;
 
-	buf = SZ_GetSpace(sb, 1);
+	buf = reinterpret_cast<byte*>(SZ_GetSpace(sb, 1));
 	buf[0] = c;
 }
 
@@ -205,7 +205,7 @@ MSG_WriteByte(sizebuf_t *sb, int c)
 {
 	byte *buf;
 
-	buf = SZ_GetSpace(sb, 1);
+	buf = reinterpret_cast<byte*>(SZ_GetSpace(sb, 1));
 	buf[0] = c;
 }
 
@@ -214,7 +214,7 @@ MSG_WriteShort(sizebuf_t *sb, int c)
 {
 	byte *buf;
 
-	buf = SZ_GetSpace(sb, 2);
+	buf = reinterpret_cast<byte*>(SZ_GetSpace(sb, 2));
 	buf[0] = c & 0xff;
 	buf[1] = c >> 8;
 }
@@ -224,7 +224,7 @@ MSG_WriteLong(sizebuf_t *sb, int c)
 {
 	byte *buf;
 
-	buf = SZ_GetSpace(sb, 4);
+	buf = reinterpret_cast<byte*>(SZ_GetSpace(sb, 4));
 	buf[0] = c & 0xff;
 	buf[1] = (c >> 8) & 0xff;
 	buf[2] = (c >> 16) & 0xff;
@@ -251,7 +251,7 @@ MSG_WriteString(sizebuf_t *sb, char *s)
 {
 	if (!s)
 	{
-		SZ_Write(sb, "", 1);
+		SZ_Write(sb, (void*)"", 1);
 	}
 
 	else
@@ -432,8 +432,8 @@ void
 MSG_WriteDeltaEntity(entity_state_t *from,
 		entity_state_t *to,
 		sizebuf_t *msg,
-		qboolean force,
-		qboolean newentity)
+		bool force,
+		bool newentity)
 {
 	int bits;
 

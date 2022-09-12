@@ -31,7 +31,7 @@
 #define	CON_TEXTSIZE	32768
 
 typedef struct {
-	qboolean	initialized;
+	bool	initialized;
 
 	char	text[CON_TEXTSIZE];
 	int		current; /* line where next message will be printed */

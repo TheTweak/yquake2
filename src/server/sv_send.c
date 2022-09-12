@@ -153,7 +153,7 @@ SV_Multicast(vec3_t origin, multicast_t to)
 	byte *mask;
 	int leafnum = 0, cluster;
 	int j;
-	qboolean reliable;
+	bool reliable;
 	int area1, area2;
 
 	reliable = false;
@@ -275,7 +275,7 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 	int i;
 	int ent;
 	vec3_t origin_v;
-	qboolean use_phs;
+	bool use_phs;
 
 	if ((volume < 0) || (volume > 1.0))
 	{
@@ -415,7 +415,7 @@ SV_StartSound(vec3_t origin, edict_t *entity, int channel, int soundindex,
 	}
 }
 
-qboolean
+bool
 SV_SendClientDatagram(client_t *client)
 {
 	byte msg_buf[MAX_MSGLEN];
@@ -477,7 +477,7 @@ SV_DemoCompleted(void)
  * Returns true if the client is over its current
  * bandwidth estimation and should not be sent another packet
  */
-qboolean
+bool
 SV_RateDrop(client_t *c)
 {
 	int total;

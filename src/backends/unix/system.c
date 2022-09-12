@@ -51,7 +51,7 @@
 static void *game_library;
 
 // Evil hack to determine if stdin is available
-qboolean stdin_active = true;
+bool stdin_active = true;
 
 // Config dir
 char cfgdir[MAX_OSPATH] = CFGDIR;
@@ -422,7 +422,7 @@ Sys_GetGameAPI(void *parms)
 		}
 	}
 
-	GetGameAPI = (void *)dlsym(game_library, "GetGameAPI");
+	GetGameAPI = reinterpret_cast<void *(*)(void *)>(dlsym(game_library, "GetGameAPI"));
 
 	if (!GetGameAPI)
 	{
@@ -447,7 +447,7 @@ Sys_Mkdir(const char *path)
 	}
 }
 
-qboolean
+bool
 Sys_IsDir(const char *path)
 {
 	struct stat sb;
@@ -463,7 +463,7 @@ Sys_IsDir(const char *path)
 	return false;
 }
 
-qboolean
+bool
 Sys_IsFile(const char *path)
 {
 	struct stat sb;
@@ -534,7 +534,7 @@ Sys_RemoveDir(const char *path)
 	}
 }
 
-qboolean
+bool
 Sys_Realpath(const char *in, char *out, size_t size)
 {
 	char *converted = realpath(in, NULL);
@@ -637,7 +637,7 @@ Sys_GetWorkDir(char *buffer, size_t len)
 	buffer[0] = '\0';
 }
 
-qboolean
+bool
 Sys_SetWorkDir(char *path)
 {
 	if (chdir(path) == 0)

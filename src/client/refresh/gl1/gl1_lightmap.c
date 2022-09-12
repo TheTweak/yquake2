@@ -38,7 +38,7 @@ LM_InitBlock(void)
 }
 
 void
-LM_UploadBlock(qboolean dynamic)
+LM_UploadBlock(bool dynamic)
 {
 	int texture;
 	int height = 0;
@@ -90,7 +90,7 @@ LM_UploadBlock(qboolean dynamic)
 /*
  * returns a texture number and the position inside it
  */
-qboolean
+bool
 LM_AllocBlock(int w, int h, int *x, int *y)
 {
 	int i, j;

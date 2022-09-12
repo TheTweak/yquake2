@@ -94,7 +94,7 @@ int num_power_sounds;
 /* Used to communicate if we entered paused mode
    during server connect or if we were already in
    it. */
-qboolean paused_at_load;
+bool paused_at_load;
 
 extern cvar_t *allow_download;
 extern cvar_t *allow_download_players;
@@ -735,7 +735,7 @@ CL_UpdateWindowedMouse(void)
 }
 
 void
-CL_Frame(int packetdelta, int renderdelta, int timedelta, qboolean packetframe, qboolean renderframe)
+CL_Frame(int packetdelta, int renderdelta, int timedelta, bool packetframe, bool renderframe)
 {
 	static int lasttimecalled;
 
@@ -932,7 +932,7 @@ CL_Init(void)
 void
 CL_Shutdown(void)
 {
-	static qboolean isdown = false;
+	static bool isdown = false;
 
 	if (isdown)
 	{

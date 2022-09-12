@@ -380,7 +380,7 @@ R_DrawAliasShadow(entity_t *currententity, dmdl_t *paliashdr, int posenum)
 	}
 }
 
-static qboolean
+static bool
 R_CullAliasModel(const model_t *currentmodel, vec3_t bbox[8], entity_t *e)
 {
 	int i;

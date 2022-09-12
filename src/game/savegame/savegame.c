@@ -782,7 +782,7 @@ ReadClient(FILE *f, gclient_t *client, short save_ver)
  * - help computer info
  */
 void
-WriteGame(const char *filename, qboolean autosave)
+WriteGame(const char *filename, bool autosave)
 {
 	savegameHeader_t sv;
 	FILE *f;

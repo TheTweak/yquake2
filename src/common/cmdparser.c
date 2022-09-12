@@ -54,7 +54,6 @@ int alias_count; /* for detecting runaway loops */
 cmdalias_t *cmd_alias;
 int cmd_wait;
 static int cmd_argc;
-static int cmd_argc;
 static char *cmd_argv[MAX_STRING_TOKENS];
 static char *cmd_null_string = "";
 static char cmd_args[MAX_STRING_CHARS];
@@ -113,7 +112,7 @@ Cbuf_InsertText(char *text)
 
 	if (templen)
 	{
-		temp = Z_Malloc(templen);
+		temp = static_cast<char*>(Z_Malloc(templen));
 		memcpy(temp, cmd_text.data, templen);
 		SZ_Clear(&cmd_text);
 	}
@@ -260,7 +259,7 @@ Cbuf_Execute(void)
  * Other commands are added late, after all initialization is complete.
  */
 void
-Cbuf_AddEarlyCommands(qboolean clear)
+Cbuf_AddEarlyCommands(bool clear)
 {
 	int i;
 	char *s;
@@ -295,14 +294,14 @@ Cbuf_AddEarlyCommands(qboolean clear)
  * Returns true if any late commands were added, which
  * will keep the demoloop from immediately starting
  */
-qboolean
+bool
 Cbuf_AddLateCommands(void)
 {
 	int i, j;
 	int s;
 	char *text, c;
 	int argc;
-	qboolean has_args = false;
+	bool has_args = false;
 
 	/* build the combined string to parse from */
 	s = 0;
@@ -318,7 +317,7 @@ Cbuf_AddLateCommands(void)
 		return false;
 	}
 
-	text = Z_Malloc(s + 1);
+	text = static_cast<char*>(Z_Malloc(s + 1));
 	text[0] = 0;
 
 	for (i = 1; i < argc; i++)
@@ -386,7 +385,7 @@ Cmd_Exec_f(void)
 
 	/* the file doesn't have a trailing 0, so we need to copy it off */
 	/* we also add a newline */
-	f2 = Z_Malloc(len + 2);
+	f2 = static_cast<char*>(Z_Malloc(len + 2));
 	memcpy(f2, f, len);
 	f2[len] = '\n'; // make sure last line has a newline
 	f2[len+1] = '\0';
@@ -472,7 +471,7 @@ Cmd_Alias_f(void)
 
 	if (!a)
 	{
-		a = Z_Malloc(sizeof(cmdalias_t));
+		a = static_cast<cmdalias_t*>(Z_Malloc(sizeof(cmdalias_t)));
 		a->next = cmd_alias;
 		cmd_alias = a;
 	}
@@ -528,7 +527,7 @@ char *
 Cmd_MacroExpandString(char *text)
 {
 	int i, j, count, len;
-	qboolean inquote;
+	bool inquote;
 	char *scan;
 	static char expanded[MAX_STRING_CHARS];
 	char temporary[MAX_STRING_CHARS];
@@ -614,7 +613,7 @@ Cmd_MacroExpandString(char *text)
  * $Cvars will be expanded unless they are in a quoted token
  */
 void
-Cmd_TokenizeString(char *text, qboolean macroExpand)
+Cmd_TokenizeString(char *text, bool macroExpand)
 {
 	int i;
 	const char *com_token;
@@ -692,7 +691,7 @@ Cmd_TokenizeString(char *text, qboolean macroExpand)
 
 		if (cmd_argc < MAX_STRING_TOKENS)
 		{
-			cmd_argv[cmd_argc] = Z_Malloc(strlen(com_token) + 1);
+			cmd_argv[cmd_argc] = static_cast<char*>(Z_Malloc(strlen(com_token) + 1));
 			strcpy(cmd_argv[cmd_argc], com_token);
 			cmd_argc++;
 		}
@@ -721,7 +720,7 @@ Cmd_AddCommand(char *cmd_name, xcommand_t function)
 		}
 	}
 
-	cmd = Z_Malloc(sizeof(cmd_function_t));
+	cmd = static_cast<cmd_function_t*>(Z_Malloc(sizeof(cmd_function_t)));
 	cmd->name = cmd_name;
 	cmd->function = function;
 
@@ -763,7 +762,7 @@ Cmd_RemoveCommand(char *cmd_name)
 	}
 }
 
-qboolean
+bool
 Cmd_Exists(char *cmd_name)
 {
 	cmd_function_t *cmd;
@@ -787,7 +786,7 @@ Cmd_CompleteCommand(char *partial)
 	cmdalias_t *a;
 	cvar_t *cvar;
 	char *pmatch[1024];
-	qboolean diff = false;
+	bool diff = false;
 
 	len = strlen(partial);
 
@@ -910,7 +909,7 @@ Cmd_CompleteMapCommand(char *partial)
 	int i, j, k, nbMatches, len, nMaps;
 	char *mapName;
 	char *pmatch[1024];
-	qboolean partialFillContinue = true;
+	bool partialFillContinue = true;
 
 	if ((mapNames = FS_ListFiles2("maps/*.bsp", &nMaps, 0, 0)) != 0)
 	{
@@ -986,7 +985,7 @@ Cmd_CompleteMapCommand(char *partial)
 	return retval;
 }
 
-qboolean
+bool
 Cmd_IsComplete(char *command)
 {
 	cmd_function_t *cmd;
@@ -1022,7 +1021,7 @@ Cmd_IsComplete(char *command)
 }
 
 /* ugly hack to suppress warnings from default.cfg in Key_Bind_f() */
-qboolean doneWithDefaultCfg;
+bool doneWithDefaultCfg;
 
 /*
  * A complete command line has been parsed, so try to execute it

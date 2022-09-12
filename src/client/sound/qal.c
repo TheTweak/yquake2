@@ -44,7 +44,7 @@ static ALCcontext *context;
 static ALCdevice *device;
 static cvar_t *al_device;
 static cvar_t *al_driver;
-static qboolean hasAlcExtDisconnect;
+static bool hasAlcExtDisconnect;
 static void *handle;
 
 /* Function pointers for OpenAL management */
@@ -212,7 +212,7 @@ void QAL_SoundInfo()
  * resolution changes and recreates it after an unspecified
  * amount of time...
  */
-qboolean
+bool
 QAL_RecoverLostDevice()
 {
 	static int discoCount = 0;
@@ -390,7 +390,7 @@ QAL_Shutdown()
  * Loads the OpenAL shared lib, creates
  * a context and device handle.
  */
-qboolean
+bool
 QAL_Init()
 {
 	al_device = Cvar_Get("al_device", "", CVAR_ARCHIVE);
@@ -412,102 +412,103 @@ QAL_Init()
 	#define ALSYMBOL(handle, sym) Sys_GetProcAddress(handle, #sym)
 
 	/* Connect function pointers to management functions */
-	qalcCreateContext = ALSYMBOL(handle, alcCreateContext);
-	qalcMakeContextCurrent = ALSYMBOL(handle, alcMakeContextCurrent);
-	qalcProcessContext = ALSYMBOL(handle, alcProcessContext);
-	qalcSuspendContext = ALSYMBOL(handle, alcSuspendContext);
-	qalcDestroyContext = ALSYMBOL(handle, alcDestroyContext);
-	qalcGetCurrentContext = ALSYMBOL(handle, alcGetCurrentContext);
-	qalcGetContextsDevice = ALSYMBOL(handle, alcGetContextsDevice);
-	qalcOpenDevice = ALSYMBOL(handle, alcOpenDevice);
-	qalcCloseDevice = ALSYMBOL(handle, alcCloseDevice);
-	qalcGetError = ALSYMBOL(handle, alcGetError);
-	qalcIsExtensionPresent = ALSYMBOL(handle, alcIsExtensionPresent);
-	qalcGetProcAddress = ALSYMBOL(handle, alcGetProcAddress);
-	qalcGetEnumValue = ALSYMBOL(handle, alcGetEnumValue);
-	qalcGetString = ALSYMBOL(handle, alcGetString);
-	qalcGetIntegerv = ALSYMBOL(handle, alcGetIntegerv);
-	qalcCaptureOpenDevice = ALSYMBOL(handle, alcCaptureOpenDevice);
-	qalcCaptureCloseDevice = ALSYMBOL(handle, alcCaptureCloseDevice);
-	qalcCaptureStart = ALSYMBOL(handle, alcCaptureStart);
-	qalcCaptureStop = ALSYMBOL(handle, alcCaptureStop);
-	qalcCaptureSamples = ALSYMBOL(handle, alcCaptureSamples);
+	qalcCreateContext = reinterpret_cast<LPALCCREATECONTEXT>(ALSYMBOL(handle, alcCreateContext));
+	qalcMakeContextCurrent = reinterpret_cast<LPALCMAKECONTEXTCURRENT>(ALSYMBOL(handle, alcMakeContextCurrent));
+	qalcProcessContext = reinterpret_cast<LPALCPROCESSCONTEXT>(ALSYMBOL(handle, alcProcessContext));
+	qalcSuspendContext = reinterpret_cast<LPALCSUSPENDCONTEXT>(ALSYMBOL(handle, alcSuspendContext));
+	qalcDestroyContext = reinterpret_cast<LPALCDESTROYCONTEXT>(ALSYMBOL(handle, alcDestroyContext));
+	qalcGetCurrentContext = reinterpret_cast<LPALCGETCURRENTCONTEXT>(ALSYMBOL(handle, alcGetCurrentContext));
+	qalcGetContextsDevice = reinterpret_cast<LPALCGETCONTEXTSDEVICE>(ALSYMBOL(handle, alcGetContextsDevice));
+	qalcOpenDevice = reinterpret_cast<LPALCOPENDEVICE>(ALSYMBOL(handle, alcOpenDevice));
+	qalcCloseDevice = reinterpret_cast<LPALCCLOSEDEVICE>(ALSYMBOL(handle, alcCloseDevice));
+	qalcGetError = reinterpret_cast<LPALCGETERROR>(ALSYMBOL(handle, alcGetError));
+	qalcIsExtensionPresent = reinterpret_cast<LPALCISEXTENSIONPRESENT>(ALSYMBOL(handle, alcIsExtensionPresent));
+	qalcGetProcAddress = reinterpret_cast<LPALCGETPROCADDRESS>(ALSYMBOL(handle, alcGetProcAddress));
+	qalcGetEnumValue = reinterpret_cast<LPALCGETENUMVALUE>(ALSYMBOL(handle, alcGetEnumValue));
+	qalcGetString = reinterpret_cast<LPALCGETSTRING>(ALSYMBOL(handle, alcGetString));
+	qalcGetIntegerv = reinterpret_cast<LPALCGETINTEGERV>(ALSYMBOL(handle, alcGetIntegerv));
+	qalcCaptureOpenDevice = reinterpret_cast<LPALCCAPTUREOPENDEVICE>(ALSYMBOL(handle, alcCaptureOpenDevice));
+	qalcCaptureCloseDevice = reinterpret_cast<LPALCCAPTURECLOSEDEVICE>(ALSYMBOL(handle, alcCaptureCloseDevice));
+	qalcCaptureStart = reinterpret_cast<LPALCCAPTURESTART>(ALSYMBOL(handle, alcCaptureStart));
+	qalcCaptureStop = reinterpret_cast<LPALCCAPTURESTOP>(ALSYMBOL(handle, alcCaptureStop));
+	qalcCaptureSamples = reinterpret_cast<LPALCCAPTURESAMPLES>(ALSYMBOL(handle, alcCaptureSamples));
 
 	/* Connect function pointers to
 	   to OpenAL API functions */
-	qalEnable = ALSYMBOL(handle, alEnable);
-	qalDisable = ALSYMBOL(handle, alDisable);
-	qalIsEnabled = ALSYMBOL(handle, alIsEnabled);
-	qalGetString = ALSYMBOL(handle, alGetString);
-	qalGetBooleanv = ALSYMBOL(handle, alGetBooleanv);
-	qalGetIntegerv = ALSYMBOL(handle, alGetIntegerv);
-	qalGetFloatv = ALSYMBOL(handle, alGetFloatv);
-	qalGetDoublev = ALSYMBOL(handle, alGetDoublev);
-	qalGetBoolean = ALSYMBOL(handle, alGetBoolean);
-	qalGetInteger = ALSYMBOL(handle, alGetInteger);
-	qalGetFloat = ALSYMBOL(handle, alGetFloat);
-	qalGetDouble = ALSYMBOL(handle, alGetDouble);
-	qalGetError = ALSYMBOL(handle, alGetError);
-	qalIsExtensionPresent = ALSYMBOL(handle, alIsExtensionPresent);
-	qalGetProcAddress = ALSYMBOL(handle, alGetProcAddress);
-	qalGetEnumValue = ALSYMBOL(handle, alGetEnumValue);
-	qalListenerf = ALSYMBOL(handle, alListenerf);
-	qalListener3f = ALSYMBOL(handle, alListener3f);
-	qalListenerfv = ALSYMBOL(handle, alListenerfv);
-	qalListeneri = ALSYMBOL(handle, alListeneri);
-	qalListener3i = ALSYMBOL(handle, alListener3i);
-	qalListeneriv = ALSYMBOL(handle, alListeneriv);
-	qalGetListenerf = ALSYMBOL(handle, alGetListenerf);
-	qalGetListener3f = ALSYMBOL(handle, alGetListener3f);
-	qalGetListenerfv = ALSYMBOL(handle, alGetListenerfv);
-	qalGetListeneri = ALSYMBOL(handle, alGetListeneri);
-	qalGetListener3i = ALSYMBOL(handle, alGetListener3i);
-	qalGetListeneriv = ALSYMBOL(handle, alGetListeneriv);
-	qalGenSources = ALSYMBOL(handle, alGenSources);
-	qalDeleteSources = ALSYMBOL(handle, alDeleteSources);
-	qalIsSource = ALSYMBOL(handle, alIsSource);
-	qalSourcef = ALSYMBOL(handle, alSourcef);
-	qalSource3f = ALSYMBOL(handle, alSource3f);
-	qalSourcefv = ALSYMBOL(handle, alSourcefv);
-	qalSourcei = ALSYMBOL(handle, alSourcei);
-	qalSource3i = ALSYMBOL(handle, alSource3i);
-	qalSourceiv = ALSYMBOL(handle, alSourceiv);
-	qalGetSourcef = ALSYMBOL(handle, alGetSourcef);
-	qalGetSource3f = ALSYMBOL(handle, alGetSource3f);
-	qalGetSourcefv = ALSYMBOL(handle, alGetSourcefv);
-	qalGetSourcei = ALSYMBOL(handle, alGetSourcei);
-	qalGetSource3i = ALSYMBOL(handle, alGetSource3i);
-	qalGetSourceiv = ALSYMBOL(handle, alGetSourceiv);
-	qalSourcePlayv = ALSYMBOL(handle, alSourcePlayv);
-	qalSourceStopv = ALSYMBOL(handle, alSourceStopv);
-	qalSourceRewindv = ALSYMBOL(handle, alSourceRewindv);
-	qalSourcePausev = ALSYMBOL(handle, alSourcePausev);
-	qalSourcePlay = ALSYMBOL(handle, alSourcePlay);
-	qalSourceStop = ALSYMBOL(handle, alSourceStop);
-	qalSourceRewind = ALSYMBOL(handle, alSourceRewind);
-	qalSourcePause = ALSYMBOL(handle, alSourcePause);
-	qalSourceQueueBuffers = ALSYMBOL(handle, alSourceQueueBuffers);
-	qalSourceUnqueueBuffers = ALSYMBOL(handle, alSourceUnqueueBuffers);
-	qalGenBuffers = ALSYMBOL(handle, alGenBuffers);
-	qalDeleteBuffers = ALSYMBOL(handle, alDeleteBuffers);
-	qalIsBuffer = ALSYMBOL(handle, alIsBuffer);
-	qalBufferData = ALSYMBOL(handle, alBufferData);
-	qalBufferf = ALSYMBOL(handle, alBufferf);
-	qalBuffer3f = ALSYMBOL(handle, alBuffer3f);
-	qalBufferfv = ALSYMBOL(handle, alBufferfv);
-	qalBufferi = ALSYMBOL(handle, alBufferi);
-	qalBuffer3i = ALSYMBOL(handle, alBuffer3i);
-	qalBufferiv = ALSYMBOL(handle, alBufferiv);
-	qalGetBufferf = ALSYMBOL(handle, alGetBufferf);
-	qalGetBuffer3f = ALSYMBOL(handle, alGetBuffer3f);
-	qalGetBufferfv = ALSYMBOL(handle, alGetBufferfv);
-	qalGetBufferi = ALSYMBOL(handle, alGetBufferi);
-	qalGetBuffer3i = ALSYMBOL(handle, alGetBuffer3i);
-	qalGetBufferiv = ALSYMBOL(handle, alGetBufferiv);
-	qalDopplerFactor = ALSYMBOL(handle, alDopplerFactor);
-	qalDopplerVelocity = ALSYMBOL(handle, alDopplerVelocity);
-	qalSpeedOfSound = ALSYMBOL(handle, alSpeedOfSound);
-	qalDistanceModel = ALSYMBOL(handle, alDistanceModel);
+	qalEnable = reinterpret_cast<LPALENABLE>(ALSYMBOL(handle, alEnable));
+    qalDisable = reinterpret_cast<LPALDISABLE>(ALSYMBOL(handle, alDisable));
+    qalIsEnabled = reinterpret_cast<LPALISENABLED>(ALSYMBOL(handle, alIsEnabled));
+    qalGetString = reinterpret_cast<LPALGETSTRING>(ALSYMBOL(handle, alGetString));
+    qalGetBooleanv = reinterpret_cast<LPALGETBOOLEANV>(ALSYMBOL(handle, alGetBooleanv));
+    qalGetIntegerv = reinterpret_cast<LPALGETINTEGERV>(ALSYMBOL(handle, alGetIntegerv));
+    qalGetFloatv = reinterpret_cast<LPALGETFLOATV>(ALSYMBOL(handle, alGetFloatv));
+    qalGetDoublev = reinterpret_cast<LPALGETDOUBLEV>(ALSYMBOL(handle, alGetDoublev));
+    qalGetBoolean = reinterpret_cast<LPALGETBOOLEAN>(ALSYMBOL(handle, alGetBoolean));
+    qalGetInteger = reinterpret_cast<LPALGETINTEGER>(ALSYMBOL(handle, alGetInteger));
+    qalGetFloat = reinterpret_cast<LPALGETFLOAT>(ALSYMBOL(handle, alGetFloat));
+    qalGetDouble = reinterpret_cast<LPALGETDOUBLE>(ALSYMBOL(handle, alGetDouble));
+    qalGetError = reinterpret_cast<LPALGETERROR>(ALSYMBOL(handle, alGetError));
+    qalIsExtensionPresent = reinterpret_cast<LPALISEXTENSIONPRESENT>(ALSYMBOL(handle, alIsExtensionPresent));
+    qalGetProcAddress = reinterpret_cast<LPALGETPROCADDRESS>(ALSYMBOL(handle, alGetProcAddress));
+    qalGetEnumValue = reinterpret_cast<LPALGETENUMVALUE>(ALSYMBOL(handle, alGetEnumValue));
+    qalListenerf = reinterpret_cast<LPALLISTENERF>(ALSYMBOL(handle, alListenerf));
+    qalListener3f = reinterpret_cast<LPALLISTENER3F>(ALSYMBOL(handle, alListener3f));
+    qalListenerfv = reinterpret_cast<LPALLISTENERFV>(ALSYMBOL(handle, alListenerfv));
+    qalListeneri = reinterpret_cast<LPALLISTENERI>(ALSYMBOL(handle, alListeneri));
+    qalListener3i = reinterpret_cast<LPALLISTENER3I>(ALSYMBOL(handle, alListener3i));
+    qalListeneriv = reinterpret_cast<LPALLISTENERIV>(ALSYMBOL(handle, alListeneriv));
+    qalGetListenerf = reinterpret_cast<LPALGETLISTENERF>(ALSYMBOL(handle, alGetListenerf));
+    qalGetListener3f = reinterpret_cast<LPALGETLISTENER3F>(ALSYMBOL(handle, alGetListener3f));
+    qalGetListenerfv = reinterpret_cast<LPALGETLISTENERFV>(ALSYMBOL(handle, alGetListenerfv));
+    qalGetListeneri = reinterpret_cast<LPALGETLISTENERI>(ALSYMBOL(handle, alGetListeneri));
+    qalGetListener3i = reinterpret_cast<LPALGETLISTENER3I>(ALSYMBOL(handle, alGetListener3i));
+    qalGetListeneriv = reinterpret_cast<LPALGETLISTENERIV>(ALSYMBOL(handle, alGetListeneriv));
+    qalGenSources = reinterpret_cast<LPALGENSOURCES>(ALSYMBOL(handle, alGenSources));
+    qalDeleteSources = reinterpret_cast<LPALDELETESOURCES>(ALSYMBOL(handle, alDeleteSources));
+    qalIsSource = reinterpret_cast<LPALISSOURCE>(ALSYMBOL(handle, alIsSource));
+    qalSourcef = reinterpret_cast<LPALSOURCEF>(ALSYMBOL(handle, alSourcef));
+    qalSource3f = reinterpret_cast<LPALSOURCE3F>(ALSYMBOL(handle, alSource3f));
+    qalSourcefv = reinterpret_cast<LPALSOURCEFV>(ALSYMBOL(handle, alSourcefv));
+    qalSourcei = reinterpret_cast<LPALSOURCEI>(ALSYMBOL(handle, alSourcei));
+    qalSource3i = reinterpret_cast<LPALSOURCE3I>(ALSYMBOL(handle, alSource3i));
+    qalSourceiv = reinterpret_cast<LPALSOURCEIV>(ALSYMBOL(handle, alSourceiv));
+    qalGetSourcef = reinterpret_cast<LPALGETSOURCEF>(ALSYMBOL(handle, alGetSourcef));
+    qalGetSource3f = reinterpret_cast<LPALGETSOURCE3F>(ALSYMBOL(handle, alGetSource3f));
+    qalGetSourcefv = reinterpret_cast<LPALGETSOURCEFV>(ALSYMBOL(handle, alGetSourcefv));
+    qalGetSourcei = reinterpret_cast<LPALGETSOURCEI>(ALSYMBOL(handle, alGetSourcei));
+    qalGetSource3i = reinterpret_cast<LPALGETSOURCE3I>(ALSYMBOL(handle, alGetSource3i));
+    qalGetSourceiv = reinterpret_cast<LPALGETSOURCEIV>(ALSYMBOL(handle, alGetSourceiv));
+    qalSourcePlayv = reinterpret_cast<LPALSOURCEPLAYV>(ALSYMBOL(handle, alSourcePlayv));
+    qalSourceStopv = reinterpret_cast<LPALSOURCESTOPV>(ALSYMBOL(handle, alSourceStopv));
+    qalSourceRewindv = reinterpret_cast<LPALSOURCEREWINDV>(ALSYMBOL(handle, alSourceRewindv));
+    qalSourcePausev = reinterpret_cast<LPALSOURCEPAUSEV>(ALSYMBOL(handle, alSourcePausev));
+    qalSourcePlay = reinterpret_cast<LPALSOURCEPLAY>(ALSYMBOL(handle, alSourcePlay));
+    qalSourceStop = reinterpret_cast<LPALSOURCESTOP>(ALSYMBOL(handle, alSourceStop));
+    qalSourceRewind = reinterpret_cast<LPALSOURCEREWIND>(ALSYMBOL(handle, alSourceRewind));
+    qalSourcePause = reinterpret_cast<LPALSOURCEPAUSE>(ALSYMBOL(handle, alSourcePause));
+    qalSourceQueueBuffers = reinterpret_cast<LPALSOURCEQUEUEBUFFERS>(ALSYMBOL(handle, alSourceQueueBuffers));
+    qalSourceUnqueueBuffers = reinterpret_cast<LPALSOURCEUNQUEUEBUFFERS>(ALSYMBOL(handle, alSourceUnqueueBuffers));
+    qalGenBuffers = reinterpret_cast<LPALGENBUFFERS>(ALSYMBOL(handle, alGenBuffers));
+    qalDeleteBuffers = reinterpret_cast<LPALDELETEBUFFERS>(ALSYMBOL(handle, alDeleteBuffers));
+    qalIsBuffer = reinterpret_cast<LPALISBUFFER>(ALSYMBOL(handle, alIsBuffer));
+    qalBufferData = reinterpret_cast<LPALBUFFERDATA>(ALSYMBOL(handle, alBufferData));
+    qalBufferf = reinterpret_cast<LPALBUFFERF>(ALSYMBOL(handle, alBufferf));
+    qalBuffer3f = reinterpret_cast<LPALBUFFER3F>(ALSYMBOL(handle, alBuffer3f));
+    qalBufferfv = reinterpret_cast<LPALBUFFERFV>(ALSYMBOL(handle, alBufferfv));
+    qalBufferi = reinterpret_cast<LPALBUFFERI>(ALSYMBOL(handle, alBufferi));
+    qalBuffer3i = reinterpret_cast<LPALBUFFER3I>(ALSYMBOL(handle, alBuffer3i));
+    qalBufferiv = reinterpret_cast<LPALBUFFERIV>(ALSYMBOL(handle, alBufferiv));
+    qalGetBufferf = reinterpret_cast<LPALGETBUFFERF>(ALSYMBOL(handle, alGetBufferf));
+    qalGetBuffer3f = reinterpret_cast<LPALGETBUFFER3F>(ALSYMBOL(handle, alGetBuffer3f));
+    qalGetBufferfv = reinterpret_cast<LPALGETBUFFERFV>(ALSYMBOL(handle, alGetBufferfv));
+    qalGetBufferi = reinterpret_cast<LPALGETBUFFERI>(ALSYMBOL(handle, alGetBufferi));
+    qalGetBuffer3i = reinterpret_cast<LPALGETBUFFER3I>(ALSYMBOL(handle, alGetBuffer3i));
+    qalGetBufferiv = reinterpret_cast<LPALGETBUFFERIV>(ALSYMBOL(handle, alGetBufferiv));
+    qalDopplerFactor = reinterpret_cast<LPALDOPPLERFACTOR>(ALSYMBOL(handle, alDopplerFactor));
+    qalDopplerVelocity = reinterpret_cast<LPALDOPPLERVELOCITY>(ALSYMBOL(handle, alDopplerVelocity));
+    qalSpeedOfSound = reinterpret_cast<LPALSPEEDOFSOUND>(ALSYMBOL(handle, alSpeedOfSound));
+    qalDistanceModel = reinterpret_cast<LPALDISTANCEMODEL>(ALSYMBOL(handle, alDistanceModel));
+
 
 	/* Open the OpenAL device */
 	Com_Printf("...opening OpenAL device: ");
@@ -548,10 +549,10 @@ QAL_Init()
 	}
 
 	if (qalcIsExtensionPresent(device, "ALC_EXT_EFX") != AL_FALSE) {
-		qalGenFilters = qalGetProcAddress("alGenFilters");
-		qalFilteri = qalGetProcAddress("alFilteri");
-		qalFilterf = qalGetProcAddress("alFilterf");
-		qalDeleteFilters = qalGetProcAddress("alDeleteFilters");
+		qalGenFilters = reinterpret_cast<LPALGENFILTERS>(qalGetProcAddress("alGenFilters"));
+		qalFilteri = reinterpret_cast<LPALFILTERI>(qalGetProcAddress("alFilteri"));
+		qalFilterf = reinterpret_cast<LPALFILTERF>(qalGetProcAddress("alFilterf"));
+		qalDeleteFilters = reinterpret_cast<LPALDELETEFILTERS>(qalGetProcAddress("alDeleteFilters"));
 	} else {
 		qalGenFilters = NULL;
 		qalFilteri = NULL;

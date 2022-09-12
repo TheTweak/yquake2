@@ -80,7 +80,7 @@ typedef struct
 ipfilter_t ipfilters[MAX_IPFILTERS];
 int numipfilters;
 
-qboolean
+bool
 StringToFilter(char *s, ipfilter_t *f)
 {
 	char num[128];
@@ -136,7 +136,7 @@ StringToFilter(char *s, ipfilter_t *f)
 	return true;
 }
 
-qboolean
+bool
 SV_FilterPacket(char *from)
 {
 	int i;

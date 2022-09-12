@@ -132,13 +132,13 @@ void QAL_SoundInfo(void);
  * resolution changes and recreates it after an unspecified
  * amount of time...
  */
-qboolean QAL_RecoverLostDevice();
+bool QAL_RecoverLostDevice();
 
 /*
  * Loads the OpenAL shared lib, creates
  * a context and device handle.
  */
-qboolean QAL_Init(void);
+bool QAL_Init(void);
 
 /*
  * Shuts OpenAL down, frees all context and

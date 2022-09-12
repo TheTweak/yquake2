@@ -44,12 +44,12 @@ int history_line = 0;
 
 int key_waiting;
 char *keybindings[K_LAST];
-qboolean consolekeys[K_LAST]; /* if true, can't be rebound while in console */
-qboolean menubound[K_LAST]; /* if true, can't be rebound while in menu */
+bool consolekeys[K_LAST]; /* if true, can't be rebound while in console */
+bool menubound[K_LAST]; /* if true, can't be rebound while in menu */
 int key_repeats[K_LAST]; /* if > 1, it is autorepeating */
-qboolean keydown[K_LAST];
+bool keydown[K_LAST];
 
-qboolean Cmd_IsComplete(char *cmd);
+bool Cmd_IsComplete(char *cmd);
 
 typedef struct
 {
@@ -574,7 +574,7 @@ Key_Console(int key)
 	}
 }
 
-qboolean chat_team;
+bool chat_team;
 char chat_buffer[MAXCMDLINE];
 int chat_bufferlen = 0;
 int chat_cursorpos = 0;
@@ -771,7 +771,7 @@ Key_KeynumToString(int keynum)
 void
 Key_SetBinding(int keynum, char *binding)
 {
-	char *new;
+	char *new_;
 	int l;
 
 	if (keynum == -1)
@@ -788,10 +788,10 @@ Key_SetBinding(int keynum, char *binding)
 
 	/* allocate memory for new binding */
 	l = strlen(binding);
-	new = Z_Malloc(l + 1);
-	strcpy(new, binding);
-	new[l] = 0;
-	keybindings[keynum] = new;
+	new_ = reinterpret_cast<char*>(Z_Malloc(l + 1));
+	strcpy(new_, binding);
+	new_[l] = 0;
+	keybindings[keynum] = new_;
 }
 
 void
@@ -832,7 +832,7 @@ Key_Unbindall_f(void)
 
 /* ugly hack, set in Cmd_ExecuteString() when yq2.cfg is executed
  * (=> default.cfg is done) */
-extern qboolean doneWithDefaultCfg;
+extern bool doneWithDefaultCfg;
 
 void
 Key_Bind_f(void)
@@ -1157,7 +1157,7 @@ Char_Event(int key)
  * anything else is handled by Char_Event().
  */
 void
-Key_Event(int key, qboolean down, qboolean special)
+Key_Event(int key, bool down, bool special)
 {
 	char cmd[1024];
 	char *kb;

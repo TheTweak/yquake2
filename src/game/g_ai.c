@@ -28,13 +28,13 @@
 
 extern cvar_t *maxclients;
 
-qboolean enemy_vis;
-qboolean enemy_infront;
+bool enemy_vis;
+bool enemy_infront;
 int enemy_range;
 float enemy_yaw;
 
-qboolean FindTarget(edict_t *self);
-qboolean ai_checkattack(edict_t *self);
+bool FindTarget(edict_t *self);
+bool ai_checkattack(edict_t *self);
 
 /*
  * Called once each frame to set level.sight_client
@@ -335,7 +335,7 @@ range(edict_t *self, edict_t *other)
  * returns 1 if the entity is visible
  * to self, even if not infront
  */
-qboolean
+bool
 visible(edict_t *self, edict_t *other)
 {
 	vec3_t spot1;
@@ -365,7 +365,7 @@ visible(edict_t *self, edict_t *other)
  * returns 1 if the entity is in
  * front (in sight) of self
  */
-qboolean
+bool
 infront(edict_t *self, edict_t *other)
 {
 	vec3_t vec;
@@ -498,11 +498,11 @@ FoundTarget(edict_t *self)
  * player games will have slightly
  * slower noticing monsters.
  */
-qboolean
+bool
 FindTarget(edict_t *self)
 {
 	edict_t *client;
-	qboolean heardit;
+	bool heardit;
 	int r;
 
 	if (!self)
@@ -712,7 +712,7 @@ FindTarget(edict_t *self)
 
 /* ============================================================================= */
 
-qboolean
+bool
 FacingIdeal(edict_t *self)
 {
 	float delta;
@@ -734,7 +734,7 @@ FacingIdeal(edict_t *self)
 
 /* ============================================================================= */
 
-qboolean
+bool
 M_CheckAttack(edict_t *self)
 {
 	vec3_t spot1, spot2;
@@ -938,11 +938,11 @@ ai_run_slide(edict_t *self, float distance)
  * or do something else used by
  * ai_run and ai_stand
  */
-qboolean
+bool
 ai_checkattack(edict_t *self)
 {
 	vec3_t temp;
-	qboolean hesDeadJim;
+	bool hesDeadJim;
 
 	if (!self)
 	{
@@ -1119,7 +1119,7 @@ ai_run(edict_t *self, float dist)
 	vec3_t v;
 	edict_t *tempgoal;
 	edict_t *save;
-	qboolean new;
+	bool new;
 	edict_t *marker;
 	float d1, d2;
 	trace_t tr;

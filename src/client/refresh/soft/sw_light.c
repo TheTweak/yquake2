@@ -112,7 +112,7 @@ static int
 RecursiveLightPoint (mnode_t *node, vec3_t start, vec3_t end, vec3_t pointcolor)
 {
 	float		front, back, frac;
-	qboolean	side;
+	bool	side;
 	cplane_t	*plane;
 	vec3_t		mid;
 	msurface_t	*surf;

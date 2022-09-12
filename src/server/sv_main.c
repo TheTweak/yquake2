@@ -626,7 +626,7 @@ SV_Init(void)
  * to totally exit after returning from this function.
  */
 void
-SV_FinalMessage(char *message, qboolean reconnect)
+SV_FinalMessage(char *message, bool reconnect)
 {
 	int i;
 	client_t *cl;
@@ -679,7 +679,7 @@ SV_FinalMessage(char *message, qboolean reconnect)
  * before Sys_Quit or Sys_Error
  */
 void
-SV_Shutdown(char *finalmsg, qboolean reconnect)
+SV_Shutdown(char *finalmsg, bool reconnect)
 {
 	if (svs.clients)
 	{

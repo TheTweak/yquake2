@@ -169,7 +169,7 @@ ResetDefaults(void *unused)
 static void
 ApplyChanges(void *unused)
 {
-	qboolean restart = false;
+	bool restart = false;
 
 	/* Renderer */
 	if (s_renderer_list.curvalue != Renderer_GetRenderer())

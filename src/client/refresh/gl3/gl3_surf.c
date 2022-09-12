@@ -135,7 +135,7 @@ void GL3_SurfShutdown(void)
 /*
  * Returns true if the box is completely outside the frustom
  */
-static qboolean
+static bool
 CullBox(vec3_t mins, vec3_t maxs)
 {
 	int i;
@@ -313,7 +313,7 @@ static void
 UpdateLMscales(const hmm_vec4 lmScales[MAX_LIGHTMAPS_PER_SURFACE], gl3ShaderInfo_t* si)
 {
 	int i;
-	qboolean hasChanged = false;
+	bool hasChanged = false;
 
 	for(i=0; i<MAX_LIGHTMAPS_PER_SURFACE; ++i)
 	{
@@ -595,7 +595,7 @@ GL3_DrawBrushModel(entity_t *e, gl3model_t *currentmodel)
 {
 	vec3_t mins, maxs;
 	int i;
-	qboolean rotated;
+	bool rotated;
 
 	if (currentmodel->nummodelsurfaces == 0)
 	{

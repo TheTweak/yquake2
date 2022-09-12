@@ -85,13 +85,13 @@ portable_samplepair_t s_rawsamples[MAX_RAW_SAMPLES];
 static sfx_t known_sfx[MAX_SFX];
 sndstarted_t sound_started = SS_NOT;
 sound_t sound;
-static qboolean s_registering;
+static bool s_registering;
 
-qboolean snd_is_underwater;
-qboolean snd_is_underwater_enabled;
+bool snd_is_underwater;
+bool snd_is_underwater_enabled;
 /* ----------------------------------------------------------------- */
 
-static qboolean
+static bool
 S_IsShortSilence(const wavinfo_t* info, const void* raw_data)
 {
 	/* Test only mono-audio data. */
@@ -159,7 +159,7 @@ S_IsShortSilence(const wavinfo_t* info, const void* raw_data)
 	return true;
 }
 
-static qboolean
+static bool
 S_IsSilencedMuzzleFlash(const wavinfo_t* info, const void* raw_data, const char* name)
 {
 	/* Skip the prefix. */
@@ -167,7 +167,7 @@ S_IsSilencedMuzzleFlash(const wavinfo_t* info, const void* raw_data, const char*
 	const char* base_name = name + base_sound_string_length;
 
 	/* Match to well-known muzzle flash sound names. */
-	const qboolean is_name_matched =
+	const bool is_name_matched =
 		strcmp(base_name, "weapons/bfg__f1y.wav") == 0 ||
 		strcmp(base_name, "weapons/blastf1a.wav") == 0 ||
 		strcmp(base_name, "weapons/disint2.wav") == 0 ||
@@ -560,7 +560,7 @@ S_LoadSound(sfx_t *s)
  * Returns the name of a sound
  */
 static sfx_t *
-S_FindName(char *name, qboolean create)
+S_FindName(char *name, bool create)
 {
 	int i;
 	sfx_t *sfx;
@@ -634,7 +634,7 @@ S_AliasName(char *aliasname, char *truename)
 	char *s;
 	int i;
 
-	s = Z_Malloc(MAX_QPATH);
+	s = reinterpret_cast<char*>(Z_Malloc(MAX_QPATH));
 	strcpy(s, truename);
 
 	/* find a free sfx */
@@ -767,7 +767,7 @@ S_RegisterSexedSound(entity_state_t *ent, char *base)
 	return sfx;
 }
 
-static qboolean
+static bool
 S_HasFreeSpace(void)
 {
 	sfx_t *sfx;
@@ -1179,7 +1179,7 @@ S_StartSound(vec3_t origin, int entnum, int entchannel, sfx_t *sfx,
 
 	cvar_t *game = Cvar_Get("game",  "", CVAR_LATCH | CVAR_SERVERINFO);
 
-	const qboolean is_mission_pack =
+	const bool is_mission_pack =
 		(strcmp(game->string, "") == 0) ||
 		(strcmp(game->string, "rogue") == 0) ||
 		(strcmp(game->string, "xatrix") == 0);
@@ -1438,7 +1438,7 @@ S_SoundList(void)
 	sfxcache_t *sc;
 	int size, total, used;
 	int numsounds;
-	qboolean freeup;
+	bool freeup;
 
 	total = 0;
 	used = 0;
