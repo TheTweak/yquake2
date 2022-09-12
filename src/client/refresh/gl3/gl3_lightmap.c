@@ -135,8 +135,8 @@ GL3_LM_BuildPolygonFromSurface(gl3model_t *currentmodel, msurface_t *fa)
 	VectorClear(total);
 
 	/* draw texture */
-	poly = Hunk_Alloc(sizeof(glpoly_t) +
-		   (lnumverts - 4) * sizeof(gl3_3D_vtx_t));
+	poly = reinterpret_cast<glpoly_t*>(Hunk_Alloc(sizeof(glpoly_t) +
+		   (lnumverts - 4) * sizeof(gl3_3D_vtx_t)));
 	poly->next = fa->polys;
 	poly->flags = fa->flags;
 	fa->polys = poly;

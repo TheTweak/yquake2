@@ -167,7 +167,7 @@ Mod_LoadLighting(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 		return;
 	}
 
-	loadmodel->lightdata = Hunk_Alloc(l->filelen);
+	loadmodel->lightdata = static_cast<byte*>(Hunk_Alloc(l->filelen));
 	memcpy(loadmodel->lightdata, mod_base + l->fileofs, l->filelen);
 }
 
@@ -182,7 +182,7 @@ Mod_LoadVisibility(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 		return;
 	}
 
-	loadmodel->vis = Hunk_Alloc(l->filelen);
+	loadmodel->vis = reinterpret_cast<dvis_t*>(Hunk_Alloc(l->filelen));
 	memcpy(loadmodel->vis, mod_base + l->fileofs, l->filelen);
 
 	loadmodel->vis->numclusters = LittleLong(loadmodel->vis->numclusters);
@@ -201,7 +201,7 @@ Mod_LoadVertexes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	mvertex_t *out;
 	int i, count;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<dvertex_t*>((mod_base + l->fileofs));
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -210,7 +210,7 @@ Mod_LoadVertexes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
+	out = reinterpret_cast<mvertex_t*>(Hunk_Alloc(count * sizeof(*out)));
 
 	loadmodel->vertexes = out;
 	loadmodel->numvertexes = count;
@@ -230,7 +230,7 @@ Mod_LoadSubmodels(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	gl3model_t *out;
 	int i, j, count;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<dmodel_t*>((mod_base + l->fileofs));
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -239,7 +239,7 @@ Mod_LoadSubmodels(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
+	out = reinterpret_cast<gl3model_t*>(Hunk_Alloc(count * sizeof(*out)));
 
 	loadmodel->submodels = out;
 	loadmodel->numsubmodels = count;
@@ -289,7 +289,7 @@ Mod_LoadEdges(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	medge_t *out;
 	int i, count;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<dedge_t*>((mod_base + l->fileofs));
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -298,7 +298,7 @@ Mod_LoadEdges(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc((count + 1) * sizeof(*out));
+	out = reinterpret_cast<medge_t*>(Hunk_Alloc((count + 1) * sizeof(*out)));
 
 	loadmodel->edges = out;
 	loadmodel->numedges = count;
@@ -319,7 +319,7 @@ Mod_LoadTexinfo(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	char name[MAX_QPATH];
 	int next;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<texinfo_t*>((mod_base + l->fileofs));
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -328,7 +328,7 @@ Mod_LoadTexinfo(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
+	out = reinterpret_cast<mtexinfo_t*>(Hunk_Alloc(count * sizeof(*out)));
 
 	loadmodel->texinfo = out;
 	loadmodel->numtexinfo = count;
@@ -447,8 +447,8 @@ GL3_SubdivideSurface(msurface_t *fa, gl3model_t* loadmodel);
 
 static int calcTexinfoAndFacesSize(byte *mod_base, const lump_t *fl, const lump_t *tl)
 {
-	dface_t* face_in = (void *)(mod_base + fl->fileofs);
-	texinfo_t* texinfo_in = (void *)(mod_base + tl->fileofs);
+	dface_t* face_in = reinterpret_cast<dface_t*>(mod_base + fl->fileofs);
+	texinfo_t* texinfo_in = reinterpret_cast<texinfo_t*>(mod_base + tl->fileofs);
 
 	if (fl->filelen % sizeof(*face_in) || tl->filelen % sizeof(*texinfo_in))
 	{
@@ -529,7 +529,7 @@ Mod_LoadFaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	int planenum, side;
 	int ti;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<dface_t*>(mod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -538,7 +538,7 @@ Mod_LoadFaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
+	out = reinterpret_cast<msurface_t*>(Hunk_Alloc(count * sizeof(*out)));
 
 	loadmodel->surfaces = out;
 	loadmodel->numsurfaces = count;
@@ -649,7 +649,7 @@ Mod_LoadNodes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	dnode_t *in;
 	mnode_t *out;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<dnode_t*>(mod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -658,7 +658,7 @@ Mod_LoadNodes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
+	out = reinterpret_cast<mnode_t*>(Hunk_Alloc(count * sizeof(*out)));
 
 	loadmodel->nodes = out;
 	loadmodel->numnodes = count;
@@ -703,7 +703,7 @@ Mod_LoadLeafs(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	mleaf_t *out;
 	int i, j, count, p;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<dleaf_t*>(mod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -712,7 +712,7 @@ Mod_LoadLeafs(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
+	out = reinterpret_cast<mleaf_t*>(Hunk_Alloc(count * sizeof(*out)));
 
 	loadmodel->leafs = out;
 	loadmodel->numleafs = count;
@@ -753,7 +753,7 @@ Mod_LoadMarksurfaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	short *in;
 	msurface_t **out;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<short*>(mod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -762,7 +762,7 @@ Mod_LoadMarksurfaces(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * sizeof(*out));
+	out = reinterpret_cast<msurface_t**>(Hunk_Alloc(count * sizeof(*out)));
 
 	loadmodel->marksurfaces = out;
 	loadmodel->nummarksurfaces = count;
@@ -786,7 +786,7 @@ Mod_LoadSurfedges(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	int i, count;
 	int *in, *out;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<int*>(mod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -802,7 +802,7 @@ Mod_LoadSurfedges(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 				__func__, loadmodel->name, count);
 	}
 
-	out = Hunk_Alloc(count * sizeof(*out));
+	out = reinterpret_cast<int*>(Hunk_Alloc(count * sizeof(*out)));
 
 	loadmodel->surfedges = out;
 	loadmodel->numsurfedges = count;
@@ -822,7 +822,7 @@ Mod_LoadPlanes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	int count;
 	int bits;
 
-	in = (void *)(mod_base + l->fileofs);
+	in = reinterpret_cast<dplane_t*>(mod_base + l->fileofs);
 
 	if (l->filelen % sizeof(*in))
 	{
@@ -831,7 +831,7 @@ Mod_LoadPlanes(gl3model_t *loadmodel, byte *mod_base, lump_t *l)
 	}
 
 	count = l->filelen / sizeof(*in);
-	out = Hunk_Alloc(count * 2 * sizeof(*out));
+	out = reinterpret_cast<cplane_t*>(Hunk_Alloc(count * 2 * sizeof(*out)));
 
 	loadmodel->planes = out;
 	loadmodel->numplanes = count;

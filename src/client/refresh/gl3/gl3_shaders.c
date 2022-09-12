@@ -57,7 +57,7 @@ CompileShader(GLenum shaderType, const char* shaderSrc, const char* shaderSrc2)
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infoLogLength);
 		if(infoLogLength >= bufLen)
 		{
-			bufPtr = malloc(infoLogLength+1);
+			bufPtr = static_cast<char*>(malloc(infoLogLength+1));
 			bufLen = infoLogLength+1;
 			if(bufPtr == NULL)
 			{
@@ -134,7 +134,7 @@ CreateShaderProgram(int numShaders, const GLuint* shaders)
 		glGetProgramiv(shaderProgram, GL_INFO_LOG_LENGTH, &infoLogLength);
 		if(infoLogLength >= bufLen)
 		{
-			bufPtr = malloc(infoLogLength+1);
+			bufPtr = static_cast<char*>(malloc(infoLogLength+1));
 			bufLen = infoLogLength+1;
 			if(bufPtr == NULL)
 			{
@@ -949,7 +949,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uniCommon': %i vs %i\n",
 					blockSize, (int)sizeof(gl3state.uniCommonData));
 
-			goto err_cleanup;
+			goto err_cleanup2;
 		}
 
 		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNICOMMON);
@@ -968,7 +968,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		if(blockSize != sizeof(gl3state.uni2DData))
 		{
 			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uni2D'\n");
-			goto err_cleanup;
+			goto err_cleanup2;
 		}
 
 		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNI2D);
@@ -976,7 +976,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	else
 	{
 		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uni2D'\n");
-		goto err_cleanup;
+		goto err_cleanup2;
 	}
 
 	shaderInfo->uniLmScalesOrTime = glGetUniformLocation(prog, "time");
@@ -993,7 +993,7 @@ initShader2D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 	return true;
 
-err_cleanup:
+err_cleanup2:
 
 	glDeleteProgram(prog);
 
@@ -1005,6 +1005,10 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 {
 	GLuint shaders3D[2] = {0};
 	GLuint prog = 0;
+    GLint lmScalesLoc;
+    GLint texLoc;
+    GLuint blockIndex;
+    char lmName[10] = "lightmapX";
 	int i=0;
 
 	if(shaderInfo->shaderProgram != 0)
@@ -1031,13 +1035,13 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 	if(prog == 0)
 	{
-		goto err_cleanup;
+		goto err_cleanup1;
 	}
 
 	GL3_UseProgram(prog);
 
 	// Bind the buffer object to the uniform blocks
-	GLuint blockIndex = glGetUniformBlockIndex(prog, "uniCommon");
+	blockIndex = glGetUniformBlockIndex(prog, "uniCommon");
 	if(blockIndex != GL_INVALID_INDEX)
 	{
 		GLint blockSize;
@@ -1046,7 +1050,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		{
 			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uniCommon'\n");
 
-			goto err_cleanup;
+			goto err_cleanup1;
 		}
 
 		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNICOMMON);
@@ -1055,7 +1059,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	{
 		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uniCommon'\n");
 
-		goto err_cleanup;
+		goto err_cleanup1;
 	}
 	blockIndex = glGetUniformBlockIndex(prog, "uni3D");
 	if(blockIndex != GL_INVALID_INDEX)
@@ -1067,7 +1071,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uni3D'\n");
 			R_Printf(PRINT_ALL, "         driver says %d, we expect %d\n", blockSize, (int)sizeof(gl3state.uni3DData));
 
-			goto err_cleanup;
+			goto err_cleanup1;
 		}
 
 		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNI3D);
@@ -1076,7 +1080,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	{
 		R_Printf(PRINT_ALL, "WARNING: Couldn't find uniform block index 'uni3D'\n");
 
-		goto err_cleanup;
+		goto err_cleanup1;
 	}
 	blockIndex = glGetUniformBlockIndex(prog, "uniLights");
 	if(blockIndex != GL_INVALID_INDEX)
@@ -1088,7 +1092,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 			R_Printf(PRINT_ALL, "WARNING: OpenGL driver disagrees with us about UBO size of 'uniLights'\n");
 			R_Printf(PRINT_ALL, "         OpenGL says %d, we say %d\n", blockSize, (int)sizeof(gl3state.uniLightsData));
 
-			goto err_cleanup;
+			goto err_cleanup1;
 		}
 
 		glUniformBlockBinding(prog, blockIndex, GL3_BINDINGPOINT_UNILIGHTS);
@@ -1096,14 +1100,13 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 	// else: as uniLights is only used in the LM shaders, it's ok if it's missing
 
 	// make sure texture is GL_TEXTURE0
-	GLint texLoc = glGetUniformLocation(prog, "tex");
+	texLoc = glGetUniformLocation(prog, "tex");
 	if(texLoc != -1)
 	{
 		glUniform1i(texLoc, 0);
 	}
 
 	// ..  and the 4 lightmap texture use GL_TEXTURE1..4
-	char lmName[10] = "lightmapX";
 	for(i=0; i<4; ++i)
 	{
 		lmName[8] = '0'+i;
@@ -1114,7 +1117,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 		}
 	}
 
-	GLint lmScalesLoc = glGetUniformLocation(prog, "lmScales");
+	lmScalesLoc = glGetUniformLocation(prog, "lmScales");
 	shaderInfo->uniLmScalesOrTime = lmScalesLoc;
 	if(lmScalesLoc != -1)
 	{
@@ -1133,7 +1136,7 @@ initShader3D(gl3ShaderInfo_t* shaderInfo, const char* vertSrc, const char* fragS
 
 	return true;
 
-err_cleanup:
+err_cleanup1:
 
 	glDeleteShader(shaders3D[0]);
 	glDeleteShader(shaders3D[1]);

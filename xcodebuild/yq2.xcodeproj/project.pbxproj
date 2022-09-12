@@ -2015,13 +2015,12 @@
 				MACH_O_TYPE = mh_bundle;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
+					"-std=c++17",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
 					"-fvisibility=hidden",
 					"-fPIC",
-					"'-std=gnu11'",
 					"$(inherited)",
 				);
 				OTHER_LDFLAGS = (

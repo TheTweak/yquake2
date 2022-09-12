@@ -912,11 +912,11 @@ GL3_DrawNullModel(entity_t *currententity)
 
 	gl3_3D_vtx_t vtxA[6] = {
 		{{0, 0, -16}, {0,0}, {0,0}},
-		{{16 * cos( 0 * M_PI / 2 ), 16 * sin( 0 * M_PI / 2 ), 0}, {0,0}, {0,0}},
-		{{16 * cos( 1 * M_PI / 2 ), 16 * sin( 1 * M_PI / 2 ), 0}, {0,0}, {0,0}},
-		{{16 * cos( 2 * M_PI / 2 ), 16 * sin( 2 * M_PI / 2 ), 0}, {0,0}, {0,0}},
-		{{16 * cos( 3 * M_PI / 2 ), 16 * sin( 3 * M_PI / 2 ), 0}, {0,0}, {0,0}},
-		{{16 * cos( 4 * M_PI / 2 ), 16 * sin( 4 * M_PI / 2 ), 0}, {0,0}, {0,0}}
+        {{static_cast<vec_t>(16 * cos( 0 * M_PI / 2 )), static_cast<vec_t>(16 * sin( 0 * M_PI / 2 )), 0}, {0,0}, {0,0}},
+        {{static_cast<vec_t>(16 * cos( 1 * M_PI / 2 )), static_cast<vec_t>(16 * sin( 1 * M_PI / 2 )), 0}, {0,0}, {0,0}},
+        {{static_cast<vec_t>(16 * cos( 2 * M_PI / 2 )), static_cast<vec_t>(16 * sin( 2 * M_PI / 2 )), 0}, {0,0}, {0,0}},
+        {{static_cast<vec_t>(16 * cos( 3 * M_PI / 2 )), static_cast<vec_t>(16 * sin( 3 * M_PI / 2 )), 0}, {0,0}, {0,0}},
+        {{static_cast<vec_t>(16 * cos( 4 * M_PI / 2 )), static_cast<vec_t>(16 * sin( 4 * M_PI / 2 )), 0}, {0,0}, {0,0}}
 	};
 
 	GL3_BufferAndDraw3D(vtxA, 6, GL_TRIANGLE_FAN);
@@ -1329,8 +1329,8 @@ GL3_MYgluPerspective(GLdouble fovy, GLdouble aspect, GLdouble zNear, GLdouble zF
 	D = -(2.0*zFar*zNear)/(zFar-zNear);
 
 	hmm_mat4 ret = {{
-		{ (2.0*zNear)/(right-left), 0, 0, 0 }, // first *column*
-		{ 0, (2.0*zNear)/(top-bottom), 0, 0 },
+        { static_cast<float>((2.0*zNear)/(right-left)), 0, 0, 0 }, // first *column*
+        { 0, static_cast<float>((2.0*zNear)/(top-bottom)), 0, 0 },
 		{ A, B, C, -1.0 },
 		{ 0, 0, D, 0 }
 	}};

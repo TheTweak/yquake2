@@ -292,10 +292,10 @@ GL3_Draw_Fill(int x, int y, int w, int h, int c)
 
 	GLfloat vBuf[8] = {
 	//  X,   Y
-		x,   y+h,
-		x,   y,
-		x+w, y+h,
-		x+w, y
+        static_cast<GLfloat>(x),   static_cast<GLfloat>(y+h),
+        static_cast<GLfloat>(x),   static_cast<GLfloat>(y),
+        static_cast<GLfloat>(x+w), static_cast<GLfloat>(y+h),
+        static_cast<GLfloat>(x+w), static_cast<GLfloat>(y)
 	};
 
 	for(i=0; i<3; ++i)
