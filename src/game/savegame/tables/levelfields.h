@@ -26,9 +26,9 @@
  * =======================================================================
  */
 
-{"changemap", LLOFS(changemap), F_LSTRING},
-{"sight_client", LLOFS(sight_client), F_EDICT},
-{"sight_entity", LLOFS(sight_entity), F_EDICT},
-{"sound_entity", LLOFS(sound_entity), F_EDICT},
-{"sound2_entity", LLOFS(sound2_entity), F_EDICT},
+{"changemap", static_cast<int>(LLOFS(changemap)), F_LSTRING},
+{"sight_client", static_cast<int>(LLOFS(sight_client)), F_EDICT},
+{"sight_entity", static_cast<int>(LLOFS(sight_entity)), F_EDICT},
+{"sound_entity", static_cast<int>(LLOFS(sound_entity)), F_EDICT},
+{"sound2_entity", static_cast<int>(LLOFS(sound2_entity)), F_EDICT},
 {NULL, 0, F_INT}

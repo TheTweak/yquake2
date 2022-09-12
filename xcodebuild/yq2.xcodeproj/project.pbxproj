@@ -765,13 +765,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		6C1F8E0F747243BDA17BAAA7 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		705D37CDB12A4103B98841DA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -1433,7 +1426,6 @@
 			buildConfigurationList = 2E73000F66344B4B8A2ACB99 /* Build configuration list for PBXNativeTarget "game" */;
 			buildPhases = (
 				81A900191862480285309715 /* Sources */,
-				6C1F8E0F747243BDA17BAAA7 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -2152,6 +2144,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
 				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/build";
 			};
@@ -2833,6 +2827,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
 				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/build";
 			};
@@ -2981,13 +2977,12 @@
 				MACH_O_TYPE = mh_bundle;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
+					"-std=c++17",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
 					"-fvisibility=hidden",
 					"-fPIC",
-					"'-std=gnu11'",
 					"$(inherited)",
 				);
 				OTHER_LDFLAGS = (
@@ -3216,6 +3211,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
 				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/build";
 			};
@@ -3844,6 +3841,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = arm64;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
 				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/build";
 			};

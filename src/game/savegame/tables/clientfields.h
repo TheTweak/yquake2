@@ -25,9 +25,9 @@
  * =======================================================================
  */
 
-{"pers.weapon", CLOFS(pers.weapon), F_ITEM},
-{"pers.lastweapon", CLOFS(pers.lastweapon), F_ITEM},
-{"newweapon", CLOFS(newweapon), F_ITEM},
-{"resp.coop_respawn.weapon", CLOFS(resp.coop_respawn.weapon), F_ITEM, 0, 3},
-{"resp.coop_respawn.lastweapon", CLOFS(resp.coop_respawn.lastweapon), F_ITEM, 0, 3},
+{"pers.weapon", static_cast<int>(CLOFS(pers.weapon)), F_ITEM},
+{"pers.lastweapon", static_cast<int>(CLOFS(pers.lastweapon)), F_ITEM},
+{"newweapon", static_cast<int>(CLOFS(newweapon)), F_ITEM},
+{"resp.coop_respawn.weapon", static_cast<int>(CLOFS(resp.coop_respawn.weapon)), F_ITEM, 0, 3},
+{"resp.coop_respawn.lastweapon", static_cast<int>(CLOFS(resp.coop_respawn.lastweapon)), F_ITEM, 0, 3},
 {NULL, 0, F_INT, 0}
