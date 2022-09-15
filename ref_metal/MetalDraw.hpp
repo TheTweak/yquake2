@@ -12,11 +12,11 @@
 
 class Renderer {
 public:
-    Renderer();
-    virtual ~Renderer();
+    Renderer() {};
+    virtual ~Renderer() {};
 };
 
-typedef Renderer* CreateRenderer();
-typedef void DestroyRenderer(Renderer*);
+typedef Renderer* CreateRenderer_t();
+typedef void DestroyRenderer_t(Renderer*);
 
 #endif /* MetalDraw_hpp */

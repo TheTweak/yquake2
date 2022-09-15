@@ -52,7 +52,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "+set vid_renderer gl3"
+            argument = "+set vid_renderer metal"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

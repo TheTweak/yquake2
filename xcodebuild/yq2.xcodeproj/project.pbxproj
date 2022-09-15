@@ -160,9 +160,8 @@
 		810B239B28CA232A00605FA8 /* cpp_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 810B239928CA232A00605FA8 /* cpp_test.cpp */; };
 		81508E1408F14085AB1B20B0 /* boss2.c in Sources */ = {isa = PBXBuildFile; fileRef = 703BE2E2CF4E4D94B378D01A /* boss2.c */; };
 		81DD34536CA74BBF8E603935 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = 97640A06242548DCA4471954 /* sv_world.c */; };
-		81E9BDBB28D3AD22004E6863 /* MetalRenderer.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 81E9BDBA28D3AD22004E6863 /* MetalRenderer.hpp */; };
-		81E9BDBD28D3AD22004E6863 /* MetalRendererPriv.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 81E9BDBC28D3AD22004E6863 /* MetalRendererPriv.hpp */; };
-		81E9BDBF28D3AD22004E6863 /* MetalRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 81E9BDBE28D3AD22004E6863 /* MetalRenderer.cpp */; };
+		81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */; };
+		81E9BDE728D3B582004E6863 /* MetalDraw.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */; };
 		8237CD691CB442F3A25E1A25 /* gl3_lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 356D358068994DBC80E6FCD9 /* gl3_lightmap.c */; };
 		828117D41CBD4D5097DC53A7 /* gl3_warp.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF6A4387D7D406381E30579 /* gl3_warp.c */; };
 		83C3B06485D74CD2BCF3B30E /* pvs.c in Sources */ = {isa = PBXBuildFile; fileRef = 83C707E0902A49AEAB4DC74E /* pvs.c */; };
@@ -325,6 +324,13 @@
 			remoteInfo = ZERO_CHECK;
 		};
 		554B7E7A023344C7AEFB4E8B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 85F945FDC8024008915DD5E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 354543645AA34EFBABBC31CD;
+			remoteInfo = ZERO_CHECK;
+		};
+		81E9BDC728D3B55C004E6863 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 85F945FDC8024008915DD5E9 /* Project object */;
 			proxyType = 1;
@@ -593,10 +599,10 @@
 		811B22B3A3E843D3801B47FA /* shared.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = shared.c; path = src/common/shared/shared.c; sourceTree = SOURCE_ROOT; };
 		8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalDraw.cpp; sourceTree = "<group>"; };
 		8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalDraw.hpp; sourceTree = "<group>"; };
-		81E9BDB828D3AD22004E6863 /* libMetalRenderer.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libMetalRenderer.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		81E9BDBA28D3AD22004E6863 /* MetalRenderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRenderer.hpp; sourceTree = "<group>"; };
 		81E9BDBC28D3AD22004E6863 /* MetalRendererPriv.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRendererPriv.hpp; sourceTree = "<group>"; };
 		81E9BDBE28D3AD22004E6863 /* MetalRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalRenderer.cpp; sourceTree = "<group>"; };
+		81E9BDE528D3B55C004E6863 /* ref_metal.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ref_metal.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		8217F725418E435C8C1F99F0 /* clientserver.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = clientserver.c; path = src/common/clientserver.c; sourceTree = SOURCE_ROOT; };
 		8329794DB8894CE8A47CE3CE /* gl1_light.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = gl1_light.c; path = src/client/refresh/gl1/gl1_light.c; sourceTree = SOURCE_ROOT; };
 		83C707E0902A49AEAB4DC74E /* pvs.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = pvs.c; path = src/client/refresh/files/pvs.c; sourceTree = SOURCE_ROOT; };
@@ -781,7 +787,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		81E9BDB628D3AD22004E6863 /* Frameworks */ = {
+		81E9BDDF28D3B55C004E6863 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -978,7 +984,7 @@
 				73F88EE626A24919A04CDB7F /* ref_gl3.dylib */,
 				E0562CDA398240D294B9041C /* ref_gles3.dylib */,
 				09AA035EBF4D476CB8628C08 /* ref_soft.dylib */,
-				81E9BDB828D3AD22004E6863 /* libMetalRenderer.dylib */,
+				81E9BDE528D3B55C004E6863 /* ref_metal.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1425,18 +1431,6 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXHeadersBuildPhase section */
-		81E9BDB428D3AD22004E6863 /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				81E9BDBD28D3AD22004E6863 /* MetalRendererPriv.hpp in Headers */,
-				81E9BDBB28D3AD22004E6863 /* MetalRenderer.hpp in Headers */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXHeadersBuildPhase section */
-
 /* Begin PBXNativeTarget section */
 		0167643629BA4F80B60D4BEA /* ref_gl3 */ = {
 			isa = PBXNativeTarget;
@@ -1488,22 +1482,22 @@
 			productReference = 26379FE50EB24F2DA3746F90 /* game.dylib */;
 			productType = "com.apple.product-type.tool";
 		};
-		81E9BDB728D3AD22004E6863 /* MetalRenderer */ = {
+		81E9BDC528D3B55C004E6863 /* ref_metal */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 81E9BDC428D3AD22004E6863 /* Build configuration list for PBXNativeTarget "MetalRenderer" */;
+			buildConfigurationList = 81E9BDE028D3B55C004E6863 /* Build configuration list for PBXNativeTarget "ref_metal" */;
 			buildPhases = (
-				81E9BDB428D3AD22004E6863 /* Headers */,
-				81E9BDB528D3AD22004E6863 /* Sources */,
-				81E9BDB628D3AD22004E6863 /* Frameworks */,
+				81E9BDC828D3B55C004E6863 /* Sources */,
+				81E9BDDF28D3B55C004E6863 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				81E9BDC628D3B55C004E6863 /* PBXTargetDependency */,
 			);
-			name = MetalRenderer;
-			productName = MetalRenderer;
-			productReference = 81E9BDB828D3AD22004E6863 /* libMetalRenderer.dylib */;
-			productType = "com.apple.product-type.library.dynamic";
+			name = ref_metal;
+			productName = ref_gl3;
+			productReference = 81E9BDE528D3B55C004E6863 /* ref_metal.dylib */;
+			productType = "com.apple.product-type.tool";
 		};
 		86BA534A795F4F91A0B2A627 /* q2ded */ = {
 			isa = PBXNativeTarget;
@@ -1581,11 +1575,6 @@
 			attributes = {
 				DefaultBuildSystemTypeForWorkspace = Latest;
 				LastUpgradeCheck = 1340;
-				TargetAttributes = {
-					81E9BDB728D3AD22004E6863 = {
-						CreatedOnToolsVersion = 13.4.1;
-					};
-				};
 			};
 			buildConfigurationList = C6B4B6BF6E9344009DCA66C6 /* Build configuration list for PBXProject "yq2" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -1608,7 +1597,7 @@
 				0167643629BA4F80B60D4BEA /* ref_gl3 */,
 				C61B494E4137401C92156271 /* ref_gles3 */,
 				B50EAAF326F9444A96617A6E /* ref_soft */,
-				81E9BDB728D3AD22004E6863 /* MetalRenderer */,
+				81E9BDC528D3B55C004E6863 /* ref_metal */,
 			);
 		};
 /* End PBXProject section */
@@ -1766,11 +1755,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		81E9BDB528D3AD22004E6863 /* Sources */ = {
+		81E9BDC828D3B55C004E6863 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				81E9BDBF28D3AD22004E6863 /* MetalRenderer.cpp in Sources */,
+				81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */,
+				81E9BDE728D3B582004E6863 /* MetalDraw.hpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1998,6 +1988,11 @@
 			isa = PBXTargetDependency;
 			target = 86BA534A795F4F91A0B2A627 /* q2ded */;
 			targetProxy = 9C6F28085485482FB4E19FBC /* PBXContainerItemProxy */;
+		};
+		81E9BDC628D3B55C004E6863 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 354543645AA34EFBABBC31CD /* ZERO_CHECK */;
+			targetProxy = 81E9BDC728D3B55C004E6863 /* PBXContainerItemProxy */;
 		};
 		9DDD39E625864B64AA1F4755 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -3153,254 +3148,285 @@
 			};
 			name = Debug;
 		};
-		81E9BDC028D3AD22004E6863 /* Debug */ = {
+		81E9BDE128D3B55C004E6863 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 999K8DF3SQ;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_TESTABILITY = YES;
-				EXECUTABLE_PREFIX = lib;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_CPP_EXCEPTIONS = YES;
-				GCC_ENABLE_CPP_RTTI = YES;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/release/Debug";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = .dylib;
+				FRAMEWORK_SEARCH_PATHS = (
+					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks,
 					"$(inherited)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.3;
-				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				ONLY_ACTIVE_ARCH = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					ref_gl3_EXPORTS,
+					"'YQ2OSTYPE=\"Darwin\"'",
+					"'YQ2ARCH=\"arm64\"'",
+					NOUNCRYPT,
+					IOAPI_NO_64,
+					HAVE_EXECINFO,
+					USE_CURL,
+					USE_OPENAL,
+					"'DEFAULT_OPENAL_DRIVER=\"libopenal.dylib\"'",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					/opt/homebrew/include/SDL2/..,
+					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenAL.framework/Headers,
+					"/Users/sorokinevgeny/dev/c++/yq2/src/client/refresh/gl3/glad/include",
+					"$(inherited)",
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = BUNDLE;
+				MACH_O_TYPE = mh_bundle;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = (
+					"-std=c++17",
+					"-Wall",
+					"-fno-strict-aliasing",
+					"-fwrapv",
+					"-fvisibility=hidden",
+					"-fPIC",
+					"$(inherited)",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-search_paths_first",
+					"-Wl,-headerpad_max_install_names",
+					"-lm",
+					"-rdynamic",
+					/opt/homebrew/lib/libSDL2main.a,
+					/opt/homebrew/lib/libSDL2.dylib,
+					"-framework",
+					Cocoa,
+					"$(inherited)",
+				);
+				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
 			};
 			name = Debug;
 		};
-		81E9BDC128D3AD22004E6863 /* Release */ = {
+		81E9BDE228D3B55C004E6863 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 999K8DF3SQ;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				EXECUTABLE_PREFIX = lib;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_ENABLE_CPP_EXCEPTIONS = YES;
-				GCC_ENABLE_CPP_RTTI = YES;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.3;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/release/Release";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = .dylib;
+				FRAMEWORK_SEARCH_PATHS = (
+					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks,
+					"$(inherited)",
+				);
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					ref_gl3_EXPORTS,
+					"'YQ2OSTYPE=\"Darwin\"'",
+					"'YQ2ARCH=\"arm64\"'",
+					NOUNCRYPT,
+					IOAPI_NO_64,
+					HAVE_EXECINFO,
+					USE_CURL,
+					USE_OPENAL,
+					"'DEFAULT_OPENAL_DRIVER=\"libopenal.dylib\"'",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					/opt/homebrew/include/SDL2/..,
+					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenAL.framework/Headers,
+					"/Users/sorokinevgeny/dev/c++/yq2/src/client/refresh/gl3/glad/include",
+					"$(inherited)",
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = BUNDLE;
+				MACH_O_TYPE = mh_bundle;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-fno-strict-aliasing",
+					"-fwrapv",
+					"-fvisibility=hidden",
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu11'",
+					"$(inherited)",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-search_paths_first",
+					"-Wl,-headerpad_max_install_names",
+					"-lm",
+					"-rdynamic",
+					/opt/homebrew/lib/libSDL2main.a,
+					/opt/homebrew/lib/libSDL2.dylib,
+					"-framework",
+					Cocoa,
+					"$(inherited)",
+				);
+				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
 			};
 			name = Release;
 		};
-		81E9BDC228D3AD22004E6863 /* MinSizeRel */ = {
+		81E9BDE328D3B55C004E6863 /* MinSizeRel */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 999K8DF3SQ;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				EXECUTABLE_PREFIX = lib;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_ENABLE_CPP_EXCEPTIONS = YES;
-				GCC_ENABLE_CPP_RTTI = YES;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.3;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/release/MinSizeRel";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = .dylib;
+				FRAMEWORK_SEARCH_PATHS = (
+					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks,
+					"$(inherited)",
+				);
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					ref_gl3_EXPORTS,
+					"'YQ2OSTYPE=\"Darwin\"'",
+					"'YQ2ARCH=\"arm64\"'",
+					NOUNCRYPT,
+					IOAPI_NO_64,
+					HAVE_EXECINFO,
+					USE_CURL,
+					USE_OPENAL,
+					"'DEFAULT_OPENAL_DRIVER=\"libopenal.dylib\"'",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					/opt/homebrew/include/SDL2/..,
+					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenAL.framework/Headers,
+					"/Users/sorokinevgeny/dev/c++/yq2/src/client/refresh/gl3/glad/include",
+					"$(inherited)",
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = BUNDLE;
+				MACH_O_TYPE = mh_bundle;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-fno-strict-aliasing",
+					"-fwrapv",
+					"-fvisibility=hidden",
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu11'",
+					"$(inherited)",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-search_paths_first",
+					"-Wl,-headerpad_max_install_names",
+					"-lm",
+					"-rdynamic",
+					/opt/homebrew/lib/libSDL2main.a,
+					/opt/homebrew/lib/libSDL2.dylib,
+					"-framework",
+					Cocoa,
+					"$(inherited)",
+				);
+				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
 			};
 			name = MinSizeRel;
 		};
-		81E9BDC328D3AD22004E6863 /* RelWithDebInfo */ = {
+		81E9BDE428D3B55C004E6863 /* RelWithDebInfo */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 999K8DF3SQ;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				EXECUTABLE_PREFIX = lib;
-				GCC_C_LANGUAGE_STANDARD = gnu11;
-				GCC_ENABLE_CPP_EXCEPTIONS = YES;
-				GCC_ENABLE_CPP_RTTI = YES;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.3;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
+				ARCHS = arm64;
+				COMBINE_HIDPI_IMAGES = YES;
+				CONFIGURATION_BUILD_DIR = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/release/RelWithDebInfo";
+				EXECUTABLE_PREFIX = "";
+				EXECUTABLE_SUFFIX = .dylib;
+				FRAMEWORK_SEARCH_PATHS = (
+					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks,
+					"$(inherited)",
+				);
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_OPTIMIZATION_LEVEL = 2;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					ref_gl3_EXPORTS,
+					"'YQ2OSTYPE=\"Darwin\"'",
+					"'YQ2ARCH=\"arm64\"'",
+					NOUNCRYPT,
+					IOAPI_NO_64,
+					HAVE_EXECINFO,
+					USE_CURL,
+					USE_OPENAL,
+					"'DEFAULT_OPENAL_DRIVER=\"libopenal.dylib\"'",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				HEADER_SEARCH_PATHS = (
+					/opt/homebrew/include/SDL2/..,
+					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenAL.framework/Headers,
+					"/Users/sorokinevgeny/dev/c++/yq2/src/client/refresh/gl3/glad/include",
+					"$(inherited)",
+				);
+				INSTALL_PATH = "";
+				LIBRARY_STYLE = BUNDLE;
+				MACH_O_TYPE = mh_bundle;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = (
+					"-std=gnu99",
+					"-Wall",
+					"-fno-strict-aliasing",
+					"-fwrapv",
+					"-fvisibility=hidden",
+					"-DNDEBUG",
+					"-fPIC",
+					"'-std=gnu11'",
+					"$(inherited)",
+				);
+				OTHER_LDFLAGS = (
+					"-Wl,-search_paths_first",
+					"-Wl,-headerpad_max_install_names",
+					"-lm",
+					"-rdynamic",
+					/opt/homebrew/lib/libSDL2main.a,
+					/opt/homebrew/lib/libSDL2.dylib,
+					"-framework",
+					Cocoa,
+					"$(inherited)",
+				);
+				OTHER_REZFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = macosx;
-				SKIP_INSTALL = YES;
+				SECTORDER_FLAGS = "";
+				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild";
+				USE_HEADERMAP = NO;
+				WARNING_CFLAGS = "$(inherited)";
 			};
 			name = RelWithDebInfo;
 		};
@@ -4548,13 +4574,13 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		81E9BDC428D3AD22004E6863 /* Build configuration list for PBXNativeTarget "MetalRenderer" */ = {
+		81E9BDE028D3B55C004E6863 /* Build configuration list for PBXNativeTarget "ref_metal" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				81E9BDC028D3AD22004E6863 /* Debug */,
-				81E9BDC128D3AD22004E6863 /* Release */,
-				81E9BDC228D3AD22004E6863 /* MinSizeRel */,
-				81E9BDC328D3AD22004E6863 /* RelWithDebInfo */,
+				81E9BDE128D3B55C004E6863 /* Debug */,
+				81E9BDE228D3B55C004E6863 /* Release */,
+				81E9BDE328D3B55C004E6863 /* MinSizeRel */,
+				81E9BDE428D3B55C004E6863 /* RelWithDebInfo */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -29,6 +29,7 @@
 
 #include "../../client/header/client.h"
 #include "../../client/header/keyboard.h"
+#include "../../../ref_metal/MetalDraw.hpp"
 
 // --------
 
@@ -381,6 +382,8 @@ VID_ShutdownRenderer(void)
 	ref_active = false;
 }
 
+#define MTL_REF_NAME "metal"
+
 /*
  * Loads and initializes a renderer.
  */
@@ -399,10 +402,18 @@ VID_LoadRenderer(void)
 
 	// Log what we're doing.
 	Com_Printf("----- refresher initialization -----\n");
-
-	snprintf(reflib_name, sizeof(reflib_name), "ref_%s.%s", vid_renderer->string, lib_ext);
-	VID_GetRendererLibPath(vid_renderer->string, reflib_path, sizeof(reflib_path));
-	Com_Printf("Loading library: %s\n", reflib_name);
+    
+    snprintf(reflib_name, sizeof(reflib_name), "ref_%s.%s", vid_renderer->string, lib_ext);
+    VID_GetRendererLibPath(vid_renderer->string, reflib_path, sizeof(reflib_path));
+    Com_Printf("Loading library: %s\n", reflib_name);
+    
+    if (strcmp(vid_renderer->string, MTL_REF_NAME) == 0) {
+        Com_Printf("Loading Metal\n");
+        CreateRenderer_t* createRenderer = (CreateRenderer_t*) Sys_LoadLibrary(reflib_path, "CreateRenderer", &reflib_handle);
+        Renderer* renderer = createRenderer();
+        return true;
+    }
+    
 
 	// Check if the renderer libs exists.
 	if (!VID_HasRenderer(vid_renderer->string))

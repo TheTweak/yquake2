@@ -8,7 +8,7 @@
 #include <iostream>
 #include "MetalDraw.hpp"
 
-class MetalRenderer : Renderer {
+class MetalRenderer : public Renderer {
 public:
     MetalRenderer() {
         std::cout << "MetalRenderer ctor";
@@ -19,6 +19,7 @@ public:
     }
 };
 
+__attribute__((__visibility__("default")))
 extern "C" Renderer* CreateRenderer() {
     return new MetalRenderer();
 }
