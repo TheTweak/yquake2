@@ -27,6 +27,7 @@
 
 #include "header/client.h"
 #include "input/header/input.h"
+#include "../../cpp_test.hpp"
 
 void CL_ForwardToServer_f(void);
 void CL_Changing_f(void);
@@ -892,6 +893,7 @@ CL_Frame(int packetdelta, int renderdelta, int timedelta, bool packetframe, bool
 void
 CL_Init(void)
 {
+    Foo f;
 	if (dedicated->value)
 	{
 		return; /* nothing running on the client */
