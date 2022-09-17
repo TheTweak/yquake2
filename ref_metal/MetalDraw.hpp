@@ -4,12 +4,12 @@
 //
 //  Created by SOROKIN EVGENY on 13.09.2022.
 //
+#pragma once
 
 #ifndef MetalDraw_hpp
 #define MetalDraw_hpp
 
-#include <stdio.h>
-
+#pragma mark Renderer
 class Renderer {
 public:
     Renderer() {};

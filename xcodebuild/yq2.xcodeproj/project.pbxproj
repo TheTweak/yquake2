@@ -158,6 +158,9 @@
 		803790C32F664F7599021CC1 /* sw_surf.c in Sources */ = {isa = PBXBuildFile; fileRef = 21A923B0B51D48B1A72ED56A /* sw_surf.c */; };
 		808B04507DA748CDB5A3BF85 /* clientserver.c in Sources */ = {isa = PBXBuildFile; fileRef = 8217F725418E435C8C1F99F0 /* clientserver.c */; };
 		810B239B28CA232A00605FA8 /* cpp_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 810B239928CA232A00605FA8 /* cpp_test.cpp */; };
+		814DA80D28D5D52100FDF583 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 814DA80C28D5D52100FDF583 /* MetalKit.framework */; };
+		814DA80F28D5D52600FDF583 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 814DA80E28D5D52600FDF583 /* Metal.framework */; };
+		814DA81128D5D52B00FDF583 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 814DA81028D5D52B00FDF583 /* Foundation.framework */; };
 		81508E1408F14085AB1B20B0 /* boss2.c in Sources */ = {isa = PBXBuildFile; fileRef = 703BE2E2CF4E4D94B378D01A /* boss2.c */; };
 		81DD34536CA74BBF8E603935 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = 97640A06242548DCA4471954 /* sv_world.c */; };
 		81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */; };
@@ -599,6 +602,9 @@
 		811B22B3A3E843D3801B47FA /* shared.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = shared.c; path = src/common/shared/shared.c; sourceTree = SOURCE_ROOT; };
 		8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalDraw.cpp; sourceTree = "<group>"; };
 		8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalDraw.hpp; sourceTree = "<group>"; };
+		814DA80C28D5D52100FDF583 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		814DA80E28D5D52600FDF583 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		814DA81028D5D52B00FDF583 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		81E9BDBA28D3AD22004E6863 /* MetalRenderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRenderer.hpp; sourceTree = "<group>"; };
 		81E9BDBC28D3AD22004E6863 /* MetalRendererPriv.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRendererPriv.hpp; sourceTree = "<group>"; };
 		81E9BDBE28D3AD22004E6863 /* MetalRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalRenderer.cpp; sourceTree = "<group>"; };
@@ -791,6 +797,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				814DA81128D5D52B00FDF583 /* Foundation.framework in Frameworks */,
+				814DA80F28D5D52600FDF583 /* Metal.framework in Frameworks */,
+				814DA80D28D5D52100FDF583 /* MetalKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1400,6 +1409,9 @@
 		F453FCB6E8E7498ABEC975B9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				814DA81028D5D52B00FDF583 /* Foundation.framework */,
+				814DA80E28D5D52600FDF583 /* Metal.framework */,
+				814DA80C28D5D52100FDF583 /* MetalKit.framework */,
 				B0C72BA29AA54D36A5974917 /* OpenAL.framework */,
 				6129EF29D40B44F4989E4417 /* OpenGL.framework */,
 			);
@@ -3183,6 +3195,8 @@
 					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenAL.framework/Headers,
 					"/Users/sorokinevgeny/dev/c++/yq2/src/client/refresh/gl3/glad/include",
 					"$(inherited)",
+					"ref_metal/metal-cpp",
+					"ref_metal/metal-cpp-extensions",
 				);
 				INSTALL_PATH = "";
 				LIBRARY_STYLE = BUNDLE;
