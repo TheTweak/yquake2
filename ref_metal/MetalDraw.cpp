@@ -15,191 +15,151 @@
 #include <AppKit/AppKit.hpp>
 #include <MetalKit/MetalKit.hpp>
 #include <simd/simd.h>
+#include "../src/client/vid/header/ref.h"
 
 #include "MetalDraw.hpp"
 
-class MetalRenderer : public Renderer {
-private:
-    MTL::Device* _pDevice;
-public:
-    MetalRenderer(MTL::Device* pDevice) : _pDevice(pDevice) {
-        std::cout << "MetalRenderer ctor\n";
-    }
-    
-    virtual ~MetalRenderer() {
-        std::cout << "MetalRenderer de-ctor\n";
-    }
-};
+MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
+static refimport_t RI;
 
-#pragma mark ViewDelegate
-class MyMTKViewDelegate : public MTK::ViewDelegate
-{
-    public:
-        MyMTKViewDelegate( MTL::Device* pDevice );
-        virtual ~MyMTKViewDelegate() override;
-        virtual void drawInMTKView( MTK::View* pView ) override;
-        Renderer* getRenderer() const;
-
-    private:
-        Renderer* _pRenderer;
-};
-
-#pragma mark AppDelegate
-class MyAppDelegate : public NS::ApplicationDelegate
-{
-    public:
-        ~MyAppDelegate();
-
-        NS::Menu* createMenuBar();
-
-        virtual void applicationWillFinishLaunching( NS::Notification* pNotification ) override;
-        virtual void applicationDidFinishLaunching( NS::Notification* pNotification ) override;
-        virtual bool applicationShouldTerminateAfterLastWindowClosed( NS::Application* pSender ) override;
-    
-        const MyMTKViewDelegate* getViewDelegate() const;
-
-    private:
-        NS::Window* _pWindow;
-        MTK::View* _pMtkView;
-        MTL::Device* _pDevice;
-        MyMTKViewDelegate* _pViewDelegate = nullptr;
-};
-
-#pragma mark AppDelegate
-MyAppDelegate::~MyAppDelegate()
-{
-    _pMtkView->release();
-    _pWindow->release();
-    _pDevice->release();
-    delete _pViewDelegate;
+bool MetalRenderer::Init() {
+    return true;
 }
-
-void MyAppDelegate::applicationWillFinishLaunching( NS::Notification* pNotification )
-{
-    NS::Menu* pMenu = createMenuBar();
-    NS::Application* pApp = reinterpret_cast< NS::Application* >( pNotification->object() );
-    pApp->setMainMenu( pMenu );
-    pApp->setActivationPolicy( NS::ActivationPolicy::ActivationPolicyRegular );
+void MetalRenderer::Shutdown() {}
+int MetalRenderer::PrepareForWindow() {
+    return 1;
 }
-
-void MyAppDelegate::applicationDidFinishLaunching( NS::Notification* pNotification )
-{
-    CGRect frame = (CGRect){ {100.0, 100.0}, {512.0, 512.0} };
-
-    _pWindow = NS::Window::alloc()->init(
-        frame,
-        NS::WindowStyleMaskClosable|NS::WindowStyleMaskTitled,
-        NS::BackingStoreBuffered,
-        false );
-
-    _pDevice = MTL::CreateSystemDefaultDevice();
-
-    _pMtkView = MTK::View::alloc()->init( frame, _pDevice );
-    _pMtkView->setColorPixelFormat( MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB );
-    _pMtkView->setClearColor( MTL::ClearColor::Make( 0.0, 0.0, 0.0, 1.0 ) );
-
-    _pViewDelegate = new MyMTKViewDelegate( _pDevice );
-    _pMtkView->setDelegate( _pViewDelegate );
-
-    _pWindow->setContentView( _pMtkView );
-    _pWindow->setTitle( NS::String::string( "00 - Window", NS::StringEncoding::UTF8StringEncoding ) );
-
-    _pWindow->makeKeyAndOrderFront( nullptr );
-
-    NS::Application* pApp = reinterpret_cast< NS::Application* >( pNotification->object() );
-    pApp->activateIgnoringOtherApps( true );
+int MetalRenderer::InitContext() {
+    return 1;
 }
-
-bool MyAppDelegate::applicationShouldTerminateAfterLastWindowClosed( NS::Application* pSender )
-{
+void MetalRenderer::ShutdownContext() {}
+bool MetalRenderer::IsVSyncActive() {
+    return false;
+}
+void MetalRenderer::BeginRegistration(char* map) {}
+model_s* MetalRenderer::RegisterModel(char* name) {
+    return NULL;
+}
+image_s* MetalRenderer::RegisterSkin(char* name) {
+    return NULL;
+}
+void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
+void MetalRenderer::EndRegistration() {}
+void MetalRenderer::RenderFrame(refdef_t* fd) {}
+image_s* MetalRenderer::DrawFindPic(char* name) {
+    return NULL;
+}
+void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {}
+void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {}
+void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {}
+void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {}
+void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
+void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {}
+void MetalRenderer::DrawFadeScreen() {}
+void MetalRenderer::DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {}
+void MetalRenderer::SetPalette(const unsigned char* palette) {}
+void MetalRenderer::BeginFrame(float camera_separation) {}
+void MetalRenderer::EndFrame() {}
+bool MetalRenderer::EndWorldRenderpass() {
     return true;
 }
 
-NS::Menu* MyAppDelegate::createMenuBar()
-{
-    using NS::StringEncoding::UTF8StringEncoding;
+enum {
+    rserr_ok,
 
-    NS::Menu* pMainMenu = NS::Menu::alloc()->init();
-    NS::MenuItem* pAppMenuItem = NS::MenuItem::alloc()->init();
-    NS::Menu* pAppMenu = NS::Menu::alloc()->init( NS::String::string( "Appname", UTF8StringEncoding ) );
+    rserr_invalid_mode,
 
-    NS::String* appName = NS::RunningApplication::currentApplication()->localizedName();
-    NS::String* quitItemName = NS::String::string( "Quit ", UTF8StringEncoding )->stringByAppendingString( appName );
-    SEL quitCb = NS::MenuItem::registerActionCallback( "appQuit", [](void*,SEL,const NS::Object* pSender){
-        auto pApp = NS::Application::sharedApplication();
-        pApp->terminate( pSender );
-    } );
+    rserr_unknown
+};
 
-    NS::MenuItem* pAppQuitItem = pAppMenu->addItem( quitItemName, quitCb, NS::String::string( "q", UTF8StringEncoding ) );
-    pAppQuitItem->setKeyEquivalentModifierMask( NS::EventModifierFlagCommand );
-    pAppMenuItem->setSubmenu( pAppMenu );
-
-    NS::MenuItem* pWindowMenuItem = NS::MenuItem::alloc()->init();
-    NS::Menu* pWindowMenu = NS::Menu::alloc()->init( NS::String::string( "Window", UTF8StringEncoding ) );
-
-    SEL closeWindowCb = NS::MenuItem::registerActionCallback( "windowClose", [](void*, SEL, const NS::Object*){
-        auto pApp = NS::Application::sharedApplication();
-            pApp->windows()->object< NS::Window >(0)->close();
-    } );
-    NS::MenuItem* pCloseWindowItem = pWindowMenu->addItem( NS::String::string( "Close Window", UTF8StringEncoding ), closeWindowCb, NS::String::string( "w", UTF8StringEncoding ) );
-    pCloseWindowItem->setKeyEquivalentModifierMask( NS::EventModifierFlagCommand );
-
-    pWindowMenuItem->setSubmenu( pWindowMenu );
-
-    pMainMenu->addItem( pAppMenuItem );
-    pMainMenu->addItem( pWindowMenuItem );
-
-    pAppMenuItem->release();
-    pWindowMenuItem->release();
-    pAppMenu->release();
-    pWindowMenu->release();
-
-    return pMainMenu->autorelease();
+bool Metal_Init() {
+    int screenWidth = 960;
+    int screenHeight = 600;
+    if (!RI.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
+        return rserr_invalid_mode;
+    }
+    return true;
 }
-
-const MyMTKViewDelegate* MyAppDelegate::getViewDelegate() const
-{
-    return _pViewDelegate;
+void Metal_Shutdown() {}
+int Metal_PrepareForWindow() {
+    return 1;
 }
-
-#pragma mark ViewDelegate
-MyMTKViewDelegate::MyMTKViewDelegate( MTL::Device* pDevice )
-: MTK::ViewDelegate()
-, _pRenderer( new MetalRenderer( pDevice ) )
-{
+int Metal_InitContext(void* p_sdlWindow) {
+    return 1;
 }
-
-MyMTKViewDelegate::~MyMTKViewDelegate()
-{
-    delete _pRenderer;
+void Metal_ShutdownContext() {}
+bool Metal_IsVSyncActive() {
+    return false;
 }
-
-void MyMTKViewDelegate::drawInMTKView( MTK::View* pView )
-{
-//    _pRenderer->draw( pView );
+void Metal_BeginRegistration(char* map) {}
+model_s* Metal_RegisterModel(char* name) {
+    return NULL;
 }
-
-Renderer* MyMTKViewDelegate::getRenderer() const {
-    return _pRenderer;
+image_s* Metal_RegisterSkin(char* name) {
+    return NULL;
+}
+void Metal_SetSky(char* name, float rotate, vec3_t axis) {}
+void Metal_EndRegistration() {}
+void Metal_RenderFrame(refdef_t* fd) {}
+image_s* Metal_DrawFindPic(char* name) {
+    return NULL;
+}
+void Metal_DrawGetPicSize(int *w, int *h, char *name) {}
+void Metal_DrawPicScaled(int x, int y, char* pic, float factor) {}
+void Metal_DrawStretchPic(int x, int y, int w, int h, char* name) {}
+void Metal_DrawCharScaled(int x, int y, int num, float scale) {}
+void Metal_DrawTileClear(int x, int y, int w, int h, char* name) {}
+void Metal_DrawFill(int x, int y, int w, int h, int c) {}
+void Metal_DrawFadeScreen() {}
+void Metal_DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {}
+void Metal_SetPalette(const unsigned char* palette) {}
+void Metal_BeginFrame(float camera_separation) {}
+void Metal_EndFrame() {}
+bool Metal_EndWorldRenderpass() {
+    return true;
 }
 
 __attribute__((__visibility__("default")))
-extern "C" Renderer* CreateRenderer() {
-    NS::AutoreleasePool* pAutoreleasePool = NS::AutoreleasePool::alloc()->init();
-
-    MyAppDelegate del;
-
-    NS::Application* pSharedApplication = NS::Application::sharedApplication();
-    pSharedApplication->setDelegate( &del );
-    pSharedApplication->run();
-
-    pAutoreleasePool->release();
+extern "C" refexport_t GetRefAPI(refimport_t ri) {
+    RI = ri;
+    refexport_t re;
+    re.api_version = API_VERSION;
     
-    return del.getViewDelegate()->getRenderer();
-}
+    re.Init = Metal_Init;
+    re.Shutdown = Metal_Shutdown;
+    re.PrepareForWindow = Metal_PrepareForWindow;
+    re.InitContext = Metal_InitContext;
+    re.ShutdownContext = Metal_ShutdownContext;
+    re.IsVSyncActive = Metal_IsVSyncActive;
 
-extern "C" void DestroyRenderer(Renderer* r) {
-    if (r) {
-        delete r;
-    }
+    re.BeginRegistration = Metal_BeginRegistration;
+    re.RegisterModel = Metal_RegisterModel;
+    re.RegisterSkin = Metal_RegisterSkin;
+
+    re.SetSky = Metal_SetSky;
+    re.EndRegistration = Metal_EndRegistration;
+
+    re.RenderFrame = Metal_RenderFrame;
+
+    re.DrawFindPic = Metal_DrawFindPic;
+    re.DrawGetPicSize = Metal_DrawGetPicSize;
+
+    re.DrawPicScaled = Metal_DrawPicScaled;
+    re.DrawStretchPic = Metal_DrawStretchPic;
+
+    re.DrawCharScaled = Metal_DrawCharScaled;
+    re.DrawTileClear = Metal_DrawTileClear;
+    re.DrawFill = Metal_DrawFill;
+    re.DrawFadeScreen = Metal_DrawFadeScreen;
+
+    re.DrawStretchRaw = Metal_DrawStretchRaw;
+    re.SetPalette = Metal_SetPalette;
+
+    re.BeginFrame = Metal_BeginFrame;
+    re.EndWorldRenderpass = Metal_EndWorldRenderpass;
+    re.EndFrame = Metal_EndFrame;
+    
+    ri.Vid_RequestRestart(RESTART_NO);
+
+    return re;
 }
