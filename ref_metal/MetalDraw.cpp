@@ -15,6 +15,7 @@
 #include <AppKit/AppKit.hpp>
 #include <MetalKit/MetalKit.hpp>
 #include <simd/simd.h>
+#include <SDL2/SDL_video.h>
 #include "../src/client/vid/header/ref.h"
 
 #include "MetalDraw.hpp"
@@ -82,7 +83,7 @@ bool Metal_Init() {
 }
 void Metal_Shutdown() {}
 int Metal_PrepareForWindow() {
-    return 1;
+    return SDL_WINDOW_METAL;
 }
 int Metal_InitContext(void* p_sdlWindow) {
     return 1;
