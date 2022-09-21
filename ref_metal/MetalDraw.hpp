@@ -12,10 +12,12 @@
 class MetalRenderer {
 private:
     MTL::Device* _pDevice;
+    MTL::CommandQueue* _pCommandQueue;
     MetalRenderer() = default;
 public:
     static MetalRenderer* INSTANCE;
     
+    void SetDevice(MTL::Device* pDevice);
     bool Init();
     void Shutdown();
     int PrepareForWindow();

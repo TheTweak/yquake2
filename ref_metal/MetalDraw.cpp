@@ -16,12 +16,18 @@
 #include <MetalKit/MetalKit.hpp>
 #include <simd/simd.h>
 #include <SDL2/SDL_video.h>
+#include <SDL2/SDL.h>
 #include "../src/client/vid/header/ref.h"
 
 #include "MetalDraw.hpp"
 
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
 static refimport_t RI;
+
+void MetalRenderer::SetDevice(MTL::Device *pDevice) {
+    _pDevice = pDevice->retain();
+    _pCommandQueue = _pDevice->newCommandQueue();
+}
 
 bool MetalRenderer::Init() {
     return true;
@@ -46,7 +52,30 @@ image_s* MetalRenderer::RegisterSkin(char* name) {
 }
 void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
 void MetalRenderer::EndRegistration() {}
-void MetalRenderer::RenderFrame(refdef_t* fd) {}
+void MetalRenderer::RenderFrame(refdef_t* fd) {
+    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
+    
+    auto* renderPipelineDesc = MTL::RenderPipelineDescriptor::alloc()->init();
+    renderPipelineDesc->colorAttachments()->object(0)->setPixelFormat( MTL::PixelFormat::PixelFormatBGRA8Unorm_sRGB );
+    NS::Error* pError = nullptr;
+    auto* renderPipelineState = _pDevice->newRenderPipelineState(renderPipelineDesc, &pError);
+    if (!renderPipelineState) {
+        __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
+        assert( false );
+    }
+
+    MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
+    MTL::RenderPassDescriptor* pRpd = MTL::RenderPassDescriptor::alloc()->init();
+    pRpd->setRenderTargetArrayLength(1);
+    auto colorAttachmentDesc = pRpd->colorAttachments()->object(0);
+    colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.8f, 0.8f, 0.8f)); // BGRA?
+    MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder( pRpd );
+    pEnc->endEncoding();
+    pCmd->commit();
+
+    pPool->release();
+    
+}
 image_s* MetalRenderer::DrawFindPic(char* name) {
     return NULL;
 }
@@ -86,6 +115,16 @@ int Metal_PrepareForWindow() {
     return SDL_WINDOW_METAL;
 }
 int Metal_InitContext(void* p_sdlWindow) {
+    if (p_sdlWindow == NULL) {
+        RI.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+        return false;
+    }
+
+    SDL_Window* window = static_cast<SDL_Window*>(p_sdlWindow);
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
+    MTL::Resource* layer = static_cast<MTL::Resource*>(SDL_RenderGetMetalLayer(renderer));
+    MTL::Device* device = layer->device();
+    MetalRenderer::INSTANCE->SetDevice(device);
     return 1;
 }
 void Metal_ShutdownContext() {}
@@ -101,7 +140,9 @@ image_s* Metal_RegisterSkin(char* name) {
 }
 void Metal_SetSky(char* name, float rotate, vec3_t axis) {}
 void Metal_EndRegistration() {}
-void Metal_RenderFrame(refdef_t* fd) {}
+void Metal_RenderFrame(refdef_t* fd) {
+    MetalRenderer::INSTANCE->RenderFrame(fd);
+}
 image_s* Metal_DrawFindPic(char* name) {
     return NULL;
 }
