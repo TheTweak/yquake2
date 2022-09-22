@@ -13,11 +13,22 @@ class MetalRenderer {
 private:
     MTL::Device* _pDevice;
     MTL::CommandQueue* _pCommandQueue;
+    MTL::RenderPipelineState* _pPSO;
+    MTL::Buffer* _pVertexPositionsBuffer;
+    MTL::Buffer* _pVertexColorsBuffer;
+    MTL::Texture* _pTexture;
+    SDL_Texture* _pSdlTexture;
+    SDL_Renderer* _pRenderer;
+    int _width = 0;
+    int _height = 0;
     MetalRenderer() = default;
+    
+    void buildShaders();
+    void buildBuffers();
 public:
     static MetalRenderer* INSTANCE;
     
-    void SetDevice(MTL::Device* pDevice);
+    void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer);
     bool Init();
     void Shutdown();
     int PrepareForWindow();
