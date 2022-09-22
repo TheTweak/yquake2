@@ -14,8 +14,7 @@ private:
     MTL::Device* _pDevice;
     MTL::CommandQueue* _pCommandQueue;
     MTL::RenderPipelineState* _pPSO;
-    MTL::Buffer* _pVertexPositionsBuffer;
-    MTL::Buffer* _pVertexColorsBuffer;
+    MTL::Buffer* _pVertexBuffer;
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
