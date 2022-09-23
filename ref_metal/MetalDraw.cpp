@@ -18,11 +18,49 @@
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL.h>
 #include "../src/client/vid/header/ref.h"
+#include "../src/client/refresh/ref_shared.h"
+#include "../src/common/header/shared.h"
 
+#include "../src/common/header/common.h"
 #include "MetalDraw.hpp"
 
+void R_Printf(int level, const char* msg, ...)
+{
+    va_list argptr;
+    va_start(argptr, msg);
+    ri.Com_VPrintf(level, msg, argptr);
+    va_end(argptr);
+}
+
+/*
+ * this is only here so the functions in shared source files
+ * (shared.c, rand.c, flash.c, mem.c/hunk.c) can link
+ */
+void
+Sys_Error(char *error, ...)
+{
+    va_list argptr;
+    char text[4096]; // MAXPRINTMSG == 4096
+
+    va_start(argptr, error);
+    vsnprintf(text, sizeof(text), error, argptr);
+    va_end(argptr);
+
+    ri.Sys_Error(ERR_FATAL, "%s", text);
+}
+
+void
+Com_Printf(char *msg, ...)
+{
+    va_list argptr;
+    va_start(argptr, msg);
+    ri.Com_VPrintf(PRINT_ALL, msg, argptr);
+    va_end(argptr);
+}
+
+
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
-static refimport_t RI;
+refimport_t ri;
 
 void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer) {
     _pRenderer = pRenderer;
@@ -174,7 +212,67 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
 
     pPool->release();
 }
+
 image_s* MetalRenderer::DrawFindPic(char* name) {
+    image_s* image;
+    int i, len;
+    byte *pic;
+    int width, height;
+    char *ptr;
+    char namewe[256];
+    int realwidth = 0, realheight = 0;
+    const char* ext;
+
+    if (!name)
+    {
+        return NULL;
+    }
+
+    ext = COM_FileExtension(name);
+    if(!ext[0])
+    {
+        /* file has no extension */
+        return NULL;
+    }
+    
+    len = strlen(name);
+
+    /* Remove the extension */
+    memset(namewe, 0, 256);
+    memcpy(namewe, name, len - (strlen(ext) + 1));
+
+    if (len < 5)
+    {
+        return NULL;
+    }
+
+    /* fix backslashes */
+    while ((ptr = strchr(name, '\\')))
+    {
+        *ptr = '/';
+    }
+    
+    if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+       || LoadSTB(namewe, "png", &pic, &width, &height)
+       || LoadSTB(namewe, "jpg", &pic, &width, &height) )
+    {
+        /* upload tga or png or jpg */
+        Com_Printf("loaded tga or png or jpg");
+    }
+    else
+    {
+        /* PCX if no TGA/PNG/JPEG available (exists always) */
+        LoadPCX(name, &pic, NULL, &width, &height);
+
+        if (!pic)
+        {
+            /* No texture found */
+            return NULL;
+        }
+
+        /* Upload the PCX */
+    }
+    
     return NULL;
 }
 void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {}
@@ -203,7 +301,7 @@ enum {
 bool Metal_Init() {
     int screenWidth = 960;
     int screenHeight = 600;
-    if (!RI.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
+    if (!ri.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
         return rserr_invalid_mode;
     }
     return true;
@@ -214,7 +312,7 @@ int Metal_PrepareForWindow() {
 }
 int Metal_InitContext(void* p_sdlWindow) {
     if (p_sdlWindow == NULL) {
-        RI.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+        ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
         return false;
     }
 
@@ -242,7 +340,7 @@ void Metal_RenderFrame(refdef_t* fd) {
     MetalRenderer::INSTANCE->RenderFrame(fd);
 }
 image_s* Metal_DrawFindPic(char* name) {
-    return NULL;
+    return MetalRenderer::INSTANCE->DrawFindPic(name);
 }
 void Metal_DrawGetPicSize(int *w, int *h, char *name) {}
 void Metal_DrawPicScaled(int x, int y, char* pic, float factor) {}
@@ -260,8 +358,8 @@ bool Metal_EndWorldRenderpass() {
 }
 
 __attribute__((__visibility__("default")))
-extern "C" refexport_t GetRefAPI(refimport_t ri) {
-    RI = ri;
+extern "C" refexport_t GetRefAPI(refimport_t ri_) {
+    ri = ri_;
     refexport_t re;
     re.api_version = API_VERSION;
     

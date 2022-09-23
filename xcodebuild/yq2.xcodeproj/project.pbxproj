@@ -163,6 +163,13 @@
 		814DA81128D5D52B00FDF583 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 814DA81028D5D52B00FDF583 /* Foundation.framework */; };
 		81508E1408F14085AB1B20B0 /* boss2.c in Sources */ = {isa = PBXBuildFile; fileRef = 703BE2E2CF4E4D94B378D01A /* boss2.c */; };
 		81DD34536CA74BBF8E603935 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = 97640A06242548DCA4471954 /* sv_world.c */; };
+		81E93E7728DDFE3B00D5F04C /* shared.c in Sources */ = {isa = PBXBuildFile; fileRef = D6D2D20C0CD14CC1AE27ACF8 /* shared.c */; };
+		81E93E7828DE0BA700D5F04C /* stb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E265C7A23FB4F99872A61D3 /* stb.c */; };
+		81E93E7928DE0C6000D5F04C /* pcx.c in Sources */ = {isa = PBXBuildFile; fileRef = 24E33238674B4802AD1E526C /* pcx.c */; };
+		81E93E7A28DE0C7600D5F04C /* hunk.c in Sources */ = {isa = PBXBuildFile; fileRef = D9CA9EF3F4A84ABEA41BB81F /* hunk.c */; };
+		81E93E7B28DE0C7F00D5F04C /* pvs.c in Sources */ = {isa = PBXBuildFile; fileRef = 8A67E29F49F74C6EACCC8925 /* pvs.c */; };
+		81E93E7C28DE0C9900D5F04C /* wal.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BFD0039496E4B7881D87D05 /* wal.c */; };
+		81E93E7D28DE0CA700D5F04C /* md4.c in Sources */ = {isa = PBXBuildFile; fileRef = 88D86C5AB0E749E387F6E9F3 /* md4.c */; };
 		81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */; };
 		81E9BDE728D3B582004E6863 /* MetalDraw.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */; };
 		8237CD691CB442F3A25E1A25 /* gl3_lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 356D358068994DBC80E6FCD9 /* gl3_lightmap.c */; };
@@ -1771,8 +1778,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				81E93E7D28DE0CA700D5F04C /* md4.c in Sources */,
+				81E93E7A28DE0C7600D5F04C /* hunk.c in Sources */,
+				81E93E7928DE0C6000D5F04C /* pcx.c in Sources */,
+				81E93E7B28DE0C7F00D5F04C /* pvs.c in Sources */,
+				81E93E7828DE0BA700D5F04C /* stb.c in Sources */,
+				81E93E7C28DE0C9900D5F04C /* wal.c in Sources */,
 				81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */,
 				81E9BDE728D3B582004E6863 /* MetalDraw.hpp in Sources */,
+				81E93E7728DDFE3B00D5F04C /* shared.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
