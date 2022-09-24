@@ -340,6 +340,13 @@
 			remoteGlobalIDString = 354543645AA34EFBABBC31CD;
 			remoteInfo = ZERO_CHECK;
 		};
+		81E93E8128DF2C7000D5F04C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 85F945FDC8024008915DD5E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 81E9BDC528D3B55C004E6863;
+			remoteInfo = ref_metal;
+		};
 		81E9BDC728D3B55C004E6863 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 85F945FDC8024008915DD5E9 /* Project object */;
@@ -1478,6 +1485,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				81E93E8228DF2C7000D5F04C /* PBXTargetDependency */,
 				67ACC1832AE846CF9686613B /* PBXTargetDependency */,
 			);
 			name = quake2;
@@ -2014,6 +2022,11 @@
 			isa = PBXTargetDependency;
 			target = 86BA534A795F4F91A0B2A627 /* q2ded */;
 			targetProxy = 9C6F28085485482FB4E19FBC /* PBXContainerItemProxy */;
+		};
+		81E93E8228DF2C7000D5F04C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 81E9BDC528D3B55C004E6863 /* ref_metal */;
+			targetProxy = 81E93E8128DF2C7000D5F04C /* PBXContainerItemProxy */;
 		};
 		81E9BDC628D3B55C004E6863 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

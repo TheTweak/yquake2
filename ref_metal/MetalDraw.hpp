@@ -24,6 +24,7 @@ private:
     
     void buildShaders();
     void buildBuffers();
+    image_s* findImage(char* name, imagetype_t type);
 public:
     static MetalRenderer* INSTANCE;
     

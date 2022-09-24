@@ -213,7 +213,7 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     pPool->release();
 }
 
-image_s* MetalRenderer::DrawFindPic(char* name) {
+image_s* MetalRenderer::findImage(char *name, imagetype_t type) {
     image_s* image;
     int i, len;
     byte *pic;
@@ -252,31 +252,112 @@ image_s* MetalRenderer::DrawFindPic(char* name) {
         *ptr = '/';
     }
     
-    if (  LoadSTB(namewe, "tga", &pic, &width, &height)
-       || LoadSTB(namewe, "png", &pic, &width, &height)
-       || LoadSTB(namewe, "jpg", &pic, &width, &height) )
+    pic = NULL;
+    
+    if (strcmp(ext, "pcx") == 0)
     {
-        /* upload tga or png or jpg */
-        Com_Printf("loaded tga or png or jpg");
-    }
-    else
-    {
-        /* PCX if no TGA/PNG/JPEG available (exists always) */
         LoadPCX(name, &pic, NULL, &width, &height);
 
         if (!pic)
         {
-            /* No texture found */
             return NULL;
         }
 
-        /* Upload the PCX */
+//        image = GL3_LoadPic(name, pic, width, 0, height, 0, type, 8);
     }
-    
-    return NULL;
+    else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
+    {
+        if (strcmp(ext, "m8") == 0)
+        {
+//            image = LoadM8(name, type);
+
+            if (!image)
+            {
+                /* No texture found */
+                return NULL;
+            }
+        }
+        else /* gl_retexture is not set */
+        {
+//            image = LoadWal(name, type);
+
+            if (!image)
+            {
+                /* No texture found */
+                return NULL;
+            }
+        }
+    }
+    else if (strcmp(ext, "tga") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "jpg") == 0)
+    {
+        char tmp_name[256];
+
+        realwidth = 0;
+        realheight = 0;
+
+        strcpy(tmp_name, namewe);
+        strcat(tmp_name, ".wal");
+        GetWalInfo(tmp_name, &realwidth, &realheight);
+
+        if (realwidth == 0 || realheight == 0) {
+            strcpy(tmp_name, namewe);
+            strcat(tmp_name, ".m8");
+            GetM8Info(tmp_name, &realwidth, &realheight);
+        }
+
+        if (realwidth == 0 || realheight == 0) {
+            /* It's a sky or model skin. */
+            strcpy(tmp_name, namewe);
+            strcat(tmp_name, ".pcx");
+            GetPCXInfo(tmp_name, &realwidth, &realheight);
+        }
+
+        /* TODO: not sure if not having realwidth/heigth is bad - a tga/png/jpg
+         * was requested, after all, so there might be no corresponding wal/pcx?
+         * if (realwidth == 0 || realheight == 0) return NULL;
+         */
+
+        if(LoadSTB(name, ext, &pic, &width, &height))
+        {
+//            image = GL3_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
+        } else {
+            return NULL;
+        }
+    }
+    else
+    {
+        return NULL;
+    }
+
+    if (pic)
+    {
+        free(pic);
+    }
+
+    return image;
+}
+
+image_s* MetalRenderer::DrawFindPic(char* name) {
+    image_s* image;
+    char fullname[MAX_QPATH];
+
+    if ((name[0] != '/') && (name[0] != '\\'))
+    {
+        Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
+        image = findImage(fullname, it_pic);
+    }
+    else
+    {
+        image = findImage(name + 1, it_pic);
+    }
+
+    return image;
 }
 void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {}
-void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {}
+void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
+    image_s* image = DrawFindPic(pic);
+    
+}
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {}
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {}
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
@@ -299,6 +380,9 @@ enum {
 };
 
 bool Metal_Init() {
+    Swap_Init();
+    ri.Vid_MenuInit();
+    
     int screenWidth = 960;
     int screenHeight = 600;
     if (!ri.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
@@ -343,7 +427,9 @@ image_s* Metal_DrawFindPic(char* name) {
     return MetalRenderer::INSTANCE->DrawFindPic(name);
 }
 void Metal_DrawGetPicSize(int *w, int *h, char *name) {}
-void Metal_DrawPicScaled(int x, int y, char* pic, float factor) {}
+void Metal_DrawPicScaled(int x, int y, char* pic, float factor) {
+    MetalRenderer::INSTANCE->DrawPicScaled(x, y, pic, factor);
+}
 void Metal_DrawStretchPic(int x, int y, int w, int h, char* name) {}
 void Metal_DrawCharScaled(int x, int y, int num, float scale) {}
 void Metal_DrawTileClear(int x, int y, int w, int h, char* name) {}
