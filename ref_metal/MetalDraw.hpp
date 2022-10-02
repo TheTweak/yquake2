@@ -23,8 +23,7 @@ private:
     MetalRenderer() = default;
     
     void buildShaders();
-    void buildBuffers();
-    image_s* findImage(char* name, imagetype_t type);
+    void buildBuffers();    
 public:
     static MetalRenderer* INSTANCE;
     
