@@ -16,6 +16,7 @@ private:
     MTL::RenderPipelineState* _pPSO;
     MTL::Buffer* _pVertexBuffer;
     MTL::Texture* _pTexture;
+    MTL::Texture* _pFragmentTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
     int _width = 0;

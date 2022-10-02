@@ -24,6 +24,7 @@
 #include "../src/common/header/common.h"
 #include "MetalDraw.hpp"
 #include "Image.hpp"
+#include "SharedTypes.h"
 
 void R_Printf(int level, const char* msg, ...)
 {
@@ -68,7 +69,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     _pDevice = pDevice->retain();
     _pCommandQueue = _pDevice->newCommandQueue();
     SDL_Metal_GetDrawableSize(pWindow, &_width, &_height);
-    auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(MTL::PixelFormatRGBA8Unorm, _width, _height, false);
+    auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(MTL::PixelFormatRGBA8Uint, _width, _height, false);
     textureDesc->setUsage(MTL::TextureUsageRenderTarget);
     _pTexture = _pDevice->newTexture(textureDesc);
     _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, _width, _height);
@@ -79,57 +80,17 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
 void MetalRenderer::buildShaders() {
     using NS::StringEncoding::UTF8StringEncoding;
 
-    const char* shaderSrc = R"(
-        #include <metal_stdlib>
-        #include <simd/simd.h>
+    MTL::Library* pLibrary = _pDevice->newDefaultLibrary();
 
-        using namespace metal;
-
-        // The structure that is fed into the vertex shader. We use packed data types to alleviate memory alignment
-        // issues caused by the float2
-        typedef struct {
-            packed_float4 position;
-            packed_float4 colour;
-        } Vertex;
-
-        // The output of the vertex shader, which will be fed into the fragment shader
-        typedef struct {
-            float4 position [[position]];
-            float4 colour;
-        } RasteriserData;
-
-        vertex RasteriserData vertFunc(uint vertexID [[vertex_id]],
-                                                constant Vertex *vertices [[buffer(0)]]) {
-            
-            RasteriserData out;
-            //out.position = float4(0.0, 0.0, 0.0, 1.0);
-            out.position = vertices[vertexID].position;
-            out.colour = vertices[vertexID].colour;
-
-            // Both the colour and the clip space position will be interpolated in this data structure
-            return out;
-        }
-
-        fragment float4 fragFunc(RasteriserData in [[stage_in]]) {
-            return in.colour;
-        }
-    )";
-
-    NS::Error* pError = nullptr;
-    MTL::Library* pLibrary = _pDevice->newLibrary( NS::String::string(shaderSrc, UTF8StringEncoding), nullptr, &pError );
-    if ( !pLibrary ) {
-        __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
-        assert( false );
-    }
-
-    MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertFunc", UTF8StringEncoding) );
-    MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
+    MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
+    MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader", UTF8StringEncoding) );
 
     MTL::RenderPipelineDescriptor* pDesc = MTL::RenderPipelineDescriptor::alloc()->init();
     pDesc->setVertexFunction( pVertexFn );
     pDesc->setFragmentFunction( pFragFn );
-    pDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatRGBA8Unorm);
+    pDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatRGBA8Uint);
 
+    NS::Error* pError = nullptr;
     _pPSO = _pDevice->newRenderPipelineState( pDesc, &pError );
     if ( !_pPSO ) {
         __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
@@ -143,15 +104,6 @@ void MetalRenderer::buildShaders() {
 }
 
 void MetalRenderer::buildBuffers() {
-    // Vertex data, [Vertex x,y,z,w] [Colour B,G,R,A]
-    const float vertexData[] =
-    {
-        0.0f,  1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0,
-      -1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
-        1.0f, -1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-    };
-    // create a buffer for the vertex data
-    _pVertexBuffer = _pDevice->newBuffer(vertexData, sizeof(vertexData), MTL::CPUCacheModeDefaultCache);
 }
 
 bool MetalRenderer::Init() {
@@ -178,6 +130,9 @@ image_s* MetalRenderer::RegisterSkin(char* name) {
 void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
 void MetalRenderer::EndRegistration() {}
 void MetalRenderer::RenderFrame(refdef_t* fd) {
+    if (!_pFragmentTexture) {
+        return;
+    }
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
@@ -192,8 +147,14 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder( pRpd );
 
     pEnc->setRenderPipelineState( _pPSO );
-    pEnc->setVertexBuffer(_pVertexBuffer, 0, 0);
-    pEnc->drawPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(3) );
+    pEnc->setVertexBuffer(_pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+    vector_uint2 viewPortSize;
+    viewPortSize.x = _width;
+    viewPortSize.y = _height;
+    pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
+    pEnc->setFragmentTexture(_pFragmentTexture, TextureIndex::TextureIndexBaseColor);
+    
+    pEnc->drawPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6) );
     pEnc->endEncoding();
     
     auto blitCmdEnc = pCmd->blitCommandEncoder();
@@ -231,9 +192,35 @@ image_s* MetalRenderer::DrawFindPic(char* name) {
     return image;
 }
 void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {}
+
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-    image_s* image = DrawFindPic(pic);
+    image_s* image = DrawFindPic("i_health");
     
+    MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
+    pTextureDescriptor->setPixelFormat(MTL::PixelFormatRGBA8Uint);
+    pTextureDescriptor->setWidth(image->width);
+    pTextureDescriptor->setHeight(image->height);
+    _pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
+    
+    MTL::Region region = {
+        0, 0, 0,
+        ((uint)image->width), ((uint)image->height), 1
+    };
+    _pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
+    
+    TexVertex quadVertices[] =
+    {
+        // Pixel positions, Texture coordinates
+        { { (float)image->width, 0 },  { 1.f, 1.f } },
+        { { 0, 0 },  { 0.f, 1.f } },
+        { { 0, (float)image->height},  { 0.f, 0.f } },
+
+        { {  (float)image->width, 0},  { 1.f, 1.f } },
+        { { 0, 0 },  { 0.f, 0.f } },
+        { {  (float)image->width, (float)image->width},  { 1.f, 0.f } },
+    };
+    // create a buffer for the vertex data
+    _pVertexBuffer = _pDevice->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
 }
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {}
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {}
