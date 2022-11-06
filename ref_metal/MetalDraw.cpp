@@ -74,7 +74,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, _width, _height, false);
     textureDesc->setUsage(MTL::TextureUsageRenderTarget);
     _pTexture = _pDevice->newTexture(textureDesc);
-    _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA8888, SDL_TEXTUREACCESS_STREAMING, _width, _height);
+    _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, _width, _height);
     buildShaders();
     buildBuffers();
 }
