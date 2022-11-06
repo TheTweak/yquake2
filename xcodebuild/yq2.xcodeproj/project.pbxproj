@@ -173,6 +173,7 @@
 		81E93E8528DF9DFE00D5F04C /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 81E93E8328DF9DFE00D5F04C /* Image.cpp */; };
 		81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */; };
 		81E9BDE728D3B582004E6863 /* MetalDraw.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */; };
+		81EFEE0528E9EDEE0061F007 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 81EFEE0428E9EDEE0061F007 /* Shaders.metal */; };
 		8237CD691CB442F3A25E1A25 /* gl3_lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 356D358068994DBC80E6FCD9 /* gl3_lightmap.c */; };
 		828117D41CBD4D5097DC53A7 /* gl3_warp.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF6A4387D7D406381E30579 /* gl3_warp.c */; };
 		83C3B06485D74CD2BCF3B30E /* pvs.c in Sources */ = {isa = PBXBuildFile; fileRef = 83C707E0902A49AEAB4DC74E /* pvs.c */; };
@@ -626,6 +627,8 @@
 		81E9BDBC28D3AD22004E6863 /* MetalRendererPriv.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRendererPriv.hpp; sourceTree = "<group>"; };
 		81E9BDBE28D3AD22004E6863 /* MetalRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalRenderer.cpp; sourceTree = "<group>"; };
 		81E9BDE528D3B55C004E6863 /* ref_metal.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ref_metal.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		81EFEE0428E9EDEE0061F007 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		81EFEE0628E9EEA60061F007 /* SharedTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SharedTypes.h; sourceTree = "<group>"; };
 		8217F725418E435C8C1F99F0 /* clientserver.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = clientserver.c; path = src/common/clientserver.c; sourceTree = SOURCE_ROOT; };
 		8329794DB8894CE8A47CE3CE /* gl1_light.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = gl1_light.c; path = src/client/refresh/gl1/gl1_light.c; sourceTree = SOURCE_ROOT; };
 		83C707E0902A49AEAB4DC74E /* pvs.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = pvs.c; path = src/client/refresh/files/pvs.c; sourceTree = SOURCE_ROOT; };
@@ -1184,6 +1187,8 @@
 				8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */,
 				81E93E8328DF9DFE00D5F04C /* Image.cpp */,
 				81E93E8428DF9DFE00D5F04C /* Image.hpp */,
+				81EFEE0428E9EDEE0061F007 /* Shaders.metal */,
+				81EFEE0628E9EEA60061F007 /* SharedTypes.h */,
 			);
 			path = ref_metal;
 			sourceTree = "<group>";
@@ -1799,6 +1804,7 @@
 				81E93E7C28DE0C9900D5F04C /* wal.c in Sources */,
 				81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */,
 				81E9BDE728D3B582004E6863 /* MetalDraw.hpp in Sources */,
+				81EFEE0528E9EDEE0061F007 /* Shaders.metal in Sources */,
 				81E93E7728DDFE3B00D5F04C /* shared.c in Sources */,
 				81E93E8528DF9DFE00D5F04C /* Image.cpp in Sources */,
 			);

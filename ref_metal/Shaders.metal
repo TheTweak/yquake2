@@ -58,18 +58,18 @@ vertexShader(uint vertexID [[ vertex_id ]],
 }
 
 // Fragment function
-fragment uint4
+fragment float4
 samplingShader(RasterizerData in [[stage_in]],
-               texture2d<uint> colorTexture [[ texture(TextureIndexBaseColor) ]])
+               texture2d<half, access::sample> colorTexture [[ texture(TextureIndexBaseColor) ]])
 {
     constexpr sampler textureSampler (mag_filter::linear,
                                       min_filter::linear);
 
     // Sample the texture to obtain a color
-    const uint4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
+    const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
 
     // return the color of the texture
-    return colorSample;
+    return float4(colorSample);
 }
 
 

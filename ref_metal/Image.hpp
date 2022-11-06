@@ -11,7 +11,6 @@
 #define Image_hpp
 
 #include <string>
-#include <memory>
 #include "../src/client/refresh/ref_shared.h"
 
 struct image_s {

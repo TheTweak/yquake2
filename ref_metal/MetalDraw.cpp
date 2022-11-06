@@ -10,6 +10,8 @@
 #define MTK_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
 
+#define PIXEL_FORMAT MTL::PixelFormatBGRA8Unorm
+
 #include <iostream>
 #include <Metal/Metal.hpp>
 #include <AppKit/AppKit.hpp>
@@ -17,6 +19,7 @@
 #include <simd/simd.h>
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL.h>
+
 #include "../src/client/vid/header/ref.h"
 #include "../src/client/refresh/ref_shared.h"
 #include "../src/common/header/shared.h"
@@ -60,19 +63,18 @@ Com_Printf(char *msg, ...)
     va_end(argptr);
 }
 
-
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
 refimport_t ri;
 
 void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer) {
     _pRenderer = pRenderer;
     _pDevice = pDevice->retain();
-    _pCommandQueue = _pDevice->newCommandQueue();
+    _pCommandQueue = _pDevice->newCommandQueue();    
     SDL_Metal_GetDrawableSize(pWindow, &_width, &_height);
-    auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(MTL::PixelFormatRGBA8Uint, _width, _height, false);
+    auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, _width, _height, false);
     textureDesc->setUsage(MTL::TextureUsageRenderTarget);
     _pTexture = _pDevice->newTexture(textureDesc);
-    _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, _width, _height);
+    _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA8888, SDL_TEXTUREACCESS_STREAMING, _width, _height);
     buildShaders();
     buildBuffers();
 }
@@ -88,7 +90,7 @@ void MetalRenderer::buildShaders() {
     MTL::RenderPipelineDescriptor* pDesc = MTL::RenderPipelineDescriptor::alloc()->init();
     pDesc->setVertexFunction( pVertexFn );
     pDesc->setFragmentFunction( pFragFn );
-    pDesc->colorAttachments()->object(0)->setPixelFormat(MTL::PixelFormat::PixelFormatRGBA8Uint);
+    pDesc->colorAttachments()->object(0)->setPixelFormat(PIXEL_FORMAT);
 
     NS::Error* pError = nullptr;
     _pPSO = _pDevice->newRenderPipelineState( pDesc, &pError );
@@ -197,9 +199,13 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
     image_s* image = DrawFindPic("i_health");
     
     MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
-    pTextureDescriptor->setPixelFormat(MTL::PixelFormatRGBA8Uint);
+    pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
     pTextureDescriptor->setWidth(image->width);
     pTextureDescriptor->setHeight(image->height);
+    pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
+    pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
+    pTextureDescriptor->setTextureType( MTL::TextureType2D );
+    
     _pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
     
     MTL::Region region = {
@@ -207,17 +213,18 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
         ((uint)image->width), ((uint)image->height), 1
     };
     _pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
-    
+    float halfWidth = (float)(image->width)/2.0f;
+    float halfHeight = (float)(image->height)/2.0f;
     TexVertex quadVertices[] =
     {
         // Pixel positions, Texture coordinates
-        { { (float)image->width, 0 },  { 1.f, 1.f } },
-        { { 0, 0 },  { 0.f, 1.f } },
-        { { 0, (float)image->height},  { 0.f, 0.f } },
+        { { halfWidth, -halfHeight },  { 1.f, 1.f } },
+        { { -halfWidth, -halfHeight },  { 0.f, 1.f } },
+        { { -halfWidth, halfHeight },  { 0.f, 0.f } },
 
-        { {  (float)image->width, 0},  { 1.f, 1.f } },
-        { { 0, 0 },  { 0.f, 0.f } },
-        { {  (float)image->width, (float)image->width},  { 1.f, 0.f } },
+        { {  halfWidth, -halfHeight},  { 1.f, 1.f } },
+        { { -halfWidth, halfHeight },  { 0.f, 0.f } },
+        { {  halfWidth, halfHeight},  { 1.f, 0.f } },
     };
     // create a buffer for the vertex data
     _pVertexBuffer = _pDevice->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
