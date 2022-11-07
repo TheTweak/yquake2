@@ -9,6 +9,12 @@
 #ifndef MetalDraw_hpp
 #define MetalDraw_hpp
 
+#include <unordered_map>
+
+struct ImageSize {
+    int width, height;
+};
+
 class MetalRenderer {
 private:
     MTL::Device* _pDevice;
@@ -21,6 +27,7 @@ private:
     SDL_Renderer* _pRenderer;
     int _width = 0;
     int _height = 0;
+    std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     MetalRenderer() = default;
     
     void buildShaders();

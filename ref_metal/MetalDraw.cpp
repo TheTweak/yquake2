@@ -196,35 +196,44 @@ image_s* MetalRenderer::DrawFindPic(char* name) {
 void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {}
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-    image_s* image = DrawFindPic("i_health");
+    pic = "i_health";
+    if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt == _textureMap.end()) {
+        image_s* image = DrawFindPic(pic);
+            
+        MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
+        pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
+        pTextureDescriptor->setWidth(image->width);
+        pTextureDescriptor->setHeight(image->height);
+        pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
+        pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
+        pTextureDescriptor->setTextureType( MTL::TextureType2D );
+        
+        MTL::Texture* pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
+        MTL::Region region = {
+            0, 0, 0,
+            ((uint)image->width), ((uint)image->height), 1
+        };
+        pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
+        
+        _textureMap[pic] = {ImageSize{image->width, image->height}, pFragmentTexture};
+    }
+    auto [imageSize, pFragmentTexture] = _textureMap[pic];
+    _pFragmentTexture = pFragmentTexture;
     
-    MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
-    pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
-    pTextureDescriptor->setWidth(image->width);
-    pTextureDescriptor->setHeight(image->height);
-    pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
-    pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
-    pTextureDescriptor->setTextureType( MTL::TextureType2D );
-    
-    _pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
-    
-    MTL::Region region = {
-        0, 0, 0,
-        ((uint)image->width), ((uint)image->height), 1
-    };
-    _pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
-    float halfWidth = (float)(image->width)/2.0f;
-    float halfHeight = (float)(image->height)/2.0f;
+    float halfWidth = (float)(imageSize.width)/2.0f;
+    float halfHeight = (float)(imageSize.height)/2.0f;
+    float offsetX = -322.0; // 322
+    float offsetY = -576.0/2.0; // 576
     TexVertex quadVertices[] =
     {
         // Pixel positions, Texture coordinates
-        { { halfWidth, -halfHeight },  { 1.f, 1.f } },
-        { { -halfWidth, -halfHeight },  { 0.f, 1.f } },
-        { { -halfWidth, halfHeight },  { 0.f, 0.f } },
+        { { halfWidth + offsetX, -halfHeight + offsetY },  { 1.f, 1.f } },
+        { { -halfWidth + offsetX, -halfHeight + offsetY },  { 0.f, 1.f } },
+        { { -halfWidth + offsetX, halfHeight + offsetY},  { 0.f, 0.f } },
 
-        { {  halfWidth, -halfHeight},  { 1.f, 1.f } },
-        { { -halfWidth, halfHeight },  { 0.f, 0.f } },
-        { {  halfWidth, halfHeight},  { 1.f, 0.f } },
+        { {  halfWidth + offsetX, -halfHeight + offsetY},  { 1.f, 1.f } },
+        { { -halfWidth + offsetX, halfHeight + offsetY },  { 0.f, 0.f } },
+        { {  halfWidth + offsetX, halfHeight + offsetY},  { 1.f, 0.f } },
     };
     // create a buffer for the vertex data
     _pVertexBuffer = _pDevice->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
