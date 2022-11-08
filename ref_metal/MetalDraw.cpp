@@ -220,7 +220,7 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
 
     float halfWidth = (float)(imageSize.width)/2.0f;
     float halfHeight = (float)(imageSize.height)/2.0f;
-    float offsetX = x + halfWidth - _width / 2.0;
+    float offsetX = x + imageSize.width - _width / 2.0;
     float offsetY = _height / 2.0 - (y + halfHeight);
     DrawPicCommandData d{pic, {
         // Pixel positions, Texture coordinates
