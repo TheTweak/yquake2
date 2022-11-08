@@ -10,24 +10,32 @@
 #define MetalDraw_hpp
 
 #include <unordered_map>
+#include <vector>
+
+#include "SharedTypes.h"
 
 struct ImageSize {
     int width, height;
+};
+
+struct DrawPicCommandData {
+    std::string pic;
+    TexVertex textureVertex[6];
 };
 
 class MetalRenderer {
 private:
     MTL::Device* _pDevice;
     MTL::CommandQueue* _pCommandQueue;
-    MTL::RenderPipelineState* _pPSO;
-    MTL::Buffer* _pVertexBuffer;
+    MTL::RenderPipelineState* _pPSO;    
     MTL::Texture* _pTexture;
-    MTL::Texture* _pFragmentTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
     int _width = 0;
     int _height = 0;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
+    std::vector<DrawPicCommandData> drawPicCmds;
+    
     MetalRenderer() = default;
     
     void buildShaders();

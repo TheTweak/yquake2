@@ -132,9 +132,6 @@ image_s* MetalRenderer::RegisterSkin(char* name) {
 void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
 void MetalRenderer::EndRegistration() {}
 void MetalRenderer::RenderFrame(refdef_t* fd) {
-    if (!_pFragmentTexture) {
-        return;
-    }
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
@@ -145,19 +142,21 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     colorAttachmentDesc->setStoreAction(MTL::StoreActionStore);
     colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.0f, 0.0f, 0));
     pRpd->setRenderTargetArrayLength(1);
-    
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder( pRpd );
-
     pEnc->setRenderPipelineState( _pPSO );
-    pEnc->setVertexBuffer(_pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
-    vector_uint2 viewPortSize;
-    viewPortSize.x = _width;
-    viewPortSize.y = _height;
-    pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
-    pEnc->setFragmentTexture(_pFragmentTexture, TextureIndex::TextureIndexBaseColor);
-    
-    pEnc->drawPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6) );
+    for (const auto& drawPicCmd : drawPicCmds) {
+        // create a buffer for the vertex data
+        MTL::Buffer* pVertexBuffer = _pDevice->newBuffer(drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), MTL::ResourceStorageModeShared);
+        pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+        vector_uint2 viewPortSize;
+        viewPortSize.x = _width;
+        viewPortSize.y = _height;
+        pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
+        pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
+        pEnc->drawPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6) );
+    }
     pEnc->endEncoding();
+    drawPicCmds.clear();
     
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
@@ -196,7 +195,7 @@ image_s* MetalRenderer::DrawFindPic(char* name) {
 void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {}
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-    pic = "i_health";
+//    pic = "i_health";
     if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt == _textureMap.end()) {
         image_s* image = DrawFindPic(pic);
             
@@ -217,15 +216,13 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
         
         _textureMap[pic] = {ImageSize{image->width, image->height}, pFragmentTexture};
     }
-    auto [imageSize, pFragmentTexture] = _textureMap[pic];
-    _pFragmentTexture = pFragmentTexture;
-    
+    ImageSize imageSize = _textureMap[pic].first;
+
     float halfWidth = (float)(imageSize.width)/2.0f;
     float halfHeight = (float)(imageSize.height)/2.0f;
-    float offsetX = -322.0; // 322
-    float offsetY = -576.0/2.0; // 576
-    TexVertex quadVertices[] =
-    {
+    float offsetX = x + halfWidth - _width / 2.0;
+    float offsetY = _height / 2.0 - (y + halfHeight);
+    DrawPicCommandData d{pic, {
         // Pixel positions, Texture coordinates
         { { halfWidth + offsetX, -halfHeight + offsetY },  { 1.f, 1.f } },
         { { -halfWidth + offsetX, -halfHeight + offsetY },  { 0.f, 1.f } },
@@ -234,9 +231,9 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
         { {  halfWidth + offsetX, -halfHeight + offsetY},  { 1.f, 1.f } },
         { { -halfWidth + offsetX, halfHeight + offsetY },  { 0.f, 0.f } },
         { {  halfWidth + offsetX, halfHeight + offsetY},  { 1.f, 0.f } },
-    };
-    // create a buffer for the vertex data
-    _pVertexBuffer = _pDevice->newBuffer(quadVertices, sizeof(quadVertices), MTL::ResourceStorageModeShared);
+    }};
+
+    drawPicCmds.push_back(d);
 }
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {}
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {}
