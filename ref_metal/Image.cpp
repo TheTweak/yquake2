@@ -102,7 +102,7 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
         return {0, 0};
     }
 
-    full_size = 4 * (pcx_height) * (pcx_width);
+    full_size = 4 * (pcx_height + 1) * (pcx_width + 1);
     out = static_cast<byte*>(malloc(full_size));
     
     if (!out)
