@@ -192,7 +192,17 @@ image_s* MetalRenderer::DrawFindPic(char* name) {
 
     return image;
 }
-void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {}
+void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
+    image_s* image = DrawFindPic(name);
+    
+    if (!image) {
+        *w = *h = -1;
+        return;
+    }
+    
+    *w = image->width;
+    *h = image->height;
+}
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
 //    pic = "i_health";
@@ -220,7 +230,7 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
 
     float halfWidth = (float)(imageSize.width)/2.0f;
     float halfHeight = (float)(imageSize.height)/2.0f;
-    float offsetX = x + imageSize.width - _width / 2.0;
+    float offsetX = x + halfWidth - _width / 2.0;
     float offsetY = _height / 2.0 - (y + halfHeight);
     DrawPicCommandData d{pic, {
         // Pixel positions, Texture coordinates
@@ -260,8 +270,8 @@ bool Metal_Init() {
     Swap_Init();
     ri.Vid_MenuInit();
     
-    int screenWidth = 960;
-    int screenHeight = 600;
+    int screenWidth = 640;
+    int screenHeight = 480;
     if (!ri.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
         return rserr_invalid_mode;
     }
@@ -303,7 +313,9 @@ void Metal_RenderFrame(refdef_t* fd) {
 image_s* Metal_DrawFindPic(char* name) {
     return MetalRenderer::INSTANCE->DrawFindPic(name);
 }
-void Metal_DrawGetPicSize(int *w, int *h, char *name) {}
+void Metal_DrawGetPicSize(int *w, int *h, char *name) {
+    MetalRenderer::INSTANCE->DrawGetPicSize(w, h, name);
+}
 void Metal_DrawPicScaled(int x, int y, char* pic, float factor) {
     MetalRenderer::INSTANCE->DrawPicScaled(x, y, pic, factor);
 }

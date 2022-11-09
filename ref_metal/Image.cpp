@@ -5,10 +5,13 @@
 //  Created by SOROKIN EVGENY on 24.09.2022.
 //
 
-#include "Image.hpp"
 #include <fstream>
 #include <utility>
 #include <array>
+#include <unordered_map>
+#include <memory>
+
+#include "Image.hpp"
 
 image_s::~image_s() {
     if (data) {
@@ -18,6 +21,7 @@ image_s::~image_s() {
 
 static std::array<int, 768> _palette;
 static bool _palette_loaded = false;
+static std::unordered_map<std::string, std::shared_ptr<image_s>> _imageCache;
 
 std::array<int, 768> _LoadPalette() {
     pcx_t *pcx;
@@ -196,6 +200,10 @@ image_s* LoadPic(char* name, byte* pic, int width,
 }
 
 image_s* Img::FindImage(char* name, imagetype_t type) {
+    if (auto it = _imageCache.find(name); it != end(_imageCache)) {
+        return it->second.get();
+    }
+    
     image_s* image;
     int i, len;
     byte *pic;
@@ -312,5 +320,7 @@ image_s* Img::FindImage(char* name, imagetype_t type) {
         free(pic);
     }
 
+    _imageCache[name] = std::shared_ptr<image_s>(image);
+    
     return image;
 }

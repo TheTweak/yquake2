@@ -2957,6 +2957,7 @@
 				ARCHS = arm64;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
+				"MTL_ENABLE_DEBUG_INFO[sdk=*]" = INCLUDE_SOURCE;
 				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk;
 				SYMROOT = "/Users/sorokinevgeny/dev/c++/yq2/xcodebuild/build";
 			};
@@ -3240,6 +3241,7 @@
 				INSTALL_PATH = "";
 				LIBRARY_STYLE = BUNDLE;
 				MACH_O_TYPE = mh_bundle;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-std=c++17",
@@ -3309,6 +3311,7 @@
 				INSTALL_PATH = "";
 				LIBRARY_STYLE = BUNDLE;
 				MACH_O_TYPE = mh_bundle;
+				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-std=gnu99",
@@ -3380,6 +3383,7 @@
 				INSTALL_PATH = "";
 				LIBRARY_STYLE = BUNDLE;
 				MACH_O_TYPE = mh_bundle;
+				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-std=gnu99",
@@ -3451,6 +3455,7 @@
 				INSTALL_PATH = "";
 				LIBRARY_STYLE = BUNDLE;
 				MACH_O_TYPE = mh_bundle;
+				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-std=gnu99",
