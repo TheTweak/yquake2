@@ -144,13 +144,13 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     pRpd->setRenderTargetArrayLength(1);
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder( pRpd );
     pEnc->setRenderPipelineState( _pPSO );
+    vector_uint2 viewPortSize;
+    viewPortSize.x = _width;
+    viewPortSize.y = _height;
     for (const auto& drawPicCmd : drawPicCmds) {
         // create a buffer for the vertex data
         MTL::Buffer* pVertexBuffer = _pDevice->newBuffer(drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), MTL::ResourceStorageModeShared);
         pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
-        vector_uint2 viewPortSize;
-        viewPortSize.x = _width;
-        viewPortSize.y = _height;
         pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
         pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
         pEnc->drawPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6) );
