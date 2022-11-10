@@ -255,7 +255,56 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
     drawPicCmds.push_back(d);
 }
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {}
-void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {}
+
+void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
+    int row, col;
+    float frow, fcol, size, scaledSize;
+    num &= 255;
+
+    if ((num & 127) == 32)
+    {
+        return; /* space */
+    }
+
+    if (y <= -8)
+    {
+        return; /* totally off screen */
+    }
+
+    row = num >> 4;
+    col = num & 15;
+
+    frow = row * 0.0625;
+    fcol = col * 0.0625;
+    size = 0.0625;
+
+    scaledSize = 8*scale;
+    
+    float halfWidth = scaledSize/2.0f;
+    float halfHeight = halfWidth;
+    
+    float offsetX = x + halfWidth - _width / 2.0;
+    float offsetY = _height / 2.0 - (y + halfHeight);
+    
+    float sl = fcol;
+    float tl = frow;
+    float sh = fcol + size;
+    float th = frow + size;
+    
+    DrawPicCommandData d{"conchars", {
+        // Pixel positions, Texture coordinates
+        { { halfWidth + offsetX, -halfHeight + offsetY },  { sh, th } },
+        { { -halfWidth + offsetX, -halfHeight + offsetY },  { sl, th } },
+        { { -halfWidth + offsetX, halfHeight + offsetY},  { sl, tl } },
+
+        { {  halfWidth + offsetX, -halfHeight + offsetY},  { sh, th } },
+        { { -halfWidth + offsetX, halfHeight + offsetY },  { sl, tl } },
+        { {  halfWidth + offsetX, halfHeight + offsetY},  { sh, tl } },
+    }};
+
+    drawPicCmds.push_back(d);
+}
+
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
 void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {}
 void MetalRenderer::DrawFadeScreen() {}
