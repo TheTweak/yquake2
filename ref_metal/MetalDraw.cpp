@@ -76,7 +76,12 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     _pTexture = _pDevice->newTexture(textureDesc);
     _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, _width, _height);
     buildShaders();
-    buildBuffers();
+    drawInit();
+}
+
+void MetalRenderer::drawInit() {
+    /* load console characters */
+    loadTexture("conchars");
 }
 
 void MetalRenderer::buildShaders() {
@@ -103,9 +108,6 @@ void MetalRenderer::buildShaders() {
     pFragFn->release();
     pDesc->release();
     pLibrary->release();
-}
-
-void MetalRenderer::buildBuffers() {
 }
 
 bool MetalRenderer::Init() {
@@ -204,34 +206,41 @@ void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
     *h = image->height;
 }
 
-void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-//    pic = "i_health";
-    if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt == _textureMap.end()) {
-        image_s* image = DrawFindPic(pic);
-            
-        MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
-        pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
-        pTextureDescriptor->setWidth(image->width);
-        pTextureDescriptor->setHeight(image->height);
-        pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
-        pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
-        pTextureDescriptor->setTextureType( MTL::TextureType2D );
-        
-        MTL::Texture* pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
-        MTL::Region region = {
-            0, 0, 0,
-            ((uint)image->width), ((uint)image->height), 1
-        };
-        pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
-        
-        _textureMap[pic] = {ImageSize{image->width, image->height}, pFragmentTexture};
+std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) {
+    if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt != _textureMap.end()) {
+        return cachedImageDataIt->second;
     }
-    ImageSize imageSize = _textureMap[pic].first;
+    
+    image_s* image = DrawFindPic(pic.data());
+    assert(image);
+        
+    MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
+    pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
+    pTextureDescriptor->setWidth(image->width);
+    pTextureDescriptor->setHeight(image->height);
+    pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
+    pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
+    pTextureDescriptor->setTextureType( MTL::TextureType2D );
+    
+    MTL::Texture* pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
+    MTL::Region region = {
+        0, 0, 0,
+        ((uint)image->width), ((uint)image->height), 1
+    };
+    pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
+    
+    _textureMap[pic] = {ImageSize{image->width, image->height}, pFragmentTexture};
+    return _textureMap[pic];
+}
+
+void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
+    ImageSize imageSize = loadTexture(pic).first;
 
     float halfWidth = (float)(imageSize.width)/2.0f;
     float halfHeight = (float)(imageSize.height)/2.0f;
     float offsetX = x + halfWidth - _width / 2.0;
     float offsetY = _height / 2.0 - (y + halfHeight);
+    
     DrawPicCommandData d{pic, {
         // Pixel positions, Texture coordinates
         { { halfWidth + offsetX, -halfHeight + offsetY },  { 1.f, 1.f } },
@@ -320,7 +329,9 @@ void Metal_DrawPicScaled(int x, int y, char* pic, float factor) {
     MetalRenderer::INSTANCE->DrawPicScaled(x, y, pic, factor);
 }
 void Metal_DrawStretchPic(int x, int y, int w, int h, char* name) {}
-void Metal_DrawCharScaled(int x, int y, int num, float scale) {}
+void Metal_DrawCharScaled(int x, int y, int num, float scale) {
+    MetalRenderer::INSTANCE->DrawCharScaled(x, y, num, scale);
+}
 void Metal_DrawTileClear(int x, int y, int w, int h, char* name) {}
 void Metal_DrawFill(int x, int y, int w, int h, int c) {}
 void Metal_DrawFadeScreen() {}

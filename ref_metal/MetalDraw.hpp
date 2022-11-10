@@ -39,7 +39,8 @@ private:
     MetalRenderer() = default;
     
     void buildShaders();
-    void buildBuffers();    
+    void drawInit();
+    std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
 public:
     static MetalRenderer* INSTANCE;
     
