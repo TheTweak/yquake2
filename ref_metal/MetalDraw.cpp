@@ -65,6 +65,7 @@ Com_Printf(char *msg, ...)
 
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
 refimport_t ri;
+cvar_t *r_mode;
 
 void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer, MTL::Resource* pLayer) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
@@ -336,6 +337,10 @@ bool Metal_Init() {
     
     int screenWidth = 640;
     int screenHeight = 480;
+    
+    r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
+    ri.Vid_GetModeInfo(&screenWidth, &screenHeight, r_mode->value);
+    
     if (!ri.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
         return rserr_invalid_mode;
     }
