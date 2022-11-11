@@ -31,20 +31,20 @@ private:
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
+    MTL::Resource* _pMetalLayer;
     int _width = 0;
-    int _height = 0;
-    std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
+    int _height = 0;    
     std::vector<DrawPicCommandData> drawPicCmds;
     
     MetalRenderer() = default;
     
     void buildShaders();
     void drawInit();
-    std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
+//    std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
 public:
     static MetalRenderer* INSTANCE;
     
-    void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer);
+    void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer, MTL::Resource* pLayer);
     bool Init();
     void Shutdown();
     int PrepareForWindow();

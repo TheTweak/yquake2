@@ -66,8 +66,10 @@ Com_Printf(char *msg, ...)
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
 refimport_t ri;
 
-void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer) {
+void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer, MTL::Resource* pLayer) {
+    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     _pRenderer = pRenderer;
+    _pMetalLayer = pLayer;
     _pDevice = pDevice->retain();
     _pCommandQueue = _pDevice->newCommandQueue();    
     SDL_Metal_GetDrawableSize(pWindow, &_width, &_height);
@@ -77,14 +79,17 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, _width, _height);
     buildShaders();
     drawInit();
+    pPool->release();
 }
 
 void MetalRenderer::drawInit() {
     /* load console characters */
-    loadTexture("conchars");
+    image_s* image = DrawFindPic("conchars");
+    assert(image);
 }
 
 void MetalRenderer::buildShaders() {
+    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     using NS::StringEncoding::UTF8StringEncoding;
 
     MTL::Library* pLibrary = _pDevice->newDefaultLibrary();
@@ -108,6 +113,7 @@ void MetalRenderer::buildShaders() {
     pFragFn->release();
     pDesc->release();
     pLibrary->release();
+    pPool->release();
 }
 
 bool MetalRenderer::Init() {
@@ -144,18 +150,40 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     colorAttachmentDesc->setStoreAction(MTL::StoreActionStore);
     colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.0f, 0.0f, 0));
     pRpd->setRenderTargetArrayLength(1);
-    MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder( pRpd );
-    pEnc->setRenderPipelineState( _pPSO );
+    MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
+    pEnc->setRenderPipelineState(_pPSO);
     vector_uint2 viewPortSize;
     viewPortSize.x = _width;
     viewPortSize.y = _height;
-    for (const auto& drawPicCmd : drawPicCmds) {
+    for (auto& drawPicCmd : drawPicCmds) {
         // create a buffer for the vertex data
         MTL::Buffer* pVertexBuffer = _pDevice->newBuffer(drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), MTL::ResourceStorageModeShared);
         pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
         pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
-        pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
-        pEnc->drawPrimitives( MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6) );
+        
+        image_s* image = DrawFindPic(drawPicCmd.pic.data());        
+            
+        MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
+        pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
+        pTextureDescriptor->setWidth(image->width);
+        pTextureDescriptor->setHeight(image->height);
+        pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
+        pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
+        pTextureDescriptor->setTextureType( MTL::TextureType2D );
+        
+        MTL::Texture* pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
+        MTL::Region region = {
+            0, 0, 0,
+            ((uint)image->width), ((uint)image->height), 1
+        };
+        pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
+        
+        pEnc->setFragmentTexture(pFragmentTexture, TextureIndex::TextureIndexBaseColor);
+        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
+        
+        pFragmentTexture->release();
+        pTextureDescriptor->release();
+        pVertexBuffer->release();
     }
     pEnc->endEncoding();
     drawPicCmds.clear();
@@ -168,13 +196,11 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     
     uint32_t* pixels;
     int pitch;
-    
     SDL_LockTexture(_pSdlTexture, NULL, (void**) &pixels, &pitch);
     _pTexture->getBytes(pixels, _width * 4, MTL::Region(0, 0, _width, _height), 0);
     SDL_UnlockTexture(_pSdlTexture);
     SDL_RenderCopy(_pRenderer, _pSdlTexture, NULL, NULL);
     SDL_RenderPresent(_pRenderer);
-
     pPool->release();
 }
 
@@ -194,6 +220,7 @@ image_s* MetalRenderer::DrawFindPic(char* name) {
 
     return image;
 }
+
 void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
     image_s* image = DrawFindPic(name);
     
@@ -206,11 +233,8 @@ void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
     *h = image->height;
 }
 
+/*
 std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) {
-    if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt != _textureMap.end()) {
-        return cachedImageDataIt->second;
-    }
-    
     image_s* image = DrawFindPic(pic.data());
     assert(image);
         
@@ -232,9 +256,11 @@ std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) 
     _textureMap[pic] = {ImageSize{image->width, image->height}, pFragmentTexture};
     return _textureMap[pic];
 }
+*/
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-    ImageSize imageSize = loadTexture(pic).first;
+    auto image = DrawFindPic(pic);
+    ImageSize imageSize = {image->width, image->height};
 
     float halfWidth = (float)(imageSize.width)/2.0f;
     float halfHeight = (float)(imageSize.height)/2.0f;
@@ -349,7 +375,7 @@ int Metal_InitContext(void* p_sdlWindow) {
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     MTL::Resource* layer = static_cast<MTL::Resource*>(SDL_RenderGetMetalLayer(renderer));
     MTL::Device* device = layer->device();
-    MetalRenderer::INSTANCE->InitMetal(device, window, renderer);
+    MetalRenderer::INSTANCE->InitMetal(device, window, renderer, layer);
     return 1;
 }
 void Metal_ShutdownContext() {}

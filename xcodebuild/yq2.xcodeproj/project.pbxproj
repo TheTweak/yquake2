@@ -2236,7 +2236,16 @@
 				INSTALL_PATH = "";
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
+					"-std=c++17",
+					"-Wall",
+					"-fno-strict-aliasing",
+					"-fwrapv",
+					"-fvisibility=hidden",
+					"-DNDEBUG",
+					"$(inherited)",
+				);
+				"OTHER_CFLAGS[arch=*]" = (
+					"-std=c++17",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
@@ -2292,7 +2301,7 @@
 					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks,
 					"$(inherited)",
 				);
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = 2;
@@ -2318,7 +2327,7 @@
 				INSTALL_PATH = "";
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
+					"-std=c++17",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
@@ -3285,7 +3294,7 @@
 					"$(inherited)",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_OPTIMIZATION_LEVEL = 2;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -3307,6 +3316,8 @@
 					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenAL.framework/Headers,
 					"/Users/sorokinevgeny/dev/c++/yq2/src/client/refresh/gl3/glad/include",
 					"$(inherited)",
+					"ref_metal/metal-cpp-extensions",
+					"ref_metal/metal-cpp",
 				);
 				INSTALL_PATH = "";
 				LIBRARY_STYLE = BUNDLE;
@@ -3314,14 +3325,13 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
+					"-std=c++17",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
 					"-fvisibility=hidden",
 					"-DNDEBUG",
 					"-fPIC",
-					"'-std=gnu11'",
 					"$(inherited)",
 				);
 				OTHER_LDFLAGS = (
@@ -3386,14 +3396,13 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
+					"-std=c++17",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
 					"-fvisibility=hidden",
 					"-DNDEBUG",
 					"-fPIC",
-					"'-std=gnu11'",
 					"$(inherited)",
 				);
 				OTHER_LDFLAGS = (
@@ -3451,6 +3460,8 @@
 					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks/OpenAL.framework/Headers,
 					"/Users/sorokinevgeny/dev/c++/yq2/src/client/refresh/gl3/glad/include",
 					"$(inherited)",
+					"ref_metal/metal-cpp",
+					"ref_metal/metal-cpp-extensions",
 				);
 				INSTALL_PATH = "";
 				LIBRARY_STYLE = BUNDLE;
@@ -3458,14 +3469,13 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
+					"-std=c++17",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
 					"-fvisibility=hidden",
 					"-DNDEBUG",
 					"-fPIC",
-					"'-std=gnu11'",
 					"$(inherited)",
 				);
 				OTHER_LDFLAGS = (
@@ -4030,7 +4040,7 @@
 					/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk/System/Library/Frameworks,
 					"$(inherited)",
 				);
-				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
 				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.cpp;
 				GCC_OPTIMIZATION_LEVEL = s;
@@ -4056,7 +4066,7 @@
 				INSTALL_PATH = "";
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
-					"-std=gnu99",
+					"-std=c++17",
 					"-Wall",
 					"-fno-strict-aliasing",
 					"-fwrapv",
