@@ -35,12 +35,13 @@ private:
     int _width = 0;
     int _height = 0;    
     std::vector<DrawPicCommandData> drawPicCmds;
+    std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     
     MetalRenderer() = default;
     
     void buildShaders();
     void drawInit();
-//    std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
+    std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
 public:
     static MetalRenderer* INSTANCE;
     

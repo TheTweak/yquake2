@@ -84,8 +84,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
 
 void MetalRenderer::drawInit() {
     /* load console characters */
-    image_s* image = DrawFindPic("conchars");
-    assert(image);
+    loadTexture("conchars");
 }
 
 void MetalRenderer::buildShaders() {
@@ -160,29 +159,9 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
         MTL::Buffer* pVertexBuffer = _pDevice->newBuffer(drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), MTL::ResourceStorageModeShared);
         pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
         pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
-        
-        image_s* image = DrawFindPic(drawPicCmd.pic.data());        
-            
-        MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
-        pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
-        pTextureDescriptor->setWidth(image->width);
-        pTextureDescriptor->setHeight(image->height);
-        pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
-        pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
-        pTextureDescriptor->setTextureType( MTL::TextureType2D );
-        
-        MTL::Texture* pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
-        MTL::Region region = {
-            0, 0, 0,
-            ((uint)image->width), ((uint)image->height), 1
-        };
-        pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
-        
-        pEnc->setFragmentTexture(pFragmentTexture, TextureIndex::TextureIndexBaseColor);
+        pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
         pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
-        
-        pFragmentTexture->release();
-        pTextureDescriptor->release();
+                        
         pVertexBuffer->release();
     }
     pEnc->endEncoding();
@@ -233,8 +212,11 @@ void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
     *h = image->height;
 }
 
-/*
 std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) {
+    if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt != _textureMap.end()) {
+        return cachedImageDataIt->second;
+    }
+    
     image_s* image = DrawFindPic(pic.data());
     assert(image);
         
@@ -256,11 +238,9 @@ std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) 
     _textureMap[pic] = {ImageSize{image->width, image->height}, pFragmentTexture};
     return _textureMap[pic];
 }
-*/
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-    auto image = DrawFindPic(pic);
-    ImageSize imageSize = {image->width, image->height};
+    ImageSize imageSize = loadTexture(pic).first;
 
     float halfWidth = (float)(imageSize.width)/2.0f;
     float halfHeight = (float)(imageSize.height)/2.0f;

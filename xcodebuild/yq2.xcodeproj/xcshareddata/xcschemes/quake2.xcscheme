@@ -65,6 +65,11 @@
             isEnabled = "NO">
          </EnvironmentVariable>
          <EnvironmentVariable
+            key = "OBJC_DEBUG_MISSING_POOLS"
+            value = "YES"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+         <EnvironmentVariable
             key = "NSZombieEnabled"
             value = "YES"
             isEnabled = "NO">
