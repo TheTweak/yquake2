@@ -23,6 +23,7 @@ class MetalDraw {
 public:
     MetalDraw(int screenWidth, int screenHeight);
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic, MTL::Device* pDevice);
+    MTL::Texture* createdColoredTexture(vector_float4 colorBGRA, MTL::Device* pDevice);
     DrawPicCommandData createDrawTextureCmdData(const std::string texture, float x, float y, float w, float h,
                                                 float sl = 0.0f, float tl = 0.0f, float sh = 1.0f, float th = 1.0f);
     image_s* drawFindPic(char* name);

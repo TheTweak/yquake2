@@ -29,6 +29,25 @@ image_s* MetalDraw::DrawFindPic(char* name) {
     return image;
 }
 
+MTL::Texture* _createTexture(int width, int height, MTL::Device* pDevice, byte* data) {
+    MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
+    pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
+    pTextureDescriptor->setWidth(width);
+    pTextureDescriptor->setHeight(height);
+    pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
+    pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
+    pTextureDescriptor->setTextureType( MTL::TextureType2D );
+    
+    MTL::Texture* pFragmentTexture = pDevice->newTexture(pTextureDescriptor);
+    MTL::Region region = {
+        0, 0, 0,
+        ((uint)width), ((uint)height), 1
+    };
+    pFragmentTexture->replaceRegion(region, 0, data, width*4);
+    
+    return pFragmentTexture;
+}
+
 std::pair<ImageSize, MTL::Texture*> MetalDraw::loadTexture(std::string pic, MTL::Device* pDevice) {
     image_s* image = DrawFindPic(pic.data());
     
@@ -37,23 +56,24 @@ std::pair<ImageSize, MTL::Texture*> MetalDraw::loadTexture(std::string pic, MTL:
         ss << "Texture not found: " << pic;
         throw std::logic_error(ss.str());
     }
-        
-    MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
-    pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
-    pTextureDescriptor->setWidth(image->width);
-    pTextureDescriptor->setHeight(image->height);
-    pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
-    pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
-    pTextureDescriptor->setTextureType( MTL::TextureType2D );
     
-    MTL::Texture* pFragmentTexture = pDevice->newTexture(pTextureDescriptor);
-    MTL::Region region = {
-        0, 0, 0,
-        ((uint)image->width), ((uint)image->height), 1
-    };
-    pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
+    return {ImageSize{image->width, image->height}, _createTexture(image->width, image->height, pDevice, image->data)};
+}
+
+MTL::Texture* MetalDraw::createdColoredTexture(vector_float4 colorBGRA, MTL::Device* pDevice) {
+    size_t size = 4 * max(screenWidth, 1) * max(screenHeight, 1);
+    auto data = static_cast<byte*>(malloc(size));
+    for (int x = 0; x < screenWidth; x++) {
+        for (int y = 0; y < screenHeight; y++) {
+            int idx = (y * (screenWidth - 1) + x) * 4;
+            data[idx] = colorBGRA[0];
+            data[idx + 1] = colorBGRA[1];
+            data[idx + 2] = colorBGRA[2];
+            data[idx + 3] = colorBGRA[3];
+        }
+    }
     
-    return {ImageSize{image->width, image->height}, pFragmentTexture};    
+    return _createTexture(screenWidth, screenHeight, pDevice, data);
 }
 
 /*
@@ -62,7 +82,7 @@ std::pair<ImageSize, MTL::Texture*> MetalDraw::loadTexture(std::string pic, MTL:
  See "drawTexturedRectangle(...)" method in gl3_draw.c for details.
  */
 DrawPicCommandData MetalDraw::createDrawTextureCmdData(const std::string texture, float x, float y, float w, float h,
-                                                           float sl, float tl, float sh, float th) {
+                                                       float sl, float tl, float sh, float th) {
     float halfWidth = w / 2.0f;
     float halfHeight = h / 2.0f;
     float offsetX = x + halfWidth - screenWidth / 2.0;

@@ -9,6 +9,7 @@
 #define MTL_PRIVATE_IMPLEMENTATION
 #define MTK_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
+#define FADE_SCREEN_TEXTURE "_FADE_SCREEN"
 
 #include <iostream>
 #include <Metal/Metal.hpp>
@@ -225,7 +226,12 @@ void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
 
 void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {}
 
-void MetalRenderer::DrawFadeScreen() {}
+void MetalRenderer::DrawFadeScreen() {
+    if (auto cachedImageDataIt = _textureMap.find(FADE_SCREEN_TEXTURE); cachedImageDataIt == _textureMap.end()) {
+        _textureMap[FADE_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({1.0f, 1.0f, 1.0f, 1.0f}, _pDevice)};
+    }
+    drawPicCmds.push_back(draw->createDrawTextureCmdData(FADE_SCREEN_TEXTURE, 0, 0, _width, _height));
+}
 
 void MetalRenderer::DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {}
 
