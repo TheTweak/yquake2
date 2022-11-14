@@ -42,6 +42,8 @@ private:
     void buildShaders();
     void drawInit();
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
+    DrawPicCommandData createDrawTextureCmdData(const std::string texture, float x, float y, float w, float h,
+                                                float sl = 0.0f, float tl = 0.0f, float sh = 1.0f, float th = 1.0f);
 public:
     static MetalRenderer* INSTANCE;
     

@@ -240,27 +240,35 @@ std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) 
     return _textureMap[pic];
 }
 
-void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-    ImageSize imageSize = loadTexture(pic).first;
-
-    float halfWidth = (float)(imageSize.width)/2.0f;
-    float halfHeight = (float)(imageSize.height)/2.0f;
+/*
+ Create data for Metal draw commands required to render a rectangle with a texture on it.
+ sl, tl, sh, th - parameters naming is borrowed from original ref_gl implementation.
+ See "drawTexturedRectangle(...)" method in gl3_draw.c for details.
+ */
+DrawPicCommandData MetalRenderer::createDrawTextureCmdData(const std::string texture, float x, float y, float w, float h,
+                                                           float sl, float tl, float sh, float th) {
+    float halfWidth = w / 2.0f;
+    float halfHeight = h / 2.0f;
     float offsetX = x + halfWidth - _width / 2.0;
     float offsetY = _height / 2.0 - (y + halfHeight);
     
-    DrawPicCommandData d{pic, {
-        // Pixel positions, Texture coordinates
-        { { halfWidth + offsetX, -halfHeight + offsetY },  { 1.f, 1.f } },
-        { { -halfWidth + offsetX, -halfHeight + offsetY },  { 0.f, 1.f } },
-        { { -halfWidth + offsetX, halfHeight + offsetY},  { 0.f, 0.f } },
+    return {texture, {
+        //              Pixel positions               Texture coordinates
+        {{  halfWidth + offsetX, -halfHeight + offsetY }, { sh, th }},
+        {{ -halfWidth + offsetX, -halfHeight + offsetY }, { sl, th }},
+        {{ -halfWidth + offsetX,  halfHeight + offsetY }, { sl, tl }},
 
-        { {  halfWidth + offsetX, -halfHeight + offsetY},  { 1.f, 1.f } },
-        { { -halfWidth + offsetX, halfHeight + offsetY },  { 0.f, 0.f } },
-        { {  halfWidth + offsetX, halfHeight + offsetY},  { 1.f, 0.f } },
+        {{  halfWidth + offsetX, -halfHeight + offsetY }, { sh, th }},
+        {{ -halfWidth + offsetX,  halfHeight + offsetY }, { sl, tl }},
+        {{  halfWidth + offsetX,  halfHeight + offsetY }, { sh, tl }},
     }};
-
-    drawPicCmds.push_back(d);
 }
+
+void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
+    ImageSize imageSize = loadTexture(pic).first;
+    drawPicCmds.push_back(createDrawTextureCmdData(pic, x, y, imageSize.width * factor, imageSize.height * factor));
+}
+
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {}
 
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
@@ -286,30 +294,13 @@ void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
     size = 0.0625;
 
     scaledSize = 8*scale;
-    
-    float halfWidth = scaledSize/2.0f;
-    float halfHeight = halfWidth;
-    
-    float offsetX = x + halfWidth - _width / 2.0;
-    float offsetY = _height / 2.0 - (y + halfHeight);
-    
+        
     float sl = fcol;
     float tl = frow;
     float sh = fcol + size;
     float th = frow + size;
     
-    DrawPicCommandData d{"conchars", {
-        // Pixel positions, Texture coordinates
-        { { halfWidth + offsetX, -halfHeight + offsetY },  { sh, th } },
-        { { -halfWidth + offsetX, -halfHeight + offsetY },  { sl, th } },
-        { { -halfWidth + offsetX, halfHeight + offsetY},  { sl, tl } },
-
-        { {  halfWidth + offsetX, -halfHeight + offsetY},  { sh, th } },
-        { { -halfWidth + offsetX, halfHeight + offsetY },  { sl, tl } },
-        { {  halfWidth + offsetX, halfHeight + offsetY},  { sh, tl } },
-    }};
-
-    drawPicCmds.push_back(d);
+    drawPicCmds.push_back(createDrawTextureCmdData("conchars", x, y, scaledSize, scaledSize, sl, tl, sh, th));
 }
 
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
