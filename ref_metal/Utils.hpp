@@ -13,6 +13,8 @@
 
 #include "SharedTypes.h"
 
+#define PIXEL_FORMAT MTL::PixelFormatBGRA8Unorm
+
 struct ImageSize {
     int width, height;
 };

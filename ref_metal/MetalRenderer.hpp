@@ -11,8 +11,10 @@
 
 #include <unordered_map>
 #include <vector>
+#include <memory>
 
 #include "Utils.hpp"
+#include "MetalDraw.hpp"
 
 class MetalRenderer {
 private:
@@ -27,14 +29,13 @@ private:
     int _height = 0;    
     std::vector<DrawPicCommandData> drawPicCmds;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
+    std::unique_ptr<MetalDraw> draw;
     
     MetalRenderer() = default;
     
     void buildShaders();
     void drawInit();
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
-    DrawPicCommandData createDrawTextureCmdData(const std::string texture, float x, float y, float w, float h,
-                                                float sl = 0.0f, float tl = 0.0f, float sh = 1.0f, float th = 1.0f);
 public:
     static MetalRenderer* INSTANCE;
     
