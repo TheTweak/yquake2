@@ -1,5 +1,5 @@
 //
-//  MetalDraw.cpp
+//  MetalRenderer.cpp
 //  yq2
 //
 //  Created by SOROKIN EVGENY on 13.09.2022.
@@ -25,9 +25,8 @@
 #include "../src/common/header/shared.h"
 
 #include "../src/common/header/common.h"
-#include "MetalDraw.hpp"
+#include "MetalRenderer.hpp"
 #include "Image.hpp"
-#include "SharedTypes.h"
 
 void R_Printf(int level, const char* msg, ...)
 {
@@ -213,57 +212,6 @@ void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
     *h = image->height;
 }
 
-std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) {
-    if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt != _textureMap.end()) {
-        return cachedImageDataIt->second;
-    }
-    
-    image_s* image = DrawFindPic(pic.data());
-    assert(image);
-        
-    MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
-    pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
-    pTextureDescriptor->setWidth(image->width);
-    pTextureDescriptor->setHeight(image->height);
-    pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
-    pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
-    pTextureDescriptor->setTextureType( MTL::TextureType2D );
-    
-    MTL::Texture* pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
-    MTL::Region region = {
-        0, 0, 0,
-        ((uint)image->width), ((uint)image->height), 1
-    };
-    pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
-    
-    _textureMap[pic] = {ImageSize{image->width, image->height}, pFragmentTexture};
-    return _textureMap[pic];
-}
-
-/*
- Create data for Metal draw commands required to render a rectangle with a texture on it.
- sl, tl, sh, th - parameters naming is borrowed from original ref_gl implementation.
- See "drawTexturedRectangle(...)" method in gl3_draw.c for details.
- */
-DrawPicCommandData MetalRenderer::createDrawTextureCmdData(const std::string texture, float x, float y, float w, float h,
-                                                           float sl, float tl, float sh, float th) {
-    float halfWidth = w / 2.0f;
-    float halfHeight = h / 2.0f;
-    float offsetX = x + halfWidth - _width / 2.0;
-    float offsetY = _height / 2.0 - (y + halfHeight);
-    
-    return {texture, {
-        //              Pixel positions               Texture coordinates
-        {{  halfWidth + offsetX, -halfHeight + offsetY }, { sh, th }},
-        {{ -halfWidth + offsetX, -halfHeight + offsetY }, { sl, th }},
-        {{ -halfWidth + offsetX,  halfHeight + offsetY }, { sl, tl }},
-
-        {{  halfWidth + offsetX, -halfHeight + offsetY }, { sh, th }},
-        {{ -halfWidth + offsetX,  halfHeight + offsetY }, { sl, tl }},
-        {{  halfWidth + offsetX,  halfHeight + offsetY }, { sh, tl }},
-    }};
-}
-
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
     ImageSize imageSize = loadTexture(pic).first;
     drawPicCmds.push_back(createDrawTextureCmdData(pic, x, y, imageSize.width * factor, imageSize.height * factor));
@@ -315,6 +263,62 @@ void MetalRenderer::EndFrame() {}
 bool MetalRenderer::EndWorldRenderpass() {
     return true;
 }
+
+#pragma mark - Private_Methods
+#pragma region Private_Methods {
+
+std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) {
+    if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt != _textureMap.end()) {
+        return cachedImageDataIt->second;
+    }
+    
+    image_s* image = DrawFindPic(pic.data());
+    assert(image);
+        
+    MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
+    pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
+    pTextureDescriptor->setWidth(image->width);
+    pTextureDescriptor->setHeight(image->height);
+    pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
+    pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
+    pTextureDescriptor->setTextureType( MTL::TextureType2D );
+    
+    MTL::Texture* pFragmentTexture = _pDevice->newTexture(pTextureDescriptor);
+    MTL::Region region = {
+        0, 0, 0,
+        ((uint)image->width), ((uint)image->height), 1
+    };
+    pFragmentTexture->replaceRegion(region, 0, image->data, image->width*4);
+    
+    _textureMap[pic] = {ImageSize{image->width, image->height}, pFragmentTexture};
+    return _textureMap[pic];
+}
+
+/*
+ Create data for Metal draw commands required to render a rectangle with a texture on it.
+ sl, tl, sh, th - parameters naming is borrowed from original ref_gl implementation.
+ See "drawTexturedRectangle(...)" method in gl3_draw.c for details.
+ */
+DrawPicCommandData MetalRenderer::createDrawTextureCmdData(const std::string texture, float x, float y, float w, float h,
+                                                           float sl, float tl, float sh, float th) {
+    float halfWidth = w / 2.0f;
+    float halfHeight = h / 2.0f;
+    float offsetX = x + halfWidth - _width / 2.0;
+    float offsetY = _height / 2.0 - (y + halfHeight);
+    
+    return {texture, {
+        //              Pixel positions               Texture coordinates
+        {{  halfWidth + offsetX, -halfHeight + offsetY }, { sh, th }},
+        {{ -halfWidth + offsetX, -halfHeight + offsetY }, { sl, th }},
+        {{ -halfWidth + offsetX,  halfHeight + offsetY }, { sl, tl }},
+
+        {{  halfWidth + offsetX, -halfHeight + offsetY }, { sh, th }},
+        {{ -halfWidth + offsetX,  halfHeight + offsetY }, { sl, tl }},
+        {{  halfWidth + offsetX,  halfHeight + offsetY }, { sh, tl }},
+    }};
+}
+
+#pragma endregion Private_Methods }
 
 enum {
     rserr_ok,

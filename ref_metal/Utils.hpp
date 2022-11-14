@@ -1,0 +1,25 @@
+//
+//  Utils.hpp
+//  ref_metal
+//
+//  Created by SOROKIN EVGENY on 14.11.2022.
+//
+
+#ifndef Utils_hpp
+#define Utils_hpp
+
+#include <stdio.h>
+#include <string>
+
+#include "SharedTypes.h"
+
+struct ImageSize {
+    int width, height;
+};
+
+struct DrawPicCommandData {
+    std::string pic;
+    TexVertex textureVertex[6];
+};
+
+#endif /* Utils_hpp */

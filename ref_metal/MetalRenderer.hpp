@@ -1,27 +1,18 @@
 //
-//  MetalDraw.hpp
+//  MetalRenderer.hpp
 //  yq2
 //
 //  Created by SOROKIN EVGENY on 13.09.2022.
 //
 #pragma once
 
-#ifndef MetalDraw_hpp
-#define MetalDraw_hpp
+#ifndef MetalRenderer_hpp
+#define MetalRenderer_hpp
 
 #include <unordered_map>
 #include <vector>
 
-#include "SharedTypes.h"
-
-struct ImageSize {
-    int width, height;
-};
-
-struct DrawPicCommandData {
-    std::string pic;
-    TexVertex textureVertex[6];
-};
+#include "Utils.hpp"
 
 class MetalRenderer {
 private:
@@ -76,4 +67,4 @@ public:
     
 };
 
-#endif /* MetalDraw_hpp */
+#endif /* MetalRenderer_hpp */
