@@ -9,6 +9,7 @@
 #define MetalDraw_hpp
 
 #include <stdio.h>
+#include <optional>
 #include <MetalKit/MetalKit.hpp>
 
 #include "Utils.hpp"
@@ -24,6 +25,9 @@ public:
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic, MTL::Device* pDevice);
     DrawPicCommandData createDrawTextureCmdData(const std::string texture, float x, float y, float w, float h,
                                                 float sl = 0.0f, float tl = 0.0f, float sh = 1.0f, float th = 1.0f);
+    image_s* drawFindPic(char* name);
+    void drawGetPicSize(int *w, int *h, char *name);
+    std::optional<DrawPicCommandData> drawCharScaled(int x, int y, int num, float scale);
 };
 
 #endif /* MetalDraw_hpp */

@@ -183,32 +183,11 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
 }
 
 image_s* MetalRenderer::DrawFindPic(char* name) {
-    image_s* image;
-    char fullname[MAX_QPATH];
-
-    if ((name[0] != '/') && (name[0] != '\\'))
-    {
-        Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
-        image = Img::FindImage(fullname, it_pic);
-    }
-    else
-    {
-        image = Img::FindImage(name + 1, it_pic);
-    }
-
-    return image;
+    return draw->drawFindPic(name);
 }
 
 void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
-    image_s* image = DrawFindPic(name);
-    
-    if (!image) {
-        *w = *h = -1;
-        return;
-    }
-    
-    *w = image->width;
-    *h = image->height;
+    draw->drawGetPicSize(w, h, name);
 }
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
@@ -221,35 +200,9 @@ void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {
 }
 
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
-    int row, col;
-    float frow, fcol, size, scaledSize;
-    num &= 255;
-
-    if ((num & 127) == 32)
-    {
-        return; /* space */
+    if (auto cmd = draw->drawCharScaled(x, y, num, scale); cmd != std::nullopt) {
+        drawPicCmds.push_back(cmd.value());
     }
-
-    if (y <= -8)
-    {
-        return; /* totally off screen */
-    }
-
-    row = num >> 4;
-    col = num & 15;
-
-    frow = row * 0.0625;
-    fcol = col * 0.0625;
-    size = 0.0625;
-
-    scaledSize = 8*scale;
-        
-    float sl = fcol;
-    float tl = frow;
-    float sh = fcol + size;
-    float th = frow + size;
-    
-    drawPicCmds.push_back(draw->createDrawTextureCmdData("conchars", x, y, scaledSize, scaledSize, sl, tl, sh, th));
 }
 
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
