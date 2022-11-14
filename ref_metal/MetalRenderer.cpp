@@ -26,6 +26,9 @@
 #include "MetalRenderer.hpp"
 #include "Image.hpp"
 
+#pragma mark - Utils
+#pragma region Utils {
+
 void R_Printf(int level, const char* msg, ...)
 {
     va_list argptr;
@@ -63,6 +66,8 @@ Com_Printf(char *msg, ...)
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
 refimport_t ri;
 cvar_t *r_mode;
+
+#pragma endregion Utils }
 
 void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer, MTL::Resource* pLayer) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
@@ -117,26 +122,37 @@ void MetalRenderer::buildShaders() {
 bool MetalRenderer::Init() {
     return true;
 }
+
 void MetalRenderer::Shutdown() {}
+
 int MetalRenderer::PrepareForWindow() {
     return 1;
 }
+
 int MetalRenderer::InitContext() {
     return 1;
 }
+
 void MetalRenderer::ShutdownContext() {}
+
 bool MetalRenderer::IsVSyncActive() {
     return false;
 }
+
 void MetalRenderer::BeginRegistration(char* map) {}
+
 model_s* MetalRenderer::RegisterModel(char* name) {
     return NULL;
 }
+
 image_s* MetalRenderer::RegisterSkin(char* name) {
     return NULL;
 }
+
 void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
+
 void MetalRenderer::EndRegistration() {}
+
 void MetalRenderer::RenderFrame(refdef_t* fd) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -206,12 +222,19 @@ void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
 }
 
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
+
 void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {}
+
 void MetalRenderer::DrawFadeScreen() {}
+
 void MetalRenderer::DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {}
+
 void MetalRenderer::SetPalette(const unsigned char* palette) {}
+
 void MetalRenderer::BeginFrame(float camera_separation) {}
+
 void MetalRenderer::EndFrame() {}
+
 bool MetalRenderer::EndWorldRenderpass() {
     return true;
 }
@@ -229,6 +252,8 @@ std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) 
 
 #pragma endregion Private_Methods }
 
+#pragma mark - External_API
+#pragma region External_API {
 enum {
     rserr_ok,
 
@@ -252,10 +277,15 @@ bool Metal_Init() {
     }
     return true;
 }
-void Metal_Shutdown() {}
+
+void Metal_Shutdown() {
+    MetalRenderer::INSTANCE->Shutdown();
+}
+
 int Metal_PrepareForWindow() {
     return SDL_WINDOW_METAL;
 }
+
 int Metal_InitContext(void* p_sdlWindow) {
     if (p_sdlWindow == NULL) {
         ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
@@ -269,44 +299,89 @@ int Metal_InitContext(void* p_sdlWindow) {
     MetalRenderer::INSTANCE->InitMetal(device, window, renderer, layer);
     return 1;
 }
-void Metal_ShutdownContext() {}
+
+void Metal_ShutdownContext() {
+    MetalRenderer::INSTANCE->ShutdownContext();
+}
+
 bool Metal_IsVSyncActive() {
-    return false;
+    return MetalRenderer::INSTANCE->IsVSyncActive();
 }
-void Metal_BeginRegistration(char* map) {}
+
+void Metal_BeginRegistration(char* map) {
+    MetalRenderer::INSTANCE->BeginRegistration(map);
+}
+
 model_s* Metal_RegisterModel(char* name) {
-    return NULL;
+    return MetalRenderer::INSTANCE->RegisterModel(name);
 }
+
 image_s* Metal_RegisterSkin(char* name) {
-    return NULL;
+    return MetalRenderer::INSTANCE->RegisterSkin(name);
 }
-void Metal_SetSky(char* name, float rotate, vec3_t axis) {}
-void Metal_EndRegistration() {}
+
+void Metal_SetSky(char* name, float rotate, vec3_t axis) {
+    MetalRenderer::INSTANCE->SetSky(name, rotate, axis);
+}
+
+void Metal_EndRegistration() {
+    MetalRenderer::INSTANCE->EndRegistration();
+}
+
 void Metal_RenderFrame(refdef_t* fd) {
     MetalRenderer::INSTANCE->RenderFrame(fd);
 }
+
 image_s* Metal_DrawFindPic(char* name) {
     return MetalRenderer::INSTANCE->DrawFindPic(name);
 }
+
 void Metal_DrawGetPicSize(int *w, int *h, char *name) {
     MetalRenderer::INSTANCE->DrawGetPicSize(w, h, name);
 }
+
 void Metal_DrawPicScaled(int x, int y, char* pic, float factor) {
     MetalRenderer::INSTANCE->DrawPicScaled(x, y, pic, factor);
 }
-void Metal_DrawStretchPic(int x, int y, int w, int h, char* name) {}
+
+void Metal_DrawStretchPic(int x, int y, int w, int h, char* name) {
+    MetalRenderer::INSTANCE->DrawStretchPic(x, y, w, h, name);
+}
+
 void Metal_DrawCharScaled(int x, int y, int num, float scale) {
     MetalRenderer::INSTANCE->DrawCharScaled(x, y, num, scale);
 }
-void Metal_DrawTileClear(int x, int y, int w, int h, char* name) {}
-void Metal_DrawFill(int x, int y, int w, int h, int c) {}
-void Metal_DrawFadeScreen() {}
-void Metal_DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {}
-void Metal_SetPalette(const unsigned char* palette) {}
-void Metal_BeginFrame(float camera_separation) {}
-void Metal_EndFrame() {}
+
+void Metal_DrawTileClear(int x, int y, int w, int h, char* name) {
+    MetalRenderer::INSTANCE->DrawTileClear(x, y, w, h, name);
+}
+
+void Metal_DrawFill(int x, int y, int w, int h, int c) {
+    MetalRenderer::INSTANCE->DrawFill(x, y, w, h, c);
+}
+
+void Metal_DrawFadeScreen() {
+    MetalRenderer::INSTANCE->DrawFadeScreen();
+}
+
+void Metal_DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {
+    MetalRenderer::INSTANCE->DrawStretchRaw(x, y, w, h, cols, rows, data);
+}
+
+void Metal_SetPalette(const unsigned char* palette) {
+    MetalRenderer::INSTANCE->SetPalette(palette);
+}
+
+void Metal_BeginFrame(float camera_separation) {
+    MetalRenderer::INSTANCE->BeginFrame(camera_separation);
+}
+
+void Metal_EndFrame() {
+    MetalRenderer::INSTANCE->EndFrame();
+}
+
 bool Metal_EndWorldRenderpass() {
-    return true;
+    return MetalRenderer::INSTANCE->EndWorldRenderpass();
 }
 
 __attribute__((__visibility__("default")))
@@ -353,3 +428,5 @@ extern "C" refexport_t GetRefAPI(refimport_t ri_) {
 
     return re;
 }
+
+#pragma endregion External_API }
