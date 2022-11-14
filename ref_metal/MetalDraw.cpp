@@ -269,7 +269,9 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
     drawPicCmds.push_back(createDrawTextureCmdData(pic, x, y, imageSize.width * factor, imageSize.height * factor));
 }
 
-void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {}
+void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {
+    drawPicCmds.push_back(createDrawTextureCmdData(name, x, y, w, h));
+}
 
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
     int row, col;
