@@ -165,7 +165,7 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
                     pix[index] = byte(_palette[dataByte * 3 + 2]);    // blue
                     pix[index + 1] = byte(_palette[dataByte * 3 + 1]); // green
                     pix[index + 2] = byte(_palette[dataByte * 3]);    // red
-                    pix[index + 3] = byte{0};              // alpha
+                    pix[index + 3] = byte{255};              // alpha
                 }
             }
         }

@@ -37,7 +37,7 @@ private:
     void drawInit();
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
     void encodeMetalCommands();
-    void fadeScreen();
+    void flashScreen();
 public:
     static MetalRenderer* INSTANCE;
     

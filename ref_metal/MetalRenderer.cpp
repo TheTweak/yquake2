@@ -110,6 +110,12 @@ void MetalRenderer::buildShaders() {
     pDesc->setFragmentFunction( pFragFn );
     pDesc->colorAttachments()->object(0)->setPixelFormat(PIXEL_FORMAT);
     pDesc->colorAttachments()->object(0)->setBlendingEnabled(true);
+    pDesc->colorAttachments()->object(0)->setRgbBlendOperation(MTL::BlendOperationAdd);
+    pDesc->colorAttachments()->object(0)->setAlphaBlendOperation(MTL::BlendOperationAdd);
+    pDesc->colorAttachments()->object(0)->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+    pDesc->colorAttachments()->object(0)->setSourceAlphaBlendFactor(MTL::BlendFactorSourceAlpha);
+    pDesc->colorAttachments()->object(0)->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+    pDesc->colorAttachments()->object(0)->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
 
     NS::Error* pError = nullptr;
     _pPSO = _pDevice->newRenderPipelineState( pDesc, &pError );
@@ -163,7 +169,7 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     mtl_newrefdef = *fd;
             
     if (mtl_newrefdef.blend[3] != 0.0f) {
-        fadeScreen();
+        flashScreen();
     }
     
     encodeMetalCommands();
@@ -201,14 +207,14 @@ void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {
     os << FILL_TEXTURE << c;
     auto k = os.str();
     if (auto cachedImageDataIt = _textureMap.find(k); cachedImageDataIt == _textureMap.end()) {
-        _textureMap[k] = {{w, h}, draw->createdColoredTexture({(float)c, (float)c, (float)c, 1.0f}, _pDevice)};
+        _textureMap[k] = {{w, h}, draw->createdColoredTexture({(float)c, (float)c, (float)c, 0.5f}, _pDevice)};
     }
     drawPicCmds.push_back(draw->createDrawTextureCmdData(k, 0, 0, w, h));
 }
 
 void MetalRenderer::DrawFadeScreen() {
     if (auto cachedImageDataIt = _textureMap.find(FADE_SCREEN_TEXTURE); cachedImageDataIt == _textureMap.end()) {
-        _textureMap[FADE_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({1.0f, 1.0f, 1.0f, 0.5f}, _pDevice)};
+        _textureMap[FADE_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({0.0f, 0.0f, 0.0f, 128.0f}, _pDevice)};
     }
     drawPicCmds.push_back(draw->createDrawTextureCmdData(FADE_SCREEN_TEXTURE, 0, 0, _width, _height));
 }
@@ -236,9 +242,9 @@ std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) 
     return _textureMap[pic];
 }
 
-void MetalRenderer::fadeScreen() {
+void MetalRenderer::flashScreen() {
     if (auto cachedImageDataIt = _textureMap.find(FLASH_SCREEN_TEXTURE); cachedImageDataIt == _textureMap.end()) {
-        _textureMap[FLASH_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({0.0f, 0.0f, 0.0f, 0.6f}, _pDevice)};
+        _textureMap[FLASH_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({0.0f, 0.0f, 0.0f, 64.0f}, _pDevice)};
     }
     drawPicCmds.push_back(draw->createDrawTextureCmdData(FLASH_SCREEN_TEXTURE, 0, 0, _width, _height));
 }
