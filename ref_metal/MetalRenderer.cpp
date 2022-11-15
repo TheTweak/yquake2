@@ -10,8 +10,10 @@
 #define MTK_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
 #define FADE_SCREEN_TEXTURE "_FADE_SCREEN"
+#define FILL_TEXTURE "_FILL_SCREEN_"
 
 #include <iostream>
+#include <sstream>
 #include <Metal/Metal.hpp>
 #include <AppKit/AppKit.hpp>
 #include <MetalKit/MetalKit.hpp>
@@ -105,6 +107,7 @@ void MetalRenderer::buildShaders() {
     pDesc->setVertexFunction( pVertexFn );
     pDesc->setFragmentFunction( pFragFn );
     pDesc->colorAttachments()->object(0)->setPixelFormat(PIXEL_FORMAT);
+    pDesc->colorAttachments()->object(0)->setBlendingEnabled(true);
 
     NS::Error* pError = nullptr;
     _pPSO = _pDevice->newRenderPipelineState( pDesc, &pError );
@@ -224,11 +227,19 @@ void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
 
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
 
-void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {}
+void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {
+    std::ostringstream os;
+    os << FILL_TEXTURE << c;
+    auto k = os.str();
+    if (auto cachedImageDataIt = _textureMap.find(k); cachedImageDataIt == _textureMap.end()) {
+        _textureMap[k] = {{w, h}, draw->createdColoredTexture({(float)c, (float)c, (float)c, 1.0f}, _pDevice)};
+    }
+    drawPicCmds.push_back(draw->createDrawTextureCmdData(k, 0, 0, w, h));
+}
 
 void MetalRenderer::DrawFadeScreen() {
     if (auto cachedImageDataIt = _textureMap.find(FADE_SCREEN_TEXTURE); cachedImageDataIt == _textureMap.end()) {
-        _textureMap[FADE_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({1.0f, 1.0f, 1.0f, 1.0f}, _pDevice)};
+        _textureMap[FADE_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({1.0f, 1.0f, 1.0f, 0.5f}, _pDevice)};
     }
     drawPicCmds.push_back(draw->createDrawTextureCmdData(FADE_SCREEN_TEXTURE, 0, 0, _width, _height));
 }
