@@ -225,7 +225,9 @@ void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
     }
 }
 
-void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {}
+void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {
+    drawPicCmds.push_back(draw->createDrawTextureCmdData(name, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f));    
+}
 
 void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {
     std::ostringstream os;
