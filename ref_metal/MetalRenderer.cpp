@@ -10,6 +10,7 @@
 #define MTK_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
 #define FADE_SCREEN_TEXTURE "_FADE_SCREEN"
+#define FLASH_SCREEN_TEXTURE "_FLASH_SCREEN"
 #define FILL_TEXTURE "_FILL_SCREEN_"
 
 #include <iostream>
@@ -69,6 +70,7 @@ Com_Printf(char *msg, ...)
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
 refimport_t ri;
 cvar_t *r_mode;
+refdef_t mtl_newrefdef;
 
 #pragma endregion Utils }
 
@@ -158,48 +160,13 @@ void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
 void MetalRenderer::EndRegistration() {}
 
 void MetalRenderer::RenderFrame(refdef_t* fd) {
-    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
-
-    MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
-    MTL::RenderPassDescriptor* pRpd = MTL::RenderPassDescriptor::alloc()->init();
-    auto colorAttachmentDesc = pRpd->colorAttachments()->object(0);
-    colorAttachmentDesc->setTexture(_pTexture);
-    colorAttachmentDesc->setLoadAction(MTL::LoadActionClear);
-    colorAttachmentDesc->setStoreAction(MTL::StoreActionStore);
-    colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.0f, 0.0f, 0));
-    pRpd->setRenderTargetArrayLength(1);
-    MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
-    pEnc->setRenderPipelineState(_pPSO);
-    vector_uint2 viewPortSize;
-    viewPortSize.x = _width;
-    viewPortSize.y = _height;
-    for (auto& drawPicCmd : drawPicCmds) {
-        // create a buffer for the vertex data
-        MTL::Buffer* pVertexBuffer = _pDevice->newBuffer(drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), MTL::ResourceStorageModeShared);
-        pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
-        pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
-        pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
-        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
-                        
-        pVertexBuffer->release();
+    mtl_newrefdef = *fd;
+            
+    if (mtl_newrefdef.blend[3] != 0.0f) {
+        fadeScreen();
     }
-    pEnc->endEncoding();
-    drawPicCmds.clear();
     
-    auto blitCmdEnc = pCmd->blitCommandEncoder();
-    blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
-    blitCmdEnc->endEncoding();
-    pCmd->commit();
-    pCmd->waitUntilCompleted();
-    
-    uint32_t* pixels;
-    int pitch;
-    SDL_LockTexture(_pSdlTexture, NULL, (void**) &pixels, &pitch);
-    _pTexture->getBytes(pixels, _width * 4, MTL::Region(0, 0, _width, _height), 0);
-    SDL_UnlockTexture(_pSdlTexture);
-    SDL_RenderCopy(_pRenderer, _pSdlTexture, NULL, NULL);
-    SDL_RenderPresent(_pRenderer);
-    pPool->release();
+    encodeMetalCommands();
 }
 
 image_s* MetalRenderer::DrawFindPic(char* name) {
@@ -267,6 +234,58 @@ std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) 
     }
     _textureMap[pic] = draw->loadTexture(pic, _pDevice);
     return _textureMap[pic];
+}
+
+void MetalRenderer::fadeScreen() {
+    if (auto cachedImageDataIt = _textureMap.find(FLASH_SCREEN_TEXTURE); cachedImageDataIt == _textureMap.end()) {
+        _textureMap[FLASH_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({0.0f, 0.0f, 0.0f, 0.6f}, _pDevice)};
+    }
+    drawPicCmds.push_back(draw->createDrawTextureCmdData(FLASH_SCREEN_TEXTURE, 0, 0, _width, _height));
+}
+
+void MetalRenderer::encodeMetalCommands() {
+    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
+
+    MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
+    MTL::RenderPassDescriptor* pRpd = MTL::RenderPassDescriptor::alloc()->init();
+    auto colorAttachmentDesc = pRpd->colorAttachments()->object(0);
+    colorAttachmentDesc->setTexture(_pTexture);
+    colorAttachmentDesc->setLoadAction(MTL::LoadActionClear);
+    colorAttachmentDesc->setStoreAction(MTL::StoreActionStore);
+    colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.0f, 0.0f, 0));
+    pRpd->setRenderTargetArrayLength(1);
+    MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
+    pEnc->setRenderPipelineState(_pPSO);
+    vector_uint2 viewPortSize;
+    viewPortSize.x = _width;
+    viewPortSize.y = _height;
+    for (auto& drawPicCmd : drawPicCmds) {
+        // create a buffer for the vertex data
+        MTL::Buffer* pVertexBuffer = _pDevice->newBuffer(drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), MTL::ResourceStorageModeShared);
+        pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+        pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
+        pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
+        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
+                        
+        pVertexBuffer->release();
+    }
+    pEnc->endEncoding();
+    drawPicCmds.clear();
+    
+    auto blitCmdEnc = pCmd->blitCommandEncoder();
+    blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
+    blitCmdEnc->endEncoding();
+    pCmd->commit();
+    pCmd->waitUntilCompleted();
+    
+    uint32_t* pixels;
+    int pitch;
+    SDL_LockTexture(_pSdlTexture, NULL, (void**) &pixels, &pitch);
+    _pTexture->getBytes(pixels, _width * 4, MTL::Region(0, 0, _width, _height), 0);
+    SDL_UnlockTexture(_pSdlTexture);
+    SDL_RenderCopy(_pRenderer, _pSdlTexture, NULL, NULL);
+    SDL_RenderPresent(_pRenderer);
+    pPool->release();
 }
 
 #pragma endregion Private_Methods }

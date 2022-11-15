@@ -36,6 +36,8 @@ private:
     void buildShaders();
     void drawInit();
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
+    void encodeMetalCommands();
+    void fadeScreen();
 public:
     static MetalRenderer* INSTANCE;
     
