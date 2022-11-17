@@ -28,4 +28,9 @@ struct TexVertex {
     vector_float2 texCoordinate;
 };
 
+struct Particle {
+    vector_float3 position;
+    vector_float4 color;
+    float size;
+};
 #endif /* SharedTypes_h */

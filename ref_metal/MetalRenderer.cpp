@@ -69,8 +69,10 @@ Com_Printf(char *msg, ...)
 
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
 refimport_t ri;
-cvar_t *r_mode;
 refdef_t mtl_newrefdef;
+
+cvar_t *r_mode;
+cvar_t *metal_particle_size;
 
 #pragma endregion Utils }
 
@@ -249,6 +251,20 @@ void MetalRenderer::flashScreen() {
     drawPicCmds.push_back(draw->createDrawTextureCmdData(FLASH_SCREEN_TEXTURE, 0, 0, _width, _height));
 }
 
+void MetalRenderer::drawParticles() {
+    const particle_t* p;
+    int i = 0;
+    float pointSize = metal_particle_size->value * (float) mtl_newrefdef.height/480.0f;
+    for (i = 0, p = mtl_newrefdef.particles; i < mtl_newrefdef.num_particles; i++, p++) {
+        Particle particle{
+            {p->origin[0], p->origin[1], p->origin[2]},
+            {0.0f, 255.0f, 0.0f, 255.0f},
+            pointSize
+        };
+        drawPartCmds.push_back({particle});
+    }
+}
+
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -314,6 +330,7 @@ bool Metal_Init() {
     int screenHeight = 480;
     
     r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
+    metal_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
     ri.Vid_GetModeInfo(&screenWidth, &screenHeight, r_mode->value);
     
     if (!ri.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {

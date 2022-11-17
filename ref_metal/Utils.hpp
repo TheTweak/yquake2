@@ -24,4 +24,8 @@ struct DrawPicCommandData {
     TexVertex textureVertex[6];
 };
 
+struct DrawParticleCommandData {
+    Particle particle;
+};
+
 #endif /* Utils_hpp */

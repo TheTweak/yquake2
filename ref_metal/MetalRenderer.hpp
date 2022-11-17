@@ -28,6 +28,7 @@ private:
     int _width = 0;
     int _height = 0;    
     std::vector<DrawPicCommandData> drawPicCmds;
+    std::vector<DrawParticleCommandData> drawPartCmds;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unique_ptr<MetalDraw> draw;
     
@@ -38,6 +39,7 @@ private:
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
     void encodeMetalCommands();
     void flashScreen();
+    void drawParticles();
 public:
     static MetalRenderer* INSTANCE;
     
