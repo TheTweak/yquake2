@@ -76,6 +76,10 @@ cvar_t *metal_particle_size;
 
 #pragma endregion Utils }
 
+MetalRenderer::MetalRenderer() {
+    _semaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
+}
+
 void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer, MTL::Resource* pLayer) {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     _pRenderer = pRenderer;
@@ -91,6 +95,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     drawInit();
     pPool->release();
     draw = std::make_unique<MetalDraw>(_width, _height);
+    _bufferAllocator = std::make_unique<BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>>(_pDevice);
 }
 
 void MetalRenderer::drawInit() {
@@ -175,6 +180,9 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     }
     
     encodeMetalCommands();
+    
+    _bufferAllocator->updateFrame(_frame);
+    _frame = (_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 image_s* MetalRenderer::DrawFindPic(char* name) {
@@ -269,6 +277,13 @@ void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
+    
+    dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
+    MetalRenderer* pRenderer = this;
+    pCmd->addCompletedHandler([pRenderer](MTL::CommandBuffer* pCommand) {
+        dispatch_semaphore_signal(pRenderer->_semaphore);
+    });
+    
     MTL::RenderPassDescriptor* pRpd = MTL::RenderPassDescriptor::alloc()->init();
     auto colorAttachmentDesc = pRpd->colorAttachments()->object(0);
     colorAttachmentDesc->setTexture(_pTexture);
@@ -282,14 +297,13 @@ void MetalRenderer::encodeMetalCommands() {
     viewPortSize.x = _width;
     viewPortSize.y = _height;
     for (auto& drawPicCmd : drawPicCmds) {
-        // create a buffer for the vertex data
-        MTL::Buffer* pVertexBuffer = _pDevice->newBuffer(drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), MTL::ResourceStorageModeShared);
+        MTL::Buffer* pVertexBuffer = _bufferAllocator->getNextBuffer();
+        assert(pVertexBuffer);
+        std::memcpy(pVertexBuffer->contents(), drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex));
         pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
         pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
         pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
         pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
-                        
-        pVertexBuffer->release();
     }
     pEnc->endEncoding();
     drawPicCmds.clear();

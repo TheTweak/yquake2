@@ -15,6 +15,7 @@
 
 #include "Utils.hpp"
 #include "MetalDraw.hpp"
+#include "BufferAllocator.hpp"
 
 class MetalRenderer {
 private:
@@ -26,14 +27,16 @@ private:
     SDL_Renderer* _pRenderer;
     MTL::Resource* _pMetalLayer;
     int _width = 0;
-    int _height = 0;    
+    int _height = 0;
+    size_t _frame = 0;
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawParticleCommandData> drawPartCmds;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unique_ptr<MetalDraw> draw;
+    dispatch_semaphore_t _semaphore;
+    std::unique_ptr<BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>> _bufferAllocator;
     
-    MetalRenderer() = default;
-    
+    MetalRenderer();
     void buildShaders();
     void drawInit();
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);

@@ -14,6 +14,7 @@
 #include "SharedTypes.h"
 
 #define PIXEL_FORMAT MTL::PixelFormatBGRA8Unorm
+#define MAX_FRAMES_IN_FLIGHT 3
 
 struct ImageSize {
     int width, height;
