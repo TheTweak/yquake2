@@ -17,6 +17,11 @@ enum VertexInputIndex {
     VertexInputIndexViewportSize = 1,
 };
 
+enum ParticleInputIndex {
+    ParticleInputIndexVertices     = 0,
+    ParticleInputIndexViewportSize = 1,
+};
+
 // Texture index values shared between shader and C code to ensure Metal shader buffer inputs match
 //   Metal API texture set calls
 typedef enum TextureIndex {

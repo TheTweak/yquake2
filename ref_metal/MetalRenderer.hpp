@@ -9,6 +9,8 @@
 #ifndef MetalRenderer_hpp
 #define MetalRenderer_hpp
 
+#define MAX_PARTICLES_COUNT 1000
+
 #include <unordered_map>
 #include <vector>
 #include <memory>
@@ -17,11 +19,15 @@
 #include "MetalDraw.hpp"
 #include "BufferAllocator.hpp"
 
+using ParticleBuffer = BufferAllocator<sizeof(DrawParticleCommandData::particle) * MAX_PARTICLES_COUNT>;
+using TextureVertexBuffer = BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>;
+
 class MetalRenderer {
 private:
     MTL::Device* _pDevice;
     MTL::CommandQueue* _pCommandQueue;
-    MTL::RenderPipelineState* _pPSO;    
+    MTL::RenderPipelineState* _p2dPSO;
+    MTL::RenderPipelineState* _pParticlePSO;
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
@@ -34,15 +40,21 @@ private:
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unique_ptr<MetalDraw> draw;
     dispatch_semaphore_t _semaphore;
-    std::unique_ptr<BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>> _bufferAllocator;
+    std::unique_ptr<TextureVertexBuffer> _textureVertexBufferAllocator;
+    std::unique_ptr<ParticleBuffer> _particleBufferAllocator;
     
     MetalRenderer();
     void buildShaders();
     void drawInit();
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
     void encodeMetalCommands();
+    void encode2DCommands(MTL::RenderCommandEncoder*);
+    void encodeParticlesCommands(MTL::RenderCommandEncoder*);
     void flashScreen();
     void drawParticles();
+    MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
+    MTL::RenderPassDescriptor* createRenderPassDescriptor();
+    
 public:
     static MetalRenderer* INSTANCE;
     

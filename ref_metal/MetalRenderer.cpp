@@ -95,7 +95,8 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     drawInit();
     pPool->release();
     draw = std::make_unique<MetalDraw>(_width, _height);
-    _bufferAllocator = std::make_unique<BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>>(_pDevice);
+    _textureVertexBufferAllocator = std::make_unique<TextureVertexBuffer>(_pDevice);
+    _particleBufferAllocator = std::make_unique<ParticleBuffer>(_pDevice);
 }
 
 void MetalRenderer::drawInit() {
@@ -109,31 +110,42 @@ void MetalRenderer::buildShaders() {
 
     MTL::Library* pLibrary = _pDevice->newDefaultLibrary();
 
-    MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
-    MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader", UTF8StringEncoding) );
-
-    MTL::RenderPipelineDescriptor* pDesc = MTL::RenderPipelineDescriptor::alloc()->init();
-    pDesc->setVertexFunction( pVertexFn );
-    pDesc->setFragmentFunction( pFragFn );
-    pDesc->colorAttachments()->object(0)->setPixelFormat(PIXEL_FORMAT);
-    pDesc->colorAttachments()->object(0)->setBlendingEnabled(true);
-    pDesc->colorAttachments()->object(0)->setRgbBlendOperation(MTL::BlendOperationAdd);
-    pDesc->colorAttachments()->object(0)->setAlphaBlendOperation(MTL::BlendOperationAdd);
-    pDesc->colorAttachments()->object(0)->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
-    pDesc->colorAttachments()->object(0)->setSourceAlphaBlendFactor(MTL::BlendFactorSourceAlpha);
-    pDesc->colorAttachments()->object(0)->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-    pDesc->colorAttachments()->object(0)->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-
-    NS::Error* pError = nullptr;
-    _pPSO = _pDevice->newRenderPipelineState( pDesc, &pError );
-    if ( !_pPSO ) {
-        __builtin_printf( "%s", pError->localizedDescription()->utf8String() );
-        assert( false );
+    {
+        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader", UTF8StringEncoding) );
+        
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
+        
+        NS::Error* pError = nullptr;
+        _p2dPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
+        if (!_p2dPSO) {
+            __builtin_printf("%s", pError->localizedDescription()->utf8String());
+            assert(false);
+        }
+        
+        pVertexFn->release();
+        pFragFn->release();
+        pDesc->release();
     }
 
-    pVertexFn->release();
-    pFragFn->release();
-    pDesc->release();
+    {
+        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("particleVertexShader", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("particleSamplingShader", UTF8StringEncoding) );
+        
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
+        
+        NS::Error* pError = nullptr;
+        _pParticlePSO = _pDevice->newRenderPipelineState(pDesc, &pError);
+        if (!_pParticlePSO) {
+            __builtin_printf("%s", pError->localizedDescription()->utf8String());
+            assert(false);
+        }
+        
+        pVertexFn->release();
+        pFragFn->release();
+        pDesc->release();
+    }
+    
     pLibrary->release();
     pPool->release();
 }
@@ -179,9 +191,10 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
         flashScreen();
     }
     
+    //drawParticles();
     encodeMetalCommands();
     
-    _bufferAllocator->updateFrame(_frame);
+    _textureVertexBufferAllocator->updateFrame(_frame);
     _frame = (_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
@@ -244,6 +257,32 @@ bool MetalRenderer::EndWorldRenderpass() {
 #pragma mark - Private_Methods
 #pragma region Private_Methods {
 
+MTL::RenderPipelineDescriptor* MetalRenderer::createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn) {
+    MTL::RenderPipelineDescriptor* pDesc = MTL::RenderPipelineDescriptor::alloc()->init();
+    pDesc->setVertexFunction(pVertexFn);
+    pDesc->setFragmentFunction(pFragFn);
+    pDesc->colorAttachments()->object(0)->setPixelFormat(PIXEL_FORMAT);
+    pDesc->colorAttachments()->object(0)->setBlendingEnabled(true);
+    pDesc->colorAttachments()->object(0)->setRgbBlendOperation(MTL::BlendOperationAdd);
+    pDesc->colorAttachments()->object(0)->setAlphaBlendOperation(MTL::BlendOperationAdd);
+    pDesc->colorAttachments()->object(0)->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+    pDesc->colorAttachments()->object(0)->setSourceAlphaBlendFactor(MTL::BlendFactorSourceAlpha);
+    pDesc->colorAttachments()->object(0)->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+    pDesc->colorAttachments()->object(0)->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+    return pDesc;
+}
+
+MTL::RenderPassDescriptor* MetalRenderer::createRenderPassDescriptor() {
+    MTL::RenderPassDescriptor* pRpd = MTL::RenderPassDescriptor::alloc()->init();
+    auto colorAttachmentDesc = pRpd->colorAttachments()->object(0);
+    colorAttachmentDesc->setTexture(_pTexture);
+    colorAttachmentDesc->setLoadAction(MTL::LoadActionClear);
+    colorAttachmentDesc->setStoreAction(MTL::StoreActionStore);
+    colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.0f, 0.0f, 0));
+    pRpd->setRenderTargetArrayLength(1);
+    return pRpd;
+}
+
 std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) {
     if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt != _textureMap.end()) {
         return cachedImageDataIt->second;
@@ -273,6 +312,46 @@ void MetalRenderer::drawParticles() {
     }
 }
 
+void MetalRenderer::encode2DCommands(MTL::RenderCommandEncoder* pEnc) {
+    if (drawPicCmds.empty()) {
+        return;
+    }
+    
+    pEnc->setRenderPipelineState(_p2dPSO);
+    vector_uint2 viewPortSize;
+    viewPortSize.x = _width;
+    viewPortSize.y = _height;
+    for (auto& drawPicCmd: drawPicCmds) {
+        MTL::Buffer* pVertexBuffer = _textureVertexBufferAllocator->getNextBuffer();
+        assert(pVertexBuffer);
+        std::memcpy(pVertexBuffer->contents(), drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex));
+        pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+        pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
+        pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
+        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
+    }
+    drawPicCmds.clear();
+}
+
+void MetalRenderer::encodeParticlesCommands(MTL::RenderCommandEncoder* pEnc) {
+    if (drawPartCmds.empty()) {
+        return;
+    }
+    
+    pEnc->setRenderPipelineState(_pParticlePSO);
+    Particle particles[MAX_PARTICLES_COUNT];
+    int i;
+    for (i = 0; i < MAX_PARTICLES_COUNT && i < drawPartCmds.size(); i++) {
+        particles[i] = drawPartCmds.at(i).particle;
+    }
+    MTL::Buffer* pBuffer = _particleBufferAllocator->getNextBuffer();
+    assert(pBuffer);
+    std::memcpy(pBuffer->contents(), particles, i);
+    pEnc->setVertexBuffer(pBuffer, 0, ParticleInputIndex::ParticleInputIndexVertices);
+    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypePoint, 0, i, 1);
+    drawPartCmds.clear();
+}
+
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -284,29 +363,12 @@ void MetalRenderer::encodeMetalCommands() {
         dispatch_semaphore_signal(pRenderer->_semaphore);
     });
     
-    MTL::RenderPassDescriptor* pRpd = MTL::RenderPassDescriptor::alloc()->init();
-    auto colorAttachmentDesc = pRpd->colorAttachments()->object(0);
-    colorAttachmentDesc->setTexture(_pTexture);
-    colorAttachmentDesc->setLoadAction(MTL::LoadActionClear);
-    colorAttachmentDesc->setStoreAction(MTL::StoreActionStore);
-    colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.0f, 0.0f, 0));
-    pRpd->setRenderTargetArrayLength(1);
+    MTL::RenderPassDescriptor* pRpd = createRenderPassDescriptor();
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
-    pEnc->setRenderPipelineState(_pPSO);
-    vector_uint2 viewPortSize;
-    viewPortSize.x = _width;
-    viewPortSize.y = _height;
-    for (auto& drawPicCmd : drawPicCmds) {
-        MTL::Buffer* pVertexBuffer = _bufferAllocator->getNextBuffer();
-        assert(pVertexBuffer);
-        std::memcpy(pVertexBuffer->contents(), drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex));
-        pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
-        pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
-        pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
-        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
-    }
+    
+    encodeParticlesCommands(pEnc);
+    encode2DCommands(pEnc);
     pEnc->endEncoding();
-    drawPicCmds.clear();
     
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
