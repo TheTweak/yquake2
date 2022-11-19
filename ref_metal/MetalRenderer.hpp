@@ -42,6 +42,9 @@ private:
     dispatch_semaphore_t _semaphore;
     std::unique_ptr<TextureVertexBuffer> _textureVertexBufferAllocator;
     std::unique_ptr<ParticleBuffer> _particleBufferAllocator;
+    simd_float4x4 projectionMatrix;
+    simd_float4x4 modelViewMatrix;
+    simd_float4x4 mvpMatrix;
     
     MetalRenderer();
     void buildShaders();
@@ -54,6 +57,7 @@ private:
     void drawParticles();
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
+    void updateMVPMatrix();
     
 public:
     static MetalRenderer* INSTANCE;

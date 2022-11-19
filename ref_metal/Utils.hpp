@@ -16,6 +16,15 @@
 #define PIXEL_FORMAT MTL::PixelFormatBGRA8Unorm
 #define MAX_FRAMES_IN_FLIGHT 3
 
+#pragma once
+
+namespace Utils {
+
+inline constexpr double pi = 3.14159265358979323846;
+float toRadians(float);
+
+};
+
 struct ImageSize {
     int width, height;
 };

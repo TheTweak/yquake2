@@ -21,6 +21,7 @@
 #include <simd/simd.h>
 #include <SDL2/SDL_video.h>
 #include <SDL2/SDL.h>
+#include <cmath>
 
 #include "../src/client/vid/header/ref.h"
 #include "../src/client/refresh/ref_shared.h"
@@ -73,6 +74,7 @@ refdef_t mtl_newrefdef;
 
 cvar_t *r_mode;
 cvar_t *metal_particle_size;
+cvar_t *r_farsee;
 
 #pragma endregion Utils }
 
@@ -186,7 +188,9 @@ void MetalRenderer::EndRegistration() {}
 
 void MetalRenderer::RenderFrame(refdef_t* fd) {
     mtl_newrefdef = *fd;
-            
+    
+    updateMVPMatrix();
+    
     if (mtl_newrefdef.blend[3] != 0.0f) {
         flashScreen();
     }
@@ -386,6 +390,74 @@ void MetalRenderer::encodeMetalCommands() {
     pPool->release();
 }
 
+void MetalRenderer::updateMVPMatrix() {
+    float screenAspect = (float) mtl_newrefdef.width / mtl_newrefdef.height;
+    float dist = r_farsee->value == 0 ? 4096.0f : 8192.0f;
+    
+    {
+        // calculate projection matrix
+        float fovY = mtl_newrefdef.fov_y;
+        float zNear = 4;
+        float zFar = dist;
+        
+        float left, right, bottom, top;
+        float A, B, C, D;
+        
+        top = zNear * std::tan(fovY * Utils::pi / 360.0);
+        bottom = -top;
+        left = bottom * screenAspect;
+        right = top * screenAspect;
+        
+        A = (right + left) / (right - left);
+        B = (top + bottom) / (top - bottom);
+        C = -(zFar + zNear) / (zFar - zNear);
+        D = -(2.0*zFar*zNear) / (zFar - zNear);
+        
+        projectionMatrix = simd_matrix_from_rows(simd_make_float4((2.0f*zNear)/(right-left), 0, A, 0),
+                                                 simd_make_float4(0, (2.0f*zNear)/(top-bottom), B, 0),
+                                                 simd_make_float4(0, 0, C, D),
+                                                 simd_make_float4(0, 0, -1, 0));
+    }
+    
+    {
+        // calculate model - view matrix
+        simd_float4x4 mvMatrix = simd_matrix_from_rows(simd_make_float4(0, -1, 0, 0),
+                                                       simd_make_float4(0, 0, 1, 0),
+                                                       simd_make_float4(-1, 0, 0, 0),
+                                                       simd_make_float4(0, 0, 0, 1));
+        
+        float rotateX = Utils::toRadians(-mtl_newrefdef.viewangles[2]);
+        float rotateY = Utils::toRadians(-mtl_newrefdef.viewangles[0]);
+        float rotateZ = Utils::toRadians(-mtl_newrefdef.viewangles[1]);
+        
+        float sinA = std::sinf(rotateX);
+        float cosA = std::cosf(rotateX);
+        float sinB = std::sinf(rotateY);
+        float cosB = std::cosf(rotateY);
+        float sinG = std::sinf(rotateZ);
+        float cosG = std::cosf(rotateZ);
+        
+        simd_float4x4 rotMatrix = simd_matrix_from_rows(
+                simd_make_float4(cosB*cosG, -cosB*sinG, sinB, 0),
+                simd_make_float4(sinA*sinB*cosG + cosA*sinG, -sinA*sinB*sinG + cosA*cosG, -sinA*cosB, 0),
+                simd_make_float4(-cosA*sinB*cosG + sinA*sinG, cosA*sinB*sinG + sinA*cosG, cosA*cosB, 0),
+                simd_make_float4(0, 0, 0, 1));
+        
+        mvMatrix = simd_mul(mvMatrix, rotMatrix);
+        
+        simd_float4x4 transMatrix = matrix_identity_float4x4;
+        transMatrix.columns[3][0] = -mtl_newrefdef.vieworg[0];
+        transMatrix.columns[3][1] = -mtl_newrefdef.vieworg[1];
+        transMatrix.columns[3][2] = -mtl_newrefdef.vieworg[2];
+        
+        mvMatrix = simd_mul(mvMatrix, transMatrix);
+        
+        modelViewMatrix = mvMatrix;
+    }
+    
+    mvpMatrix = simd_mul(projectionMatrix, modelViewMatrix);
+}
+
 #pragma endregion Private_Methods }
 
 #pragma mark - External_API
@@ -407,6 +479,8 @@ bool Metal_Init() {
     
     r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
     metal_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
+    r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+    
     ri.Vid_GetModeInfo(&screenWidth, &screenHeight, r_mode->value);
     
     if (!ri.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
