@@ -19,14 +19,15 @@ typedef struct {
 
 vertex ParticleRasteriserData
 particleVertexShader(uint vertexID [[ vertex_id ]],
-             constant Particle *particleArray [[ buffer(ParticleInputIndexVertices) ]],
-             constant vector_uint2 *viewportSizePointer [[ buffer(ParticleInputIndexViewportSize) ]])
+                     constant Particle *particleArray [[ buffer(ParticleInputIndexVertices) ]],
+                     constant float4x4 *mvpMatrix [[ buffer(ParticleInputIndexMVPMatrix) ]],
+                     constant float4x4 *identityMatrix [[ buffer(ParticleInputIndexIdentityM) ]])
 {
     ParticleRasteriserData out;
     Particle p = particleArray[vertexID];
-    out.position = vector_float4(p.position, 1.0);    
+    out.position = *mvpMatrix * *identityMatrix * float4(p.position, 1.0);
     out.color = p.color;
-    out.pointSize = p.size;
+    out.pointSize = 0.5f;
     return out;
 }
 

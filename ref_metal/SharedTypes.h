@@ -19,7 +19,8 @@ enum VertexInputIndex {
 
 enum ParticleInputIndex {
     ParticleInputIndexVertices     = 0,
-    ParticleInputIndexViewportSize = 1,
+    ParticleInputIndexMVPMatrix    = 1,
+    ParticleInputIndexIdentityM    = 2,
 };
 
 // Texture index values shared between shader and C code to ensure Metal shader buffer inputs match

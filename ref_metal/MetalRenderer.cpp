@@ -195,7 +195,7 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
         flashScreen();
     }
     
-    //drawParticles();
+    drawParticles();
     encodeMetalCommands();
     
     _textureVertexBufferAllocator->updateFrame(_frame);
@@ -352,6 +352,8 @@ void MetalRenderer::encodeParticlesCommands(MTL::RenderCommandEncoder* pEnc) {
     assert(pBuffer);
     std::memcpy(pBuffer->contents(), particles, i);
     pEnc->setVertexBuffer(pBuffer, 0, ParticleInputIndex::ParticleInputIndexVertices);
+    pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), ParticleInputIndex::ParticleInputIndexMVPMatrix);
+    pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), ParticleInputIndex::ParticleInputIndexIdentityM);
     pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypePoint, 0, i, 1);
     drawPartCmds.clear();
 }
