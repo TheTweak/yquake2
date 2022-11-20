@@ -132,7 +132,7 @@ void MetalRenderer::buildShaders() {
 
     {
         MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("particleVertexShader", UTF8StringEncoding) );
-        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("particleSamplingShader", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("particleFragFunc", UTF8StringEncoding) );
         
         MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
         
@@ -354,7 +354,7 @@ void MetalRenderer::encodeParticlesCommands(MTL::RenderCommandEncoder* pEnc) {
     pEnc->setVertexBuffer(pBuffer, 0, ParticleInputIndex::ParticleInputIndexVertices);
     pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), ParticleInputIndex::ParticleInputIndexMVPMatrix);
     pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), ParticleInputIndex::ParticleInputIndexIdentityM);
-    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypePoint, 0, i, 1);
+    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypePoint, NS::UInteger(0), NS::UInteger(i));
     drawPartCmds.clear();
 }
 
