@@ -313,7 +313,7 @@ void MetalRenderer::drawParticles() {
         float distance = simd_length(offset);
         Particle particle{
             pOrigin,
-            {0.0f, 255.0f, 0.0f, 255.0f},
+            Img::GetPalleteColor(p->color, p->alpha),
             pointSize,
             distance
         };

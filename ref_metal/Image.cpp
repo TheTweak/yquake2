@@ -324,3 +324,15 @@ image_s* Img::FindImage(char* name, imagetype_t type) {
     
     return image;
 }
+
+vector_float4 Img::GetPalleteColor(int c, float alpha) {
+    if (c > 255) {
+        c = 255;
+    }
+    vector_float4 result;
+    result[3] = alpha;
+    result[2] = _palette[c * 3 + 2];
+    result[1] = _palette[c * 3 + 1];
+    result[0] = _palette[c * 3];
+    return result;
+}

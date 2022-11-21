@@ -11,6 +11,7 @@
 #define Image_hpp
 
 #include <string>
+#include <simd/simd.h>
 #include "../src/client/refresh/ref_shared.h"
 
 struct image_s {
@@ -22,6 +23,7 @@ struct image_s {
 
 namespace Img {
     image_s* FindImage(char* name, imagetype_t type);
+    vector_float4 GetPalleteColor(int, float);
 };
 
 #endif /* Image_hpp */
