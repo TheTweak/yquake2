@@ -27,7 +27,7 @@ particleVertexShader(uint vertexID [[ vertex_id ]],
     Particle p = particleArray[vertexID];
     out.position = *mvpMatrix * *identityMatrix * float4(p.position, 1.0);
     out.color = p.color;
-    out.pointSize = p.size;
+    out.pointSize = p.size * p.dist * 0.0001;    
     return out;
 }
 

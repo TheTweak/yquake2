@@ -306,11 +306,16 @@ void MetalRenderer::drawParticles() {
     const particle_t* p;
     int i = 0;
     float pointSize = metal_particle_size->value * (float) mtl_newrefdef.height/480.0f;
+    vector_float3 viewOrigin = {mtl_newrefdef.vieworg[0], mtl_newrefdef.vieworg[1], mtl_newrefdef.vieworg[2]};
     for (i = 0, p = mtl_newrefdef.particles; i < mtl_newrefdef.num_particles; i++, p++) {
+        vector_float3 pOrigin = {p->origin[0], p->origin[1], p->origin[2]};
+        vector_float3 offset = viewOrigin - pOrigin;
+        float distance = simd_length(offset);
         Particle particle{
-            {p->origin[0], p->origin[1], p->origin[2]},
+            pOrigin,
             {0.0f, 255.0f, 0.0f, 255.0f},
-            pointSize
+            pointSize,
+            distance
         };
         drawPartCmds.push_back({particle});
     }

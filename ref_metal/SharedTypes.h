@@ -38,5 +38,6 @@ struct Particle {
     vector_float3 position;
     vector_float4 color;
     float size;
+    float dist;
 };
 #endif /* SharedTypes_h */
