@@ -26,10 +26,10 @@
 #include "../src/client/vid/header/ref.h"
 #include "../src/client/refresh/ref_shared.h"
 #include "../src/common/header/shared.h"
-
 #include "../src/common/header/common.h"
 #include "MetalRenderer.hpp"
 #include "Image.hpp"
+#include "model.h"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -194,8 +194,7 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     if (mtl_newrefdef.blend[3] != 0.0f) {
         flashScreen();
     }
-    
-    drawParticles();
+    renderView();    
     encodeMetalCommands();
     
     _textureVertexBufferAllocator->updateFrame(_frame);
@@ -300,6 +299,33 @@ void MetalRenderer::flashScreen() {
         _textureMap[FLASH_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({0.0f, 0.0f, 0.0f, 64.0f}, _pDevice)};
     }
     drawPicCmds.push_back(draw->createDrawTextureCmdData(FLASH_SCREEN_TEXTURE, 0, 0, _width, _height));
+}
+
+void MetalRenderer::renderView() {
+    setupFrame();
+    markLeaves();
+    drawWorld();
+    drawParticles();
+}
+
+void MetalRenderer::drawWorld() {
+    
+}
+
+void MetalRenderer::markLeaves() {
+    
+}
+
+void MetalRenderer::setupFrame() {
+    _frameCount++;
+    VectorCopy(mtl_newrefdef.vieworg, origin);
+    
+    if (!(mtl_newrefdef.rdflags & RDF_NOWORLDMODEL)) {
+        _oldViewCluster = _viewCluster;
+        _oldViewCluster2 = _viewCluster2;
+        
+        mleaf_t *leaf;
+    }
 }
 
 void MetalRenderer::drawParticles() {

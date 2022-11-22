@@ -34,7 +34,13 @@ private:
     MTL::Resource* _pMetalLayer;
     int _width = 0;
     int _height = 0;
+    int _oldViewCluster;
+    int _oldViewCluster2;
+    int _viewCluster;
+    int _viewCluster2;
+    vec3_t origin;
     size_t _frame = 0;
+    size_t _frameCount = 0;
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawParticleCommandData> drawPartCmds;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
@@ -55,6 +61,10 @@ private:
     void encodeParticlesCommands(MTL::RenderCommandEncoder*);
     void flashScreen();
     void drawParticles();
+    void renderView();
+    void setupFrame();
+    void markLeaves();
+    void drawWorld();
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();
