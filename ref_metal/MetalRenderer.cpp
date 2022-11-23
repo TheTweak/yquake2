@@ -30,6 +30,7 @@
 #include "MetalRenderer.hpp"
 #include "Image.hpp"
 #include "model.h"
+#include "BSP.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -172,7 +173,18 @@ bool MetalRenderer::IsVSyncActive() {
     return false;
 }
 
-void MetalRenderer::BeginRegistration(char* map) {}
+void MetalRenderer::BeginRegistration(char* map) {
+    _oldViewCluster = -1;
+    
+    cvar_t *flushMap = ri.Cvar_Get("flushmap", "0", 0);
+    std::stringstream ss;
+    ss << "maps/" << map << ".bsp";
+    std::string mapName = ss.str();
+    
+    
+    
+    _viewCluster = -1;
+}
 
 model_s* MetalRenderer::RegisterModel(char* name) {
     return NULL;
@@ -324,7 +336,8 @@ void MetalRenderer::setupFrame() {
         _oldViewCluster = _viewCluster;
         _oldViewCluster2 = _viewCluster2;
         
-        mleaf_t *leaf;
+        // find where we are in the world map
+//        mleaf_t *leaf = BSPUtils::PointInLeaf(origin, );
     }
 }
 

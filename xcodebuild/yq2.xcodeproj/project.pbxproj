@@ -158,10 +158,15 @@
 		803790C32F664F7599021CC1 /* sw_surf.c in Sources */ = {isa = PBXBuildFile; fileRef = 21A923B0B51D48B1A72ED56A /* sw_surf.c */; };
 		808B04507DA748CDB5A3BF85 /* clientserver.c in Sources */ = {isa = PBXBuildFile; fileRef = 8217F725418E435C8C1F99F0 /* clientserver.c */; };
 		810B239B28CA232A00605FA8 /* cpp_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 810B239928CA232A00605FA8 /* cpp_test.cpp */; };
+		81103868292DC6FE002F89D9 /* Model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 81103866292DC6FD002F89D9 /* Model.cpp */; };
 		8141FA5C2921DFD1003F0E01 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8141FA5B2921DFD1003F0E01 /* Foundation.framework */; };
 		8141FA5E2921DFDA003F0E01 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8141FA5D2921DFDA003F0E01 /* Metal.framework */; };
 		8141FA602921DFE0003F0E01 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8141FA5F2921DFE0003F0E01 /* MetalKit.framework */; };
+		8141FA632921E7B6003F0E01 /* Utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8141FA612921E7B6003F0E01 /* Utils.cpp */; };
+		8141FA662921E9A0003F0E01 /* MetalDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8141FA642921E9A0003F0E01 /* MetalDraw.cpp */; };
 		81508E1408F14085AB1B20B0 /* boss2.c in Sources */ = {isa = PBXBuildFile; fileRef = 703BE2E2CF4E4D94B378D01A /* boss2.c */; };
+		818EBB2A292C837A003B666B /* BSP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 818EBB28292C837A003B666B /* BSP.cpp */; };
+		81AAD7A529272A7B007B8641 /* ParticleShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 81AAD7A429272A7B007B8641 /* ParticleShaders.metal */; };
 		81DD34536CA74BBF8E603935 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = 97640A06242548DCA4471954 /* sv_world.c */; };
 		81E93E7728DDFE3B00D5F04C /* shared.c in Sources */ = {isa = PBXBuildFile; fileRef = D6D2D20C0CD14CC1AE27ACF8 /* shared.c */; };
 		81E93E7828DE0BA700D5F04C /* stb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E265C7A23FB4F99872A61D3 /* stb.c */; };
@@ -171,8 +176,7 @@
 		81E93E7C28DE0C9900D5F04C /* wal.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BFD0039496E4B7881D87D05 /* wal.c */; };
 		81E93E7D28DE0CA700D5F04C /* md4.c in Sources */ = {isa = PBXBuildFile; fileRef = 88D86C5AB0E749E387F6E9F3 /* md4.c */; };
 		81E93E8528DF9DFE00D5F04C /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 81E93E8328DF9DFE00D5F04C /* Image.cpp */; };
-		81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */; };
-		81E9BDE728D3B582004E6863 /* MetalDraw.hpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */; };
+		81E9BDE628D3B582004E6863 /* MetalRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60228D0B2A1003ADD6F /* MetalRenderer.cpp */; };
 		81EFEE0528E9EDEE0061F007 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 81EFEE0428E9EDEE0061F007 /* Shaders.metal */; };
 		8237CD691CB442F3A25E1A25 /* gl3_lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 356D358068994DBC80E6FCD9 /* gl3_lightmap.c */; };
 		828117D41CBD4D5097DC53A7 /* gl3_warp.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF6A4387D7D406381E30579 /* gl3_warp.c */; };
@@ -615,15 +619,26 @@
 		7DC3AEF74B3C4141A4B555F0 /* sound.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 4; name = sound.h; path = src/client/sound/header/sound.h; sourceTree = SOURCE_ROOT; };
 		810B239928CA232A00605FA8 /* cpp_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cpp_test.cpp; sourceTree = "<group>"; };
 		810B239A28CA232A00605FA8 /* cpp_test.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = cpp_test.hpp; sourceTree = "<group>"; };
+		81103866292DC6FD002F89D9 /* Model.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Model.cpp; sourceTree = "<group>"; };
+		81103867292DC6FE002F89D9 /* Model.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Model.hpp; sourceTree = "<group>"; };
 		811B22B3A3E843D3801B47FA /* shared.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = shared.c; path = src/common/shared/shared.c; sourceTree = SOURCE_ROOT; };
-		8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalDraw.cpp; sourceTree = "<group>"; };
-		8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalDraw.hpp; sourceTree = "<group>"; };
+		8124B60228D0B2A1003ADD6F /* MetalRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalRenderer.cpp; sourceTree = "<group>"; };
+		8124B60328D0B2A1003ADD6F /* MetalRenderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRenderer.hpp; sourceTree = "<group>"; };
 		8141FA5B2921DFD1003F0E01 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		8141FA5D2921DFDA003F0E01 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk/System/Library/Frameworks/Metal.framework; sourceTree = DEVELOPER_DIR; };
 		8141FA5F2921DFE0003F0E01 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX13.0.sdk/System/Library/Frameworks/MetalKit.framework; sourceTree = DEVELOPER_DIR; };
+		8141FA612921E7B6003F0E01 /* Utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Utils.cpp; sourceTree = "<group>"; };
+		8141FA622921E7B6003F0E01 /* Utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Utils.hpp; sourceTree = "<group>"; };
+		8141FA642921E9A0003F0E01 /* MetalDraw.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalDraw.cpp; sourceTree = "<group>"; };
+		8141FA652921E9A0003F0E01 /* MetalDraw.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalDraw.hpp; sourceTree = "<group>"; };
 		814DA80C28D5D52100FDF583 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		814DA80E28D5D52600FDF583 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		814DA81028D5D52B00FDF583 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		818EBB28292C837A003B666B /* BSP.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = BSP.cpp; sourceTree = "<group>"; };
+		818EBB29292C837A003B666B /* BSP.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BSP.hpp; sourceTree = "<group>"; };
+		818EBB2B292C876D003B666B /* model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = model.h; sourceTree = "<group>"; };
+		81AAD7A429272A7B007B8641 /* ParticleShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ParticleShaders.metal; sourceTree = "<group>"; };
+		81AB39D42925DBE5006E428F /* BufferAllocator.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BufferAllocator.hpp; sourceTree = "<group>"; };
 		81E93E8328DF9DFE00D5F04C /* Image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		81E93E8428DF9DFE00D5F04C /* Image.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Image.hpp; sourceTree = "<group>"; };
 		81E9BDBA28D3AD22004E6863 /* MetalRenderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRenderer.hpp; sourceTree = "<group>"; };
@@ -1186,12 +1201,23 @@
 		8124B60128D0B253003ADD6F /* ref_metal */ = {
 			isa = PBXGroup;
 			children = (
-				8124B60228D0B2A1003ADD6F /* MetalDraw.cpp */,
-				8124B60328D0B2A1003ADD6F /* MetalDraw.hpp */,
+				8124B60228D0B2A1003ADD6F /* MetalRenderer.cpp */,
+				8124B60328D0B2A1003ADD6F /* MetalRenderer.hpp */,
 				81E93E8328DF9DFE00D5F04C /* Image.cpp */,
 				81E93E8428DF9DFE00D5F04C /* Image.hpp */,
 				81EFEE0428E9EDEE0061F007 /* Shaders.metal */,
 				81EFEE0628E9EEA60061F007 /* SharedTypes.h */,
+				8141FA612921E7B6003F0E01 /* Utils.cpp */,
+				8141FA622921E7B6003F0E01 /* Utils.hpp */,
+				8141FA642921E9A0003F0E01 /* MetalDraw.cpp */,
+				8141FA652921E9A0003F0E01 /* MetalDraw.hpp */,
+				81AB39D42925DBE5006E428F /* BufferAllocator.hpp */,
+				81AAD7A429272A7B007B8641 /* ParticleShaders.metal */,
+				818EBB28292C837A003B666B /* BSP.cpp */,
+				818EBB29292C837A003B666B /* BSP.hpp */,
+				818EBB2B292C876D003B666B /* model.h */,
+				81103866292DC6FD002F89D9 /* Model.cpp */,
+				81103867292DC6FE002F89D9 /* Model.hpp */,
 			);
 			path = ref_metal;
 			sourceTree = "<group>";
@@ -1808,10 +1834,14 @@
 				81E93E7B28DE0C7F00D5F04C /* pvs.c in Sources */,
 				81E93E7828DE0BA700D5F04C /* stb.c in Sources */,
 				81E93E7C28DE0C9900D5F04C /* wal.c in Sources */,
-				81E9BDE628D3B582004E6863 /* MetalDraw.cpp in Sources */,
-				81E9BDE728D3B582004E6863 /* MetalDraw.hpp in Sources */,
+				8141FA662921E9A0003F0E01 /* MetalDraw.cpp in Sources */,
+				81E9BDE628D3B582004E6863 /* MetalRenderer.cpp in Sources */,
+				8141FA632921E7B6003F0E01 /* Utils.cpp in Sources */,
 				81EFEE0528E9EDEE0061F007 /* Shaders.metal in Sources */,
 				81E93E7728DDFE3B00D5F04C /* shared.c in Sources */,
+				818EBB2A292C837A003B666B /* BSP.cpp in Sources */,
+				81103868292DC6FE002F89D9 /* Model.cpp in Sources */,
+				81AAD7A529272A7B007B8641 /* ParticleShaders.metal in Sources */,
 				81E93E8528DF9DFE00D5F04C /* Image.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -26,6 +26,11 @@
 
 #ifndef model_h
 #define model_h
+#define MAXLIGHTMAPS 4
+
+#include "../src/common/header/shared.h"
+#include "../src/client/refresh/ref_shared.h"
+#include "Image.hpp"
 
 enum {
     SIDE_FRONT = 0,
@@ -43,20 +48,20 @@ enum {
 
 // used for vertex array elements when drawing brushes, sprites, sky and more
 // (ok, it has the layout used for rendering brushes, but is not used there)
-typedef struct gl3_3D_vtx_s {
+typedef struct mtl_3D_vtx_s {
     vec3_t pos;
     float texCoord[2];
     float lmTexCoord[2]; // lightmap texture coordinate (sometimes unused)
     vec3_t normal;
-    uint lightFlags; // bit i set means: dynlight i affects surface
-} gl3_3D_vtx_t;
+    size_t lightFlags; // bit i set means: dynlight i affects surface
+} mtl_3D_vtx_t;
 
 // used for vertex array elements when drawing models
-typedef struct gl3_alias_vtx_s {
+typedef struct mtl_alias_vtx_s {
     float pos[3];
     float texCoord[2];
     float color[4];
-} gl3_alias_vtx_t;
+} mtl_alias_vtx_t;
 
 /* in memory representation */
 typedef struct
@@ -80,17 +85,14 @@ typedef struct
     unsigned int cachededgeoffset;
 } medge_t;
 
-
 typedef struct glpoly_s
 {
     struct  glpoly_s *next;
     struct  glpoly_s *chain;
     int numverts;
     int flags; /* for SURF_UNDERWATER (not needed anymore?) */
-    gl3_3D_vtx_t vertices[4]; /* variable sized */
+    mtl_3D_vtx_t vertices[4]; /* variable sized */
 } glpoly_t;
-
-struct image_t;
 
 typedef struct mtexinfo_s
 {
@@ -98,7 +100,7 @@ typedef struct mtexinfo_s
     int flags;
     int numframes;
     struct mtexinfo_s *next; /* animation chain */
-    image_t *image;
+    image_s *image;
 } mtexinfo_t;
 
 typedef struct msurface_s
@@ -134,7 +136,7 @@ typedef struct msurface_s
     byte *samples;                          /* [numstyles*surfsize] */
 } msurface_t;
 
-struct image_t
+struct image_s
 {
     char name[MAX_QPATH];               /* game path, including extension */
     imagetype_t type;
@@ -142,7 +144,7 @@ struct image_t
     //int upload_width, upload_height;    /* after power of two and picmip */
     int registration_sequence;          /* 0 = free */
     msurface_s *texturechain;    /* for sort-by-texture world drawing */
-    uint texnum;                      /* gl texture binding */
+    size_t texnum;                      /* gl texture binding */
     float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
     bool has_alpha;
 };
@@ -187,7 +189,7 @@ typedef struct mleaf_s
 
 // this, must be struct model_s, not gl3model_s,
 // because struct model_s* is returned by re.RegisterModel()
-typedef struct model_s
+struct mtl_model_t
 {
     char name[MAX_QPATH];
 
@@ -211,7 +213,7 @@ typedef struct model_s
     int lightmap; /* only for submodels */
 
     int numsubmodels;
-    struct model_s *submodels;
+    mtl_model_t *submodels;
 
     int numplanes;
     cplane_t *planes;
@@ -246,14 +248,14 @@ typedef struct model_s
     byte *lightdata;
 
     /* for alias models and skins */
-    image_t *skins[MAX_MD2SKINS];
+    image_s *skins[MAX_MD2SKINS];
 
     int extradatasize;
     void *extradata;
 
     // submodules
     vec3_t        origin;    // for sounds or lights
-} gl3model_t;
+};
 
 
 #endif /* model_h */

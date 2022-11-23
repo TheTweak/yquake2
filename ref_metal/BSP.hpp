@@ -10,9 +10,18 @@
 
 #include <stdio.h>
 
+#include "model.h"
+#include "../src/common/header/shared.h"
+
 class BSP {
 public:
     void RecursiveWorldNode();
+};
+
+namespace BSPUtils {
+
+mleaf_t* PointInLeaf(vec3_t p, mtl_model_t *model);
+
 };
 
 #endif /* BSP_hpp */
