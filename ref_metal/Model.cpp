@@ -8,6 +8,18 @@
 #include "Model.hpp"
 #include "Image.hpp"
 
+Model::Model() {
+    memset(mod_novis, 0xff, sizeof(mod_novis));
+}
+
+const byte* Model::clusterPVS(int cluster, const mtl_model_t* model) {
+    if (cluster == -1 || !model->vis) {
+        return mod_novis;
+    }
+    
+    return Mod_DecompressVis((byte *)model->vis + model->vis->bitofs[cluster][DVIS_PVS], (model->vis->numclusters + 7) >> 3);
+}
+
 std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, std::optional<std::shared_ptr<mtl_model_t>> parent, bool crash) {
     if (name.at(0) == '*' && parent) {
         int i = (int) strtol(name.data() + 1, (char **) NULL, 10);

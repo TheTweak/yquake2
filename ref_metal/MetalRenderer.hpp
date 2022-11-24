@@ -52,8 +52,9 @@ private:
     
     cplane_t frustum[4];
     
-    size_t _frame = 0;
-    size_t _frameCount = 0;
+    int _frame = 0;
+    int _frameCount = 0;
+    int _visFrameCount = 0; /* bumped when going to a new PVS */
     
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawParticleCommandData> drawPartCmds;
@@ -80,6 +81,8 @@ private:
     void setupFrustum();
     void markLeaves();
     void drawWorld();
+    void drawEntities();
+    void drawAlphaSurfaces();
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();

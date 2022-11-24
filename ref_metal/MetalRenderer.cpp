@@ -77,6 +77,8 @@ cvar_t *r_mode;
 cvar_t *metal_particle_size;
 cvar_t *r_farsee;
 cvar_t *r_fixsurfsky;
+cvar_t *r_novis;
+cvar_t *r_lockpvs;
 
 #pragma endregion Utils }
 
@@ -203,13 +205,13 @@ void MetalRenderer::EndRegistration() {}
 
 void MetalRenderer::RenderFrame(refdef_t* fd) {
     mtl_newrefdef = *fd;
-    
-    updateMVPMatrix();
+            
+    renderView();
     
     if (vBlend[3] != 0.0f) {
         flashScreen();
     }
-    renderView();    
+    
     encodeMetalCommands();
     
     _textureVertexBufferAllocator->updateFrame(_frame);
@@ -319,10 +321,13 @@ void MetalRenderer::flashScreen() {
 void MetalRenderer::renderView() {
     setupFrame();
     setupFrustum();
+    updateMVPMatrix();
     
     markLeaves();
     drawWorld();
+    drawEntities();
     drawParticles();
+    drawAlphaSurfaces();
 }
 
 void MetalRenderer::drawWorld() {
@@ -330,6 +335,81 @@ void MetalRenderer::drawWorld() {
 }
 
 void MetalRenderer::markLeaves() {
+    if (_oldViewCluster == _viewCluster &&
+        _oldViewCluster2 == _viewCluster2 &&
+        !r_novis->value &&
+        _viewCluster != -1) {
+        return;
+    }
+    
+    if (r_lockpvs->value) {
+        return;
+    }
+    
+    _visFrameCount++;
+    _oldViewCluster = _viewCluster;
+    _oldViewCluster2 = _viewCluster2;
+    
+    if (r_novis->value || _viewCluster == -1 || worldModel->vis) {
+        for (int i = 0; i < worldModel->numleafs; i++) {
+            worldModel->leafs[i].visframe = _visFrameCount;
+        }
+        
+        for (int i = 0; i < worldModel->numnodes; i++) {
+            worldModel->nodes[i].visframe = _visFrameCount;
+        }
+        
+        return;
+    }
+    
+    const byte* vis = modelLoader.clusterPVS(_viewCluster, worldModel.get());
+        
+    if (_viewCluster2 != _viewCluster) {
+        YQ2_ALIGNAS_TYPE(int) byte fatvis[MAX_MAP_LEAFS / 8];
+        
+        memcpy(fatvis, vis, (worldModel->numleafs + 7) / 8);
+        
+        vis = modelLoader.clusterPVS(_viewCluster2, worldModel.get());
+        
+        int c = (worldModel->numleafs + 31) / 32;
+        for (int i = 0; i < c; i++) {
+            ((int *)fatvis)[i] |= ((int *)vis)[i];
+        }
+
+        vis = fatvis;
+    }
+    
+    mleaf_t *leaf;
+    mnode_t *node;
+    int i;
+    for (i = 0, leaf = worldModel->leafs; i < worldModel->numleafs; i++, leaf++) {
+        int cluster = leaf->cluster;
+
+        if (cluster == -1) {
+            continue;
+        }
+
+        if (vis[cluster >> 3] & (1 << (cluster & 7))) {
+            node = (mnode_t *)leaf;
+
+            do {
+                if (node->visframe == _visFrameCount) {
+                    break;
+                }
+
+                node->visframe = _visFrameCount;
+                node = node->parent;
+            }
+            while (node);
+        }
+    }
+}
+
+void MetalRenderer::drawEntities() {
+    
+}
+
+void MetalRenderer::drawAlphaSurfaces() {
     
 }
 
@@ -604,6 +684,8 @@ bool Metal_Init() {
     metal_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
     r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
     r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
+    r_novis = ri.Cvar_Get("r_novis", "0", 0);
+    r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
     
     ri.Vid_GetModeInfo(&screenWidth, &screenHeight, r_mode->value);
     

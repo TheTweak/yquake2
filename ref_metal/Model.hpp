@@ -23,8 +23,13 @@ class Model {
     std::shared_ptr<mtl_model_t> loadMD2(std::string name, void *buffer, int modfilelen);
     std::shared_ptr<mtl_model_t> loadSP2(std::string name, void *buffer, int modfilelen);
     std::shared_ptr<mtl_model_t> loadBrushModel(std::string name, void *buffer, int modfilelen);
+    
+    YQ2_ALIGNAS_TYPE(int) byte mod_novis[MAX_MAP_LEAFS / 8];
 public:
     std::optional<std::shared_ptr<mtl_model_t>> getModel(std::string name, std::optional<std::shared_ptr<mtl_model_t>> parent, bool crash);
+    const byte* clusterPVS(int cluster, const mtl_model_t* model);
+    
+    Model();
 };
 
 #endif /* Model_hpp */
