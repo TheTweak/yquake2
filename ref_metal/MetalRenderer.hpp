@@ -33,18 +33,28 @@ private:
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
     MTL::Resource* _pMetalLayer;
+    
     int _width = 0;
     int _height = 0;
     int _oldViewCluster;
     int _oldViewCluster2;
     int _viewCluster;
     int _viewCluster2;
+    
     Model modelLoader;
     std::shared_ptr<mtl_model_t> worldModel;
     float vBlend[4]; /* final blending color */
+    
+    vec3_t vup;
+    vec3_t vpn;
+    vec3_t vright;
     vec3_t origin;
+    
+    cplane_t frustum[4];
+    
     size_t _frame = 0;
     size_t _frameCount = 0;
+    
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawParticleCommandData> drawPartCmds;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
@@ -67,6 +77,7 @@ private:
     void drawParticles();
     void renderView();
     void setupFrame();
+    void setupFrustum();
     void markLeaves();
     void drawWorld();
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
