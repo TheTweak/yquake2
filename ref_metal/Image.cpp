@@ -14,7 +14,7 @@
 #include "Image.hpp"
 
 image_s::~image_s() {
-    if (data) {
+    if (data != NULL) {
         free(data);
     }
 }

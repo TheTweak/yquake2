@@ -76,6 +76,7 @@ refdef_t mtl_newrefdef;
 cvar_t *r_mode;
 cvar_t *metal_particle_size;
 cvar_t *r_farsee;
+cvar_t *r_fixsurfsky;
 
 #pragma endregion Utils }
 
@@ -181,7 +182,9 @@ void MetalRenderer::BeginRegistration(char* map) {
     ss << "maps/" << map << ".bsp";
     std::string mapName = ss.str();
     
-    
+    if (auto m = modelLoader.getModel(mapName, std::nullopt, true); m != std::nullopt) {
+        worldModel = m.value();
+    }
     
     _viewCluster = -1;
 }
@@ -526,6 +529,7 @@ bool Metal_Init() {
     r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
     metal_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
     r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+    r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
     
     ri.Vid_GetModeInfo(&screenWidth, &screenHeight, r_mode->value);
     

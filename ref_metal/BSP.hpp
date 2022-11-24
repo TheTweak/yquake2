@@ -11,7 +11,6 @@
 #include <stdio.h>
 
 #include "model.h"
-#include "../src/common/header/shared.h"
 
 class BSP {
 public:

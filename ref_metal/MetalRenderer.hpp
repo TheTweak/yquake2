@@ -18,6 +18,7 @@
 #include "Utils.hpp"
 #include "MetalDraw.hpp"
 #include "BufferAllocator.hpp"
+#include "Model.hpp"
 
 using ParticleBuffer = BufferAllocator<sizeof(DrawParticleCommandData::particle) * MAX_PARTICLES_COUNT>;
 using TextureVertexBuffer = BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>;
@@ -38,6 +39,8 @@ private:
     int _oldViewCluster2;
     int _viewCluster;
     int _viewCluster2;
+    Model modelLoader;
+    std::shared_ptr<mtl_model_t> worldModel;
     vec3_t origin;
     size_t _frame = 0;
     size_t _frameCount = 0;

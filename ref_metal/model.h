@@ -28,8 +28,6 @@
 #define model_h
 #define MAXLIGHTMAPS 4
 
-#include "../src/common/header/shared.h"
-#include "../src/client/refresh/ref_shared.h"
 #include "Image.hpp"
 
 enum {
@@ -135,19 +133,6 @@ typedef struct msurface_s
     //float cached_light[MAXLIGHTMAPS];       /* values currently used in lightmap */
     byte *samples;                          /* [numstyles*surfsize] */
 } msurface_t;
-
-struct image_s
-{
-    char name[MAX_QPATH];               /* game path, including extension */
-    imagetype_t type;
-    int width, height;                  /* source image */
-    //int upload_width, upload_height;    /* after power of two and picmip */
-    int registration_sequence;          /* 0 = free */
-    msurface_s *texturechain;    /* for sort-by-texture world drawing */
-    size_t texnum;                      /* gl texture binding */
-    float sl, tl, sh, th;               /* 0,0 - 1,1 unless part of the scrap */
-    bool has_alpha;
-};
 
 typedef struct mnode_s
 {

@@ -47,7 +47,7 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
             break;
 
         case IDBSPHEADER:
-//            Mod_LoadBrushModel(mod, buf, modfilelen);
+            result = loadBrushModel(name, buf, modfilelen);
             break;
 
         default:
@@ -616,6 +616,198 @@ Mod_CalcSurfaceExtents(mtl_model_t *loadmodel, msurface_t *s)
 }
 
 static void
+R_BoundPoly(int numverts, float *verts, vec3_t mins, vec3_t maxs)
+{
+    int i, j;
+    float *v;
+
+    mins[0] = mins[1] = mins[2] = 9999;
+    maxs[0] = maxs[1] = maxs[2] = -9999;
+    v = verts;
+
+    for (i = 0; i < numverts; i++)
+    {
+        for (j = 0; j < 3; j++, v++)
+        {
+            if (*v < mins[j])
+            {
+                mins[j] = *v;
+            }
+
+            if (*v > maxs[j])
+            {
+                maxs[j] = *v;
+            }
+        }
+    }
+}
+
+static const float SUBDIVIDE_SIZE = 64.0f;
+
+static void
+R_SubdividePolygon(int numverts, float *verts, msurface_t *warpface)
+{
+    int i, j, k;
+    vec3_t mins, maxs;
+    float m;
+    float *v;
+    vec3_t front[64], back[64];
+    int f, b;
+    float dist[64];
+    float frac;
+    glpoly_t *poly;
+    float s, t;
+    vec3_t total;
+    float total_s, total_t;
+    vec3_t normal;
+
+    VectorCopy(warpface->plane->normal, normal);
+
+    if (numverts > 60)
+    {
+        ri.Sys_Error(ERR_DROP, "numverts = %i", numverts);
+    }
+
+    R_BoundPoly(numverts, verts, mins, maxs);
+
+    for (i = 0; i < 3; i++)
+    {
+        m = (mins[i] + maxs[i]) * 0.5;
+        m = SUBDIVIDE_SIZE * floor(m / SUBDIVIDE_SIZE + 0.5);
+
+        if (maxs[i] - m < 8)
+        {
+            continue;
+        }
+
+        if (m - mins[i] < 8)
+        {
+            continue;
+        }
+
+        /* cut it */
+        v = verts + i;
+
+        for (j = 0; j < numverts; j++, v += 3)
+        {
+            dist[j] = *v - m;
+        }
+
+        /* wrap cases */
+        dist[j] = dist[0];
+        v -= i;
+        VectorCopy(verts, v);
+
+        f = b = 0;
+        v = verts;
+
+        for (j = 0; j < numverts; j++, v += 3)
+        {
+            if (dist[j] >= 0)
+            {
+                VectorCopy(v, front[f]);
+                f++;
+            }
+
+            if (dist[j] <= 0)
+            {
+                VectorCopy(v, back[b]);
+                b++;
+            }
+
+            if ((dist[j] == 0) || (dist[j + 1] == 0))
+            {
+                continue;
+            }
+
+            if ((dist[j] > 0) != (dist[j + 1] > 0))
+            {
+                /* clip point */
+                frac = dist[j] / (dist[j] - dist[j + 1]);
+
+                for (k = 0; k < 3; k++)
+                {
+                    front[f][k] = back[b][k] = v[k] + frac * (v[3 + k] - v[k]);
+                }
+
+                f++;
+                b++;
+            }
+        }
+
+        R_SubdividePolygon(f, front[0], warpface);
+        R_SubdividePolygon(b, back[0], warpface);
+        return;
+    }
+
+    /* add a point in the center to help keep warp valid */
+    poly = reinterpret_cast<glpoly_t*>(Hunk_Alloc(sizeof(glpoly_t) + ((numverts - 4) + 2) * sizeof(mtl_3D_vtx_t)));
+    poly->next = warpface->polys;
+    warpface->polys = poly;
+    poly->numverts = numverts + 2;
+    VectorClear(total);
+    total_s = 0;
+    total_t = 0;
+
+    for (i = 0; i < numverts; i++, verts += 3)
+    {
+        VectorCopy(verts, poly->vertices[i + 1].pos);
+        s = DotProduct(verts, warpface->texinfo->vecs[0]);
+        t = DotProduct(verts, warpface->texinfo->vecs[1]);
+
+        total_s += s;
+        total_t += t;
+        VectorAdd(total, verts, total);
+
+        poly->vertices[i + 1].texCoord[0] = s;
+        poly->vertices[i + 1].texCoord[1] = t;
+        VectorCopy(normal, poly->vertices[i + 1].normal);
+        poly->vertices[i + 1].lightFlags = 0;
+    }
+
+    VectorScale(total, (1.0 / numverts), poly->vertices[0].pos);
+    poly->vertices[0].texCoord[0] = total_s / numverts;
+    poly->vertices[0].texCoord[1] = total_t / numverts;
+    VectorCopy(normal, poly->vertices[0].normal);
+
+    /* copy first vertex to last */
+    //memcpy(poly->vertices[i + 1], poly->vertices[1], sizeof(poly->vertices[0]));
+    poly->vertices[i + 1] = poly->vertices[1];
+}
+
+void
+GL3_SubdivideSurface(msurface_t *fa, mtl_model_t* loadmodel)
+{
+    vec3_t verts[64];
+    int numverts;
+    int i;
+    int lindex;
+    float *vec;
+
+    /* convert edges back to a normal polygon */
+    numverts = 0;
+
+    for (i = 0; i < fa->numedges; i++)
+    {
+        lindex = loadmodel->surfedges[fa->firstedge + i];
+
+        if (lindex > 0)
+        {
+            vec = loadmodel->vertexes[loadmodel->edges[lindex].v[0]].position;
+        }
+        else
+        {
+            vec = loadmodel->vertexes[loadmodel->edges[-lindex].v[1]].position;
+        }
+
+        VectorCopy(vec, verts[numverts]);
+        numverts++;
+    }
+
+    R_SubdividePolygon(numverts, verts[0], fa);
+}
+
+static void
 Mod_LoadFaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 {
     dface_t *in;
@@ -699,7 +891,8 @@ Mod_LoadFaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
             GL3_SubdivideSurface(out, loadmodel); /* cut up polygon for warps */
         }
-
+        
+        /*
         if (r_fixsurfsky->value)
         {
             if (out->texinfo->flags & SURF_SKY)
@@ -707,8 +900,10 @@ Mod_LoadFaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
                 out->flags |= SURF_DRAWSKY;
             }
         }
+        */
 
         /* create lightmaps and polygons */
+        /*
         if (!(out->texinfo->flags & (SURF_SKY | SURF_TRANS33 | SURF_TRANS66 | SURF_WARP)))
         {
             GL3_LM_CreateSurfaceLightmap(out);
@@ -718,12 +913,247 @@ Mod_LoadFaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
         {
             GL3_LM_BuildPolygonFromSurface(loadmodel, out);
         }
+        */
     }
 
-    GL3_LM_EndBuildingLightmaps();
+//    GL3_LM_EndBuildingLightmaps();
 }
 
-std::shared_ptr<mtl_model_t> loadBrushModel(std::string name, void *buffer, int modfilelen) {
+static void
+Mod_LoadMarksurfaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
+{
+    int i, j, count;
+    short *in;
+    msurface_t **out;
+
+    in = reinterpret_cast<short*>(mod_base + l->fileofs);
+
+    if (l->filelen % sizeof(*in))
+    {
+        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+                __func__, loadmodel->name);
+    }
+
+    count = l->filelen / sizeof(*in);
+    out = reinterpret_cast<msurface_t**>(Hunk_Alloc(count * sizeof(*out)));
+
+    loadmodel->marksurfaces = out;
+    loadmodel->nummarksurfaces = count;
+
+    for (i = 0; i < count; i++)
+    {
+        j = LittleShort(in[i]);
+
+        if ((j < 0) || (j >= loadmodel->numsurfaces))
+        {
+            ri.Sys_Error(ERR_DROP, "%s: bad surface number", __func__);
+        }
+
+        out[i] = loadmodel->surfaces + j;
+    }
+}
+
+static void
+Mod_LoadVisibility(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
+{
+    int i;
+
+    if (!l->filelen)
+    {
+        loadmodel->vis = NULL;
+        return;
+    }
+
+    loadmodel->vis = reinterpret_cast<dvis_t*>(Hunk_Alloc(l->filelen));
+    memcpy(loadmodel->vis, mod_base + l->fileofs, l->filelen);
+
+    loadmodel->vis->numclusters = LittleLong(loadmodel->vis->numclusters);
+
+    for (i = 0; i < loadmodel->vis->numclusters; i++)
+    {
+        loadmodel->vis->bitofs[i][0] = LittleLong(loadmodel->vis->bitofs[i][0]);
+        loadmodel->vis->bitofs[i][1] = LittleLong(loadmodel->vis->bitofs[i][1]);
+    }
+}
+
+static void
+Mod_LoadLeafs(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
+{
+    dleaf_t *in;
+    mleaf_t *out;
+    int i, j, count, p;
+
+    in = reinterpret_cast<dleaf_t*>(mod_base + l->fileofs);
+
+    if (l->filelen % sizeof(*in))
+    {
+        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+                __func__, loadmodel->name);
+    }
+
+    count = l->filelen / sizeof(*in);
+    out = reinterpret_cast<mleaf_t*>(Hunk_Alloc(count * sizeof(*out)));
+
+    loadmodel->leafs = out;
+    loadmodel->numleafs = count;
+
+    for (i = 0; i < count; i++, in++, out++)
+    {
+        unsigned firstleafface;
+
+        for (j = 0; j < 3; j++)
+        {
+            out->minmaxs[j] = LittleShort(in->mins[j]);
+            out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
+        }
+
+        p = LittleLong(in->contents);
+        out->contents = p;
+
+        out->cluster = LittleShort(in->cluster);
+        out->area = LittleShort(in->area);
+
+        // make unsigned long from signed short
+        firstleafface = LittleShort(in->firstleafface) & 0xFFFF;
+        out->nummarksurfaces = LittleShort(in->numleaffaces) & 0xFFFF;
+
+        out->firstmarksurface = loadmodel->marksurfaces + firstleafface;
+        if ((firstleafface + out->nummarksurfaces) > loadmodel->nummarksurfaces)
+        {
+            ri.Sys_Error(ERR_DROP, "%s: wrong marksurfaces position in %s",
+                __func__, loadmodel->name);
+        }
+    }
+}
+
+static void
+Mod_SetParent(mnode_t *node, mnode_t *parent)
+{
+    node->parent = parent;
+
+    if (node->contents != -1)
+    {
+        return;
+    }
+
+    Mod_SetParent(node->children[0], node);
+    Mod_SetParent(node->children[1], node);
+}
+
+static void
+Mod_LoadNodes(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
+{
+    int i, j, count, p;
+    dnode_t *in;
+    mnode_t *out;
+
+    in = reinterpret_cast<dnode_t*>(mod_base + l->fileofs);
+
+    if (l->filelen % sizeof(*in))
+    {
+        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+                __func__, loadmodel->name);
+    }
+
+    count = l->filelen / sizeof(*in);
+    out = reinterpret_cast<mnode_t*>(Hunk_Alloc(count * sizeof(*out)));
+
+    loadmodel->nodes = out;
+    loadmodel->numnodes = count;
+
+    for (i = 0; i < count; i++, in++, out++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            out->minmaxs[j] = LittleShort(in->mins[j]);
+            out->minmaxs[3 + j] = LittleShort(in->maxs[j]);
+        }
+
+        p = LittleLong(in->planenum);
+        out->plane = loadmodel->planes + p;
+
+        out->firstsurface = LittleShort(in->firstface);
+        out->numsurfaces = LittleShort(in->numfaces);
+        out->contents = -1; /* differentiate from leafs */
+
+        for (j = 0; j < 2; j++)
+        {
+            p = LittleLong(in->children[j]);
+
+            if (p >= 0)
+            {
+                out->children[j] = loadmodel->nodes + p;
+            }
+            else
+            {
+                out->children[j] = (mnode_t *)(loadmodel->leafs + (-1 - p));
+            }
+        }
+    }
+
+    Mod_SetParent(loadmodel->nodes, NULL); /* sets nodes and leafs */
+}
+
+static void
+Mod_LoadSubmodels(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
+{
+    dmodel_t *in;
+    mtl_model_t *out;
+    int i, j, count;
+
+    in = reinterpret_cast<dmodel_t*>((mod_base + l->fileofs));
+
+    if (l->filelen % sizeof(*in))
+    {
+        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+                __func__, loadmodel->name);
+    }
+
+    count = l->filelen / sizeof(*in);
+    out = reinterpret_cast<mtl_model_t*>(Hunk_Alloc(count * sizeof(*out)));
+
+    loadmodel->submodels = out;
+    loadmodel->numsubmodels = count;
+
+    for (i = 0; i < count; i++, in++, out++)
+    {
+        if (i == 0)
+        {
+            // copy parent as template for first model
+            memcpy(out, loadmodel, sizeof(*out));
+        }
+        else
+        {
+            // copy first as template for model
+            memcpy(out, loadmodel->submodels, sizeof(*out));
+        }
+
+        Com_sprintf (out->name, sizeof(out->name), "*%d", i);
+
+        for (j = 0; j < 3; j++)
+        {
+            /* spread the mins / maxs by a pixel */
+            out->mins[j] = LittleFloat(in->mins[j]) - 1;
+            out->maxs[j] = LittleFloat(in->maxs[j]) + 1;
+            out->origin[j] = LittleFloat(in->origin[j]);
+        }
+
+        out->radius = Mod_RadiusFromBounds(out->mins, out->maxs);
+        out->firstnode = LittleLong(in->headnode);
+        out->firstmodelsurface = LittleLong(in->firstface);
+        out->nummodelsurfaces = LittleLong(in->numfaces);
+        // visleafs
+        out->numleafs = 0;
+        //  check limits
+        if (out->firstnode >= loadmodel->numnodes)
+        {
+            ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
+                    __func__, i);
+        }
+    }
+}
+
+std::shared_ptr<mtl_model_t> Model::loadBrushModel(std::string name, void *buffer, int modfilelen) {
     int i;
     dheader_t *header;
     byte *mod_base;
@@ -775,12 +1205,12 @@ std::shared_ptr<mtl_model_t> loadBrushModel(std::string name, void *buffer, int 
     Mod_LoadLighting(mod.get(), mod_base, &header->lumps[LUMP_LIGHTING]);
     Mod_LoadPlanes(mod.get(), mod_base, &header->lumps[LUMP_PLANES]);
     Mod_LoadTexinfo(mod.get(), mod_base, &header->lumps[LUMP_TEXINFO]);
-//    Mod_LoadFaces(mod, mod_base, &header->lumps[LUMP_FACES]);
-//    Mod_LoadMarksurfaces(mod, mod_base, &header->lumps[LUMP_LEAFFACES]);
-//    Mod_LoadVisibility(mod, mod_base, &header->lumps[LUMP_VISIBILITY]);
-//    Mod_LoadLeafs(mod, mod_base, &header->lumps[LUMP_LEAFS]);
-//    Mod_LoadNodes(mod, mod_base, &header->lumps[LUMP_NODES]);
-//    Mod_LoadSubmodels (mod, mod_base, &header->lumps[LUMP_MODELS]);
+    Mod_LoadFaces(mod.get(), mod_base, &header->lumps[LUMP_FACES]);
+    Mod_LoadMarksurfaces(mod.get(), mod_base, &header->lumps[LUMP_LEAFFACES]);
+    Mod_LoadVisibility(mod.get(), mod_base, &header->lumps[LUMP_VISIBILITY]);
+    Mod_LoadLeafs(mod.get(), mod_base, &header->lumps[LUMP_LEAFS]);
+    Mod_LoadNodes(mod.get(), mod_base, &header->lumps[LUMP_NODES]);
+    Mod_LoadSubmodels (mod.get(), mod_base, &header->lumps[LUMP_MODELS]);
     mod->numframes = 2; /* regular and alternate animation */
     
     return mod;
