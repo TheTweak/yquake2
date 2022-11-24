@@ -41,6 +41,7 @@ private:
     int _viewCluster2;
     Model modelLoader;
     std::shared_ptr<mtl_model_t> worldModel;
+    float vBlend[4]; /* final blending color */
     vec3_t origin;
     size_t _frame = 0;
     size_t _frameCount = 0;

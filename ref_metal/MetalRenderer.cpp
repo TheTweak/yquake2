@@ -206,7 +206,7 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     
     updateMVPMatrix();
     
-    if (mtl_newrefdef.blend[3] != 0.0f) {
+    if (vBlend[3] != 0.0f) {
         flashScreen();
     }
     renderView();    
@@ -340,7 +340,42 @@ void MetalRenderer::setupFrame() {
         _oldViewCluster2 = _viewCluster2;
         
         // find where we are in the world map
-//        mleaf_t *leaf = BSPUtils::PointInLeaf(origin, );
+        mleaf_t *leaf = BSPUtils::PointInLeaf(origin, worldModel.get());
+        _viewCluster = leaf->cluster;
+        _viewCluster2 = _viewCluster;
+        
+        /* check above and below so crossing solid water doesn't draw wrong */
+        if (!leaf->contents) {
+            /* look down a bit */
+            vec3_t temp;
+            VectorCopy(origin, temp);
+            temp[2] -= 16;
+            leaf = BSPUtils::PointInLeaf(temp, worldModel.get());
+            
+            if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != _viewCluster2)) {
+                _viewCluster2 = leaf->cluster;
+            }
+        } else {
+            /* look up a bit */
+            vec3_t temp;
+
+            VectorCopy(origin, temp);
+            temp[2] += 16;
+            leaf = BSPUtils::PointInLeaf(temp, worldModel.get());
+
+            if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != _viewCluster2)) {
+                _viewCluster2 = leaf->cluster;
+            }
+        }
+        
+        for (int i = 0; i < 4; i++) {
+            vBlend[i] = mtl_newrefdef.blend[i];
+        }
+        
+        /* clear out the portion of the screen that the NOWORLDMODEL defines */
+        if (mtl_newrefdef.rdflags & RDF_NOWORLDMODEL) {
+            // TODO: implement this
+        }
     }
 }
 
