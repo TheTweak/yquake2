@@ -28,7 +28,10 @@
 #define model_h
 #define MAXLIGHTMAPS 4
 
-#include "Image.hpp"
+#pragma once
+
+#include <string>
+#include "../src/client/refresh/ref_shared.h"
 
 enum {
     SIDE_FRONT = 0,
@@ -101,7 +104,7 @@ typedef struct mtexinfo_s
     image_s *image;
 } mtexinfo_t;
 
-typedef struct msurface_s
+struct msurface_t
 {
     int visframe; /* should be drawn when node is crossed */
 
@@ -118,7 +121,7 @@ typedef struct msurface_s
     int dlight_s, dlight_t;         /* gl lightmap coordinates for dynamic lightmaps */
 
     glpoly_t *polys;                /* multiple if warped */
-    struct  msurface_s *texturechain;
+    struct  msurface_t *texturechain;
     // struct  msurface_s *lightmapchain; not used/needed anymore
 
     mtexinfo_t *texinfo;
@@ -132,7 +135,15 @@ typedef struct msurface_s
     // I think cached_light is not used/needed anymore
     //float cached_light[MAXLIGHTMAPS];       /* values currently used in lightmap */
     byte *samples;                          /* [numstyles*surfsize] */
-} msurface_t;
+};
+
+struct image_s {
+    std::string path;
+    int width, height;
+    byte* data;
+    msurface_t *texturechain;
+    ~image_s();
+};
 
 typedef struct mnode_s
 {

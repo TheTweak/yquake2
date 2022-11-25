@@ -10,20 +10,13 @@
 #ifndef Image_hpp
 #define Image_hpp
 
-#include <string>
-#include <simd/simd.h>
-#include "../src/client/refresh/ref_shared.h"
+#include <array>
 
-struct image_s {
-    std::string path;
-    int width, height;
-    byte* data;
-    ~image_s();
-};
+#include "model.h"
 
 namespace Img {
     image_s* FindImage(char* name, imagetype_t type);
-    vector_float4 GetPalleteColor(int, float);
+    std::array<float, 4> GetPalleteColor(int, float);
 };
 
 #endif /* Image_hpp */

@@ -12,6 +12,7 @@
 #include <string>
 
 #include "SharedTypes.h"
+#include "model.h"
 
 #define PIXEL_FORMAT MTL::PixelFormatBGRA8Unorm
 #define MAX_FRAMES_IN_FLIGHT 3
@@ -22,6 +23,8 @@ namespace Utils {
 
 inline constexpr double pi = 3.14159265358979323846;
 float toRadians(float);
+bool CullBox(vec3_t mins, vec3_t maxs, cplane_t *frustum);
+image_s* TextureAnimation(entity_t *currententity, mtexinfo_t *tex);
 
 };
 

@@ -12,11 +12,6 @@
 
 #include "model.h"
 
-class BSP {
-public:
-    void RecursiveWorldNode();
-};
-
 namespace BSPUtils {
 
 mleaf_t* PointInLeaf(vec3_t p, mtl_model_t *model);

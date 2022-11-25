@@ -49,6 +49,7 @@ private:
     vec3_t vpn;
     vec3_t vright;
     vec3_t origin;
+    vec3_t modelOrigin;
     
     cplane_t frustum[4];
     
@@ -81,6 +82,7 @@ private:
     void setupFrustum();
     void markLeaves();
     void drawWorld();
+    void recursiveWorldNode(entity_t*, mnode_t*);
     void drawEntities();
     void drawAlphaSurfaces();
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
