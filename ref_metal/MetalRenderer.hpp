@@ -85,6 +85,7 @@ private:
     void recursiveWorldNode(entity_t*, mnode_t*);
     void drawEntities();
     void drawAlphaSurfaces();
+    void drawTextureChains(entity_t*);
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();

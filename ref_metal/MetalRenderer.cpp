@@ -346,7 +346,14 @@ void MetalRenderer::drawWorld() {
     memset(&ent, 0, sizeof(ent));
     ent.frame = (int)(mtl_newrefdef.time * 2);
     
-    
+    recursiveWorldNode(&ent, worldModel->nodes);
+    drawTextureChains(&ent);
+}
+
+void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
+    int i;
+    image_s *image;
+    msurface_t *s;
 }
 
 void MetalRenderer::recursiveWorldNode(entity_t* currentEntity, mnode_t* node) {

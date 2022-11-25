@@ -180,7 +180,6 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
     return {pcx_width, pcx_height};
 }
 
-
 image_s* LoadPic(char* name, byte* pic, int width,
                  int height, int realWidth, int realHeight,
                  imagetype_t type, int bits) {
