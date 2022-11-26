@@ -198,6 +198,121 @@ image_s* LoadPic(char* name, byte* pic, int width,
     return result;
 }
 
+std::optional<image_s*> Img::LoadM8(char *origname, imagetype_t type) {
+    m8tex_t *mt;
+    int width, height, ofs, size;
+    image_s *image;
+    char name[256];
+    unsigned char *image_buffer = NULL;
+
+    Q_strlcpy(name, origname, sizeof(name));
+
+    /* Add the extension */
+    if (strcmp(COM_FileExtension(name), "m8"))
+    {
+        Q_strlcat(name, ".m8", sizeof(name));
+    }
+
+    size = ri.FS_LoadFile(name, (void **)&mt);
+
+    if (!mt)
+    {
+        R_Printf(PRINT_ALL, "%s: can't load %s\n", __func__, name);
+        return std::nullopt;
+    }
+
+    if (size < sizeof(m8tex_t))
+    {
+        R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
+        ri.FS_FreeFile((void *)mt);
+        return std::nullopt;
+    }
+
+    if (LittleLong (mt->version) != M8_VERSION)
+    {
+        R_Printf(PRINT_ALL, "LoadWal: can't load %s, wrong magic value.\n", name);
+        ri.FS_FreeFile ((void *)mt);
+        return std::nullopt;
+    }
+
+    width = LittleLong(mt->width[0]);
+    height = LittleLong(mt->height[0]);
+    ofs = LittleLong(mt->offsets[0]);
+
+    if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+        (((size - ofs) / height) < width))
+    {
+        R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
+        ri.FS_FreeFile((void *)mt);
+        return std::nullopt;
+    }
+
+    image_buffer = static_cast<unsigned char*>(malloc (width * height * 4));
+    for(int i=0; i<width * height; i++)
+    {
+        unsigned char value = *((byte *)mt + ofs + i);
+        image_buffer[i * 4 + 0] = mt->palette[value].r;
+        image_buffer[i * 4 + 1] = mt->palette[value].g;
+        image_buffer[i * 4 + 2] = mt->palette[value].b;
+        image_buffer[i * 4 + 3] = value == 255 ? 0 : 255;
+    }
+
+    image = LoadPic(name, image_buffer, width, height, 0, 0, type, 32);
+    free(image_buffer);
+
+    ri.FS_FreeFile((void *)mt);
+
+    return image;
+}
+
+std::optional<image_s*> Img::LoadWal(char *origname, imagetype_t type) {
+    miptex_t *mt;
+    int width, height, ofs, size;
+    image_s *image;
+    char name[256];
+
+    Q_strlcpy(name, origname, sizeof(name));
+
+    /* Add the extension */
+    if (strcmp(COM_FileExtension(name), "wal"))
+    {
+        Q_strlcat(name, ".wal", sizeof(name));
+    }
+
+    size = ri.FS_LoadFile(name, (void **)&mt);
+
+    if (!mt)
+    {
+        R_Printf(PRINT_ALL, "LoadWal: can't load %s\n", name);
+        return std::nullopt;
+    }
+
+    if (size < sizeof(miptex_t))
+    {
+        R_Printf(PRINT_ALL, "LoadWal: can't load %s, small header\n", name);
+        ri.FS_FreeFile((void *)mt);
+        return std::nullopt;
+    }
+
+    width = LittleLong(mt->width);
+    height = LittleLong(mt->height);
+    ofs = LittleLong(mt->offsets[0]);
+
+    if ((ofs <= 0) || (width <= 0) || (height <= 0) ||
+        (((size - ofs) / height) < width))
+    {
+        R_Printf(PRINT_ALL, "LoadWal: can't load %s, small body\n", name);
+        ri.FS_FreeFile((void *)mt);
+        return std::nullopt;
+    }
+
+    image = LoadPic(name, (byte *)mt + ofs, width, height, 0, 0, type, 8);
+
+    ri.FS_FreeFile((void *)mt);
+
+    return image;
+}
+
 image_s* Img::FindImage(char* name, imagetype_t type) {
     if (auto it = _imageCache.find(name); it != end(_imageCache)) {
         return it->second.get();
@@ -240,7 +355,37 @@ image_s* Img::FindImage(char* name, imagetype_t type) {
     
     if (strcmp(ext, "pcx") == 0)
     {
-        //LoadPCX(name, &pic, NULL, &width, &height);
+        GetPCXInfo(name, &realwidth, &realheight);
+        if(realwidth == 0)
+        {
+            /* No texture found */
+            return NULL;
+        }
+
+        /* try to load a tga, png or jpg (in that order/priority) */
+        if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+           || LoadSTB(namewe, "png", &pic, &width, &height)
+           || LoadSTB(namewe, "jpg", &pic, &width, &height) )
+        {
+            /* upload tga or png or jpg */
+            image = LoadPic(name, pic, width, height, realwidth, realheight, type, 32);
+        }
+        else
+        {
+            /* PCX if no TGA/PNG/JPEG available (exists always) */
+            auto [width, height] = _LoadPCX(&pic, name);
+
+            if (!pic)
+            {
+                /* No texture found */
+                return NULL;
+            }
+
+            /* Upload the PCX */
+            image = LoadPic(name, pic, width, height, 0, 0, type, 8);
+        }
+        
+        /*
         auto [width, height] = _LoadPCX(&pic, name);
 
         if (!pic)
@@ -249,28 +394,42 @@ image_s* Img::FindImage(char* name, imagetype_t type) {
         }
 
         image = LoadPic(name, pic, width, height, 0, 0, type, 8);
+         */
     }
     else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
     {
-        if (strcmp(ext, "m8") == 0)
-        {
-//            image = LoadM8(name, type);
+        /* Get size of the original texture */
+        if (strcmp(ext, "m8") == 0) {
+            GetM8Info(name, &realwidth, &realheight);
+        } else {
+            GetWalInfo(name, &realwidth, &realheight);
+        }
 
-            if (!image)
-            {
-                /* No texture found */
-                return NULL;
+        if (realwidth == 0) {
+            /* No texture found */
+            return NULL;
+        }
+
+        /* try to load a tga, png or jpg (in that order/priority) */
+        if (  LoadSTB(namewe, "tga", &pic, &width, &height)
+           || LoadSTB(namewe, "png", &pic, &width, &height)
+           || LoadSTB(namewe, "jpg", &pic, &width, &height) ) {
+            /* upload tga or png or jpg */
+            image = LoadPic(name, pic, width, height, realwidth, realheight, type, 32);
+        } else if (strcmp(ext, "m8") == 0) {
+            if (auto img = LoadM8(namewe, type); img != std::nullopt) {
+                image = img.value();
+            }
+        } else {
+            /* WAL if no TGA/PNG/JPEG available (exists always) */
+            if (auto img = LoadWal(namewe, type); img != std::nullopt) {
+                image = img.value();
             }
         }
-        else /* gl_retexture is not set */
-        {
-//            image = LoadWal(name, type);
 
-            if (!image)
-            {
-                /* No texture found */
-                return NULL;
-            }
+        if (!image) {
+            /* No texture found */
+            return NULL;
         }
     }
     else if (strcmp(ext, "tga") == 0 || strcmp(ext, "png") == 0 || strcmp(ext, "jpg") == 0)
@@ -304,7 +463,7 @@ image_s* Img::FindImage(char* name, imagetype_t type) {
 
         if(LoadSTB(name, ext, &pic, &width, &height))
         {
-//            image = GL3_LoadPic(name, pic, width, realwidth, height, realheight, type, 32);
+            image = LoadPic(name, pic, width, height, realwidth, realheight, type, 32);
         } else {
             return NULL;
         }
