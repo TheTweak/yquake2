@@ -8,7 +8,6 @@
 #include <fstream>
 #include <utility>
 #include <array>
-#include <unordered_map>
 #include <memory>
 
 #include "Image.hpp"
@@ -21,7 +20,6 @@ image_s::~image_s() {
 
 static std::array<int, 768> _palette;
 static bool _palette_loaded = false;
-static std::unordered_map<std::string, std::shared_ptr<image_s>> _imageCache;
 
 std::array<int, 768> _LoadPalette() {
     pcx_t *pcx;
@@ -311,6 +309,10 @@ std::optional<image_s*> Img::LoadWal(char *origname, imagetype_t type) {
     ri.FS_FreeFile((void *)mt);
 
     return image;
+}
+
+const std::unordered_map<std::string, std::shared_ptr<image_s>>& Img::GetLoadedImages() const {
+    return _imageCache;
 }
 
 image_s* Img::FindImage(char* name, imagetype_t type) {

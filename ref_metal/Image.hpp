@@ -12,14 +12,18 @@
 
 #include <array>
 #include <optional>
+#include <unordered_map>
 
 #include "model.h"
 
-namespace Img {
+class Img {
+    std::unordered_map<std::string, std::shared_ptr<image_s>> _imageCache;
+public:
     image_s* FindImage(char* name, imagetype_t type);
     std::array<float, 4> GetPalleteColor(int, float);
     std::optional<image_s*> LoadM8(char *origname, imagetype_t type);
     std::optional<image_s*> LoadWal(char *origname, imagetype_t type);
+    const std::unordered_map<std::string, std::shared_ptr<image_s>>& GetLoadedImages() const;
 };
 
 #endif /* Image_hpp */

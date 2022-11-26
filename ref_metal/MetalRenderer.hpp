@@ -19,6 +19,7 @@
 #include "MetalDraw.hpp"
 #include "BufferAllocator.hpp"
 #include "Model.hpp"
+#include "Image.hpp"
 
 using ParticleBuffer = BufferAllocator<sizeof(DrawParticleCommandData::particle) * MAX_PARTICLES_COUNT>;
 using TextureVertexBuffer = BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>;
@@ -42,6 +43,7 @@ private:
     int _viewCluster2;
     
     Model modelLoader;
+    Img imageLoader;
     std::shared_ptr<mtl_model_t> worldModel;
     float vBlend[4]; /* final blending color */
     

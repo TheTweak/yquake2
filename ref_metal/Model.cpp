@@ -8,7 +8,7 @@
 #include "Model.hpp"
 #include "Image.hpp"
 
-Model::Model() {
+Model::Model(Img& il) : imageLoader(il) {
     memset(mod_novis, 0xff, sizeof(mod_novis));
 }
 
@@ -202,7 +202,7 @@ std::shared_ptr<mtl_model_t> Model::loadMD2(std::string name, void *buffer, int 
 
     for (i = 0; i < pheader->num_skins; i++)
     {
-        mod->skins[i] = Img::FindImage((char *)pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
+        mod->skins[i] = imageLoader.FindImage((char *)pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
     }
 
     mod->mins[0] = -32;
@@ -250,7 +250,7 @@ std::shared_ptr<mtl_model_t> Model::loadSP2(std::string name, void *buffer, int 
         sprout->frames[i].origin_x = LittleLong(sprin->frames[i].origin_x);
         sprout->frames[i].origin_y = LittleLong(sprin->frames[i].origin_y);
         memcpy(sprout->frames[i].name, sprin->frames[i].name, MAX_SKINNAME);
-        mod->skins[i] = Img::FindImage(sprout->frames[i].name, it_sprite);
+        mod->skins[i] = imageLoader.FindImage(sprout->frames[i].name, it_sprite);
     }
 
     mod->type = mod_sprite;
@@ -499,8 +499,7 @@ Mod_LoadPlanes(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
     }
 }
 
-static void
-Mod_LoadTexinfo(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
+void Model::Mod_LoadTexinfo(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 {
     texinfo_t *in;
     mtexinfo_t *out, *step;
@@ -544,12 +543,12 @@ Mod_LoadTexinfo(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
         Com_sprintf(name, sizeof(name), "textures/%s.wal", in->texture);
 
-        out->image = Img::FindImage(name, it_wall);
+        out->image = imageLoader.FindImage(name, it_wall);
 
         if (!out->image)
         {
             Com_sprintf(name, sizeof(name), "textures/%s.m8", in->texture);
-            out->image = Img::FindImage(name, it_wall);
+            out->image = imageLoader.FindImage(name, it_wall);
         }
 
         if (!out->image)

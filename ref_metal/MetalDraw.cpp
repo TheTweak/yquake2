@@ -10,7 +10,7 @@
 
 #include "MetalDraw.hpp"
 
-MetalDraw::MetalDraw(int sWidth, int sHeight) : screenWidth(sWidth), screenHeight(sHeight) {}
+MetalDraw::MetalDraw(int sWidth, int sHeight, Img& il) : screenWidth(sWidth), screenHeight(sHeight), imageLoader(il) {}
 
 image_s* MetalDraw::DrawFindPic(char* name) {
     image_s* image;
@@ -19,11 +19,11 @@ image_s* MetalDraw::DrawFindPic(char* name) {
     if ((name[0] != '/') && (name[0] != '\\'))
     {
         Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
-        image = Img::FindImage(fullname, it_pic);
+        image = imageLoader.FindImage(fullname, it_pic);
     }
     else
     {
-        image = Img::FindImage(name + 1, it_pic);
+        image = imageLoader.FindImage(name + 1, it_pic);
     }
 
     return image;
@@ -107,11 +107,11 @@ image_s* MetalDraw::drawFindPic(char* name) {
     if ((name[0] != '/') && (name[0] != '\\'))
     {
         Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
-        image = Img::FindImage(fullname, it_pic);
+        image = imageLoader.FindImage(fullname, it_pic);
     }
     else
     {
-        image = Img::FindImage(name + 1, it_pic);
+        image = imageLoader.FindImage(name + 1, it_pic);
     }
 
     return image;

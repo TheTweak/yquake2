@@ -83,11 +83,12 @@ cvar_t *r_drawworld;
 
 #pragma endregion Utils }
 
-MetalRenderer::MetalRenderer() {
+MetalRenderer::MetalRenderer() : modelLoader(imageLoader) {
     _semaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
 }
 
 void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer, MTL::Resource* pLayer) {
+    draw = std::make_unique<MetalDraw>(_width, _height, imageLoader);
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     _pRenderer = pRenderer;
     _pMetalLayer = pLayer;
@@ -101,7 +102,6 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     buildShaders();
     drawInit();
     pPool->release();
-    draw = std::make_unique<MetalDraw>(_width, _height);
     _textureVertexBufferAllocator = std::make_unique<TextureVertexBuffer>(_pDevice);
     _particleBufferAllocator = std::make_unique<ParticleBuffer>(_pDevice);
 }
@@ -354,6 +354,9 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
     int i;
     image_s *image;
     msurface_t *s;
+    for (auto it = imageLoader.GetLoadedImages().begin(); it != imageLoader.GetLoadedImages().end(); it++) {
+        std::cout << "abc";
+    }
 }
 
 void MetalRenderer::recursiveWorldNode(entity_t* currentEntity, mnode_t* node) {
@@ -628,7 +631,7 @@ void MetalRenderer::drawParticles() {
     for (i = 0, p = mtl_newrefdef.particles; i < mtl_newrefdef.num_particles; i++, p++) {
         vector_float3 pOrigin = {p->origin[0], p->origin[1], p->origin[2]};
         vector_float3 offset = viewOrigin - pOrigin;
-        auto c = Img::GetPalleteColor(p->color, p->alpha);
+        auto c = imageLoader.GetPalleteColor(p->color, p->alpha);
         vector_float4 color = {c[0], c[1], c[2], c[3]};
         float distance = simd_length(offset);
         Particle particle{
