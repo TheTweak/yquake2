@@ -4,16 +4,7 @@
 
 using namespace metal;
 
-// The structure that is fed into the vertex shader. We use packed data types to alleviate memory alignment
-// issues caused by the float2
-
-// The output of the vertex shader, which will be fed into the fragment shader
-//typedef struct {
-//    float4 position [[position]];
-//    float4 colour;
-//} RasteriserData;
-
-struct RasterizerData {
+struct RasterizerData2D {
     // The [[position]] attribute qualifier of this member indicates this value is
     // the clip space position of the vertex when this structure is returned from
     // the vertex shader
@@ -27,13 +18,13 @@ struct RasterizerData {
 };
 
 // Vertex Function
-vertex RasterizerData
-vertexShader(uint vertexID [[ vertex_id ]],
-             constant TexVertex *vertexArray [[ buffer(VertexInputIndexVertices) ]],
-             constant vector_uint2 *viewportSizePointer  [[ buffer(VertexInputIndexViewportSize) ]])
+vertex RasterizerData2D
+vertexShader2D(uint vertexID [[ vertex_id ]],
+             constant TexVertex *vertexArray [[ buffer(TexVertexInputIndexVertices) ]],
+             constant vector_uint2 *viewportSizePointer  [[ buffer(TexVertexInputIndexViewportSize) ]])
 {
 
-    RasterizerData out;
+    RasterizerData2D out;
 
     // Index into the array of positions to get the current vertex.
     //   Positions are specified in pixel dimensions (i.e. a value of 100 is 100 pixels from
@@ -49,7 +40,7 @@ vertexShader(uint vertexID [[ vertex_id ]],
     out.position = vector_float4(0.0, 0.0, 0.0, 1.0);
     out.position.xy = pixelSpacePosition / (viewportSize / 2.0);
 
-    // Pass the input textureCoordinate straight to the output RasterizerData. This value will be
+    // Pass the input textureCoordinate straight to the output RasterizerData2D. This value will be
     //   interpolated with the other textureCoordinate values in the vertices that make up the
     //   triangle.
     out.textureCoordinate = vertexArray[vertexID].texCoordinate;
@@ -59,7 +50,7 @@ vertexShader(uint vertexID [[ vertex_id ]],
 
 // Fragment function
 fragment float4
-samplingShader(RasterizerData in [[stage_in]],
+samplingShader2D(RasterizerData2D in [[stage_in]],
                texture2d<half, access::sample> colorTexture [[ texture(TextureIndexBaseColor) ]])
 {
     constexpr sampler textureSampler (mag_filter::linear,
@@ -71,22 +62,3 @@ samplingShader(RasterizerData in [[stage_in]],
     // return the color of the texture
     return float4(colorSample);
 }
-
-
-/*
-vertex RasteriserData vertFunc(uint vertexID [[vertex_id]],
-                                        constant Vertex *vertices [[buffer(0)]]) {
-    
-    RasteriserData out;
-    //out.position = float4(0.0, 0.0, 0.0, 1.0);
-    out.position = vertices[vertexID].position;
-    out.colour = vertices[vertexID].colour;
-
-    // Both the colour and the clip space position will be interpolated in this data structure
-    return out;
-}
-
-fragment float4 fragFunc(RasteriserData in [[stage_in]]) {
-    return in.colour;
-}
-*/

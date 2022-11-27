@@ -12,15 +12,21 @@
 
 // Buffer index values shared between shader and C code to ensure Metal shader buffer inputs match
 //   Metal API buffer set calls
-enum VertexInputIndex {
-    VertexInputIndexVertices     = 0,
-    VertexInputIndexViewportSize = 1,
+enum TexVertexInputIndex {
+    TexVertexInputIndexVertices     = 0,
+    TexVertexInputIndexViewportSize = 1,
 };
 
 enum ParticleInputIndex {
     ParticleInputIndexVertices     = 0,
     ParticleInputIndexMVPMatrix    = 1,
     ParticleInputIndexIdentityM    = 2,
+};
+
+enum VertexInputIndex {
+    VertexInputIndexVertices  = 0,
+    VertexInputIndexMVPMatrix = 1,
+    VertexInputIndexIdentityM = 2
 };
 
 // Texture index values shared between shader and C code to ensure Metal shader buffer inputs match
@@ -39,5 +45,9 @@ struct Particle {
     vector_float4 color;
     float size;
     float dist;
+};
+
+struct Vertex {
+    vector_float3 position;
 };
 #endif /* SharedTypes_h */

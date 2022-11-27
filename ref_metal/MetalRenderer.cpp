@@ -118,8 +118,8 @@ void MetalRenderer::buildShaders() {
     MTL::Library* pLibrary = _pDevice->newDefaultLibrary();
 
     {
-        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
-        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader", UTF8StringEncoding) );
+        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader2D", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader2D", UTF8StringEncoding) );
         
         MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
         
@@ -668,8 +668,8 @@ void MetalRenderer::encode2DCommands(MTL::RenderCommandEncoder* pEnc) {
         MTL::Buffer* pVertexBuffer = _textureVertexBufferAllocator->getNextBuffer();
         assert(pVertexBuffer);
         std::memcpy(pVertexBuffer->contents(), drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex));
-        pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
-        pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), VertexInputIndex::VertexInputIndexViewportSize);
+        pEnc->setVertexBuffer(pVertexBuffer, 0, TexVertexInputIndex::TexVertexInputIndexVertices);
+        pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), TexVertexInputIndex::TexVertexInputIndexViewportSize);
         pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
         pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
     }
