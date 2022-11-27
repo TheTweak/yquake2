@@ -354,9 +354,20 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
     int i;
     image_s *image;
     msurface_t *s;
+    /*
     for (auto it = imageLoader.GetLoadedImages().begin(); it != imageLoader.GetLoadedImages().end(); it++) {
-        std::cout << "abc";
-    }
+        s = it->second->texturechain;
+        
+        if (!s) {
+            continue;
+        }
+        
+        for (; s; s = s->texturechain) {
+            std::cout << "a";
+        }
+        
+        it->second->texturechain = nullptr;
+    }*/
 }
 
 void MetalRenderer::recursiveWorldNode(entity_t* currentEntity, mnode_t* node) {
