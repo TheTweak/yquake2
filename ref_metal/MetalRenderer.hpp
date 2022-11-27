@@ -23,6 +23,7 @@
 
 using ParticleBuffer = BufferAllocator<sizeof(DrawParticleCommandData::particle) * MAX_PARTICLES_COUNT>;
 using TextureVertexBuffer = BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>;
+using VertexBuffer = BufferAllocator<sizeof(DrawPolyCommandData::vertices)>;
 
 class MetalRenderer {
 private:
@@ -30,6 +31,7 @@ private:
     MTL::CommandQueue* _pCommandQueue;
     MTL::RenderPipelineState* _p2dPSO;
     MTL::RenderPipelineState* _pParticlePSO;
+    MTL::RenderPipelineState* _pVertexPSO;
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
@@ -61,11 +63,13 @@ private:
     
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawParticleCommandData> drawPartCmds;
+    std::vector<DrawPolyCommandData> drawPolyCmds;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unique_ptr<MetalDraw> draw;
     dispatch_semaphore_t _semaphore;
     std::unique_ptr<TextureVertexBuffer> _textureVertexBufferAllocator;
     std::unique_ptr<ParticleBuffer> _particleBufferAllocator;
+    std::unique_ptr<VertexBuffer> _vertexBufferAllocator;
     simd_float4x4 projectionMatrix;
     simd_float4x4 modelViewMatrix;
     simd_float4x4 mvpMatrix;
@@ -77,6 +81,7 @@ private:
     void encodeMetalCommands();
     void encode2DCommands(MTL::RenderCommandEncoder*);
     void encodeParticlesCommands(MTL::RenderCommandEncoder*);
+    void encodePolyCommands(MTL::RenderCommandEncoder*);
     void flashScreen();
     void drawParticles();
     void renderView();

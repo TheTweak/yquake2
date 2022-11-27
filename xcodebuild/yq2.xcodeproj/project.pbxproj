@@ -167,6 +167,7 @@
 		81508E1408F14085AB1B20B0 /* boss2.c in Sources */ = {isa = PBXBuildFile; fileRef = 703BE2E2CF4E4D94B378D01A /* boss2.c */; };
 		818EBB2A292C837A003B666B /* BSP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 818EBB28292C837A003B666B /* BSP.cpp */; };
 		81AAD7A529272A7B007B8641 /* ParticleShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 81AAD7A429272A7B007B8641 /* ParticleShaders.metal */; };
+		81D8B21C293309E700D13317 /* VertexShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 81D8B21B293309E700D13317 /* VertexShaders.metal */; };
 		81DD34536CA74BBF8E603935 /* sv_world.c in Sources */ = {isa = PBXBuildFile; fileRef = 97640A06242548DCA4471954 /* sv_world.c */; };
 		81E93E7728DDFE3B00D5F04C /* shared.c in Sources */ = {isa = PBXBuildFile; fileRef = D6D2D20C0CD14CC1AE27ACF8 /* shared.c */; };
 		81E93E7828DE0BA700D5F04C /* stb.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E265C7A23FB4F99872A61D3 /* stb.c */; };
@@ -177,7 +178,7 @@
 		81E93E7D28DE0CA700D5F04C /* md4.c in Sources */ = {isa = PBXBuildFile; fileRef = 88D86C5AB0E749E387F6E9F3 /* md4.c */; };
 		81E93E8528DF9DFE00D5F04C /* Image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 81E93E8328DF9DFE00D5F04C /* Image.cpp */; };
 		81E9BDE628D3B582004E6863 /* MetalRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 8124B60228D0B2A1003ADD6F /* MetalRenderer.cpp */; };
-		81EFEE0528E9EDEE0061F007 /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 81EFEE0428E9EDEE0061F007 /* Shaders.metal */; };
+		81EFEE0528E9EDEE0061F007 /* 2DShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 81EFEE0428E9EDEE0061F007 /* 2DShaders.metal */; };
 		8237CD691CB442F3A25E1A25 /* gl3_lightmap.c in Sources */ = {isa = PBXBuildFile; fileRef = 356D358068994DBC80E6FCD9 /* gl3_lightmap.c */; };
 		828117D41CBD4D5097DC53A7 /* gl3_warp.c in Sources */ = {isa = PBXBuildFile; fileRef = 5BF6A4387D7D406381E30579 /* gl3_warp.c */; };
 		83C3B06485D74CD2BCF3B30E /* pvs.c in Sources */ = {isa = PBXBuildFile; fileRef = 83C707E0902A49AEAB4DC74E /* pvs.c */; };
@@ -639,13 +640,14 @@
 		818EBB2B292C876D003B666B /* model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = model.h; sourceTree = "<group>"; };
 		81AAD7A429272A7B007B8641 /* ParticleShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ParticleShaders.metal; sourceTree = "<group>"; };
 		81AB39D42925DBE5006E428F /* BufferAllocator.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BufferAllocator.hpp; sourceTree = "<group>"; };
+		81D8B21B293309E700D13317 /* VertexShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VertexShaders.metal; sourceTree = "<group>"; };
 		81E93E8328DF9DFE00D5F04C /* Image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		81E93E8428DF9DFE00D5F04C /* Image.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Image.hpp; sourceTree = "<group>"; };
 		81E9BDBA28D3AD22004E6863 /* MetalRenderer.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRenderer.hpp; sourceTree = "<group>"; };
 		81E9BDBC28D3AD22004E6863 /* MetalRendererPriv.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MetalRendererPriv.hpp; sourceTree = "<group>"; };
 		81E9BDBE28D3AD22004E6863 /* MetalRenderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = MetalRenderer.cpp; sourceTree = "<group>"; };
 		81E9BDE528D3B55C004E6863 /* ref_metal.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ref_metal.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		81EFEE0428E9EDEE0061F007 /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
+		81EFEE0428E9EDEE0061F007 /* 2DShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = 2DShaders.metal; sourceTree = "<group>"; };
 		81EFEE0628E9EEA60061F007 /* SharedTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SharedTypes.h; sourceTree = "<group>"; };
 		8217F725418E435C8C1F99F0 /* clientserver.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = clientserver.c; path = src/common/clientserver.c; sourceTree = SOURCE_ROOT; };
 		8329794DB8894CE8A47CE3CE /* gl1_light.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 4; name = gl1_light.c; path = src/client/refresh/gl1/gl1_light.c; sourceTree = SOURCE_ROOT; };
@@ -1205,7 +1207,7 @@
 				8124B60328D0B2A1003ADD6F /* MetalRenderer.hpp */,
 				81E93E8328DF9DFE00D5F04C /* Image.cpp */,
 				81E93E8428DF9DFE00D5F04C /* Image.hpp */,
-				81EFEE0428E9EDEE0061F007 /* Shaders.metal */,
+				81EFEE0428E9EDEE0061F007 /* 2DShaders.metal */,
 				81EFEE0628E9EEA60061F007 /* SharedTypes.h */,
 				8141FA612921E7B6003F0E01 /* Utils.cpp */,
 				8141FA622921E7B6003F0E01 /* Utils.hpp */,
@@ -1218,6 +1220,7 @@
 				818EBB2B292C876D003B666B /* model.h */,
 				81103866292DC6FD002F89D9 /* Model.cpp */,
 				81103867292DC6FE002F89D9 /* Model.hpp */,
+				81D8B21B293309E700D13317 /* VertexShaders.metal */,
 			);
 			path = ref_metal;
 			sourceTree = "<group>";
@@ -1837,9 +1840,10 @@
 				8141FA662921E9A0003F0E01 /* MetalDraw.cpp in Sources */,
 				81E9BDE628D3B582004E6863 /* MetalRenderer.cpp in Sources */,
 				8141FA632921E7B6003F0E01 /* Utils.cpp in Sources */,
-				81EFEE0528E9EDEE0061F007 /* Shaders.metal in Sources */,
+				81EFEE0528E9EDEE0061F007 /* 2DShaders.metal in Sources */,
 				81E93E7728DDFE3B00D5F04C /* shared.c in Sources */,
 				818EBB2A292C837A003B666B /* BSP.cpp in Sources */,
+				81D8B21C293309E700D13317 /* VertexShaders.metal in Sources */,
 				81103868292DC6FE002F89D9 /* Model.cpp in Sources */,
 				81AAD7A529272A7B007B8641 /* ParticleShaders.metal in Sources */,
 				81E93E8528DF9DFE00D5F04C /* Image.cpp in Sources */,

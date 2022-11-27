@@ -104,6 +104,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     pPool->release();
     _textureVertexBufferAllocator = std::make_unique<TextureVertexBuffer>(_pDevice);
     _particleBufferAllocator = std::make_unique<ParticleBuffer>(_pDevice);
+    _vertexBufferAllocator = std::make_unique<VertexBuffer>(_pDevice);
 }
 
 void MetalRenderer::drawInit() {
@@ -144,6 +145,24 @@ void MetalRenderer::buildShaders() {
         NS::Error* pError = nullptr;
         _pParticlePSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_pParticlePSO) {
+            __builtin_printf("%s", pError->localizedDescription()->utf8String());
+            assert(false);
+        }
+        
+        pVertexFn->release();
+        pFragFn->release();
+        pDesc->release();
+    }
+    
+    {
+        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
+        
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
+        
+        NS::Error* pError = nullptr;
+        _pVertexPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
+        if (!_pVertexPSO) {
             __builtin_printf("%s", pError->localizedDescription()->utf8String());
             assert(false);
         }
@@ -354,7 +373,6 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
     int i;
     image_s *image;
     msurface_t *s;
-    /*
     for (auto it = imageLoader.GetLoadedImages().begin(); it != imageLoader.GetLoadedImages().end(); it++) {
         s = it->second->texturechain;
         
@@ -363,11 +381,22 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
         }
         
         for (; s; s = s->texturechain) {
-            std::cout << "a";
+            glpoly_t *p = s->polys;
+            
+            if (!p || !p->numverts) continue;
+            
+            DrawPolyCommandData dp;
+            dp.numVerts = 4;
+            for (int i = 0; i < 4; i++) {
+                auto v = p->vertices[i];
+                vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
+                dp.vertices[i] = {vertex};
+            }
+            drawPolyCmds.push_back(dp);
         }
         
         it->second->texturechain = nullptr;
-    }*/
+    }
 }
 
 void MetalRenderer::recursiveWorldNode(entity_t* currentEntity, mnode_t* node) {
@@ -655,6 +684,24 @@ void MetalRenderer::drawParticles() {
     }
 }
 
+void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
+    if (drawPolyCmds.empty()) {
+        return;
+    }
+    pEnc->setRenderPipelineState(_pVertexPSO);
+    for (auto& cmd: drawPolyCmds) {
+        MTL::Buffer* pVertexBuffer = _vertexBufferAllocator->getNextBuffer();
+        assert(pVertexBuffer);
+        std::memcpy(pVertexBuffer->contents(), cmd.vertices, sizeof(cmd.vertices));
+        pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+        pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
+        pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
+        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(4));
+    }
+    
+    drawPolyCmds.clear();
+}
+
 void MetalRenderer::encode2DCommands(MTL::RenderCommandEncoder* pEnc) {
     if (drawPicCmds.empty()) {
         return;
@@ -711,6 +758,7 @@ void MetalRenderer::encodeMetalCommands() {
     MTL::RenderPassDescriptor* pRpd = createRenderPassDescriptor();
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
     
+    encodePolyCommands(pEnc);
     encodeParticlesCommands(pEnc);
     encode2DCommands(pEnc);
     pEnc->endEncoding();

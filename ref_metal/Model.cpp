@@ -818,6 +818,87 @@ GL3_SubdivideSurface(msurface_t *fa, mtl_model_t* loadmodel)
     R_SubdividePolygon(numverts, verts[0], fa);
 }
 
+void GL3_LM_BuildPolygonFromSurface(mtl_model_t *currentmodel, msurface_t *fa) {
+    int i, lindex, lnumverts;
+    medge_t *pedges, *r_pedge;
+    float *vec;
+    float s, t;
+    glpoly_t *poly;
+    vec3_t total;
+    vec3_t normal;
+
+    /* reconstruct the polygon */
+    pedges = currentmodel->edges;
+    lnumverts = fa->numedges;
+
+    VectorClear(total);
+
+    /* draw texture */
+    poly = reinterpret_cast<glpoly_t*>(Hunk_Alloc(sizeof(glpoly_t) +
+                                                  (lnumverts - 4) * sizeof(mtl_3D_vtx_t)));
+    poly->next = fa->polys;
+    poly->flags = fa->flags;
+    fa->polys = poly;
+    poly->numverts = lnumverts;
+
+    VectorCopy(fa->plane->normal, normal);
+
+    if(fa->flags & SURF_PLANEBACK)
+    {
+        // if for some reason the normal sticks to the back of the plane, invert it
+        // so it's usable for the shader
+        for (i=0; i<3; ++i)  normal[i] = -normal[i];
+    }
+
+    for (i = 0; i < lnumverts; i++)
+    {
+        mtl_3D_vtx_t* vert = &poly->vertices[i];
+
+        lindex = currentmodel->surfedges[fa->firstedge + i];
+
+        if (lindex > 0)
+        {
+            r_pedge = &pedges[lindex];
+            vec = currentmodel->vertexes[r_pedge->v[0]].position;
+        }
+        else
+        {
+            r_pedge = &pedges[-lindex];
+            vec = currentmodel->vertexes[r_pedge->v[1]].position;
+        }
+
+        s = DotProduct(vec, fa->texinfo->vecs[0]) + fa->texinfo->vecs[0][3];
+        s /= fa->texinfo->image->width;
+
+        t = DotProduct(vec, fa->texinfo->vecs[1]) + fa->texinfo->vecs[1][3];
+        t /= fa->texinfo->image->height;
+
+        VectorAdd(total, vec, total);
+        VectorCopy(vec, vert->pos);
+        vert->texCoord[0] = s;
+        vert->texCoord[1] = t;
+
+        /* lightmap texture coordinates */
+        s = DotProduct(vec, fa->texinfo->vecs[0]) + fa->texinfo->vecs[0][3];
+        s -= fa->texturemins[0];
+        s += fa->light_s * 16;
+        s += 8;
+        s /= BLOCK_WIDTH * 16; /* fa->texinfo->texture->width; */
+
+        t = DotProduct(vec, fa->texinfo->vecs[1]) + fa->texinfo->vecs[1][3];
+        t -= fa->texturemins[1];
+        t += fa->light_t * 16;
+        t += 8;
+        t /= BLOCK_HEIGHT * 16; /* fa->texinfo->texture->height; */
+
+        vert->lmTexCoord[0] = s;
+        vert->lmTexCoord[1] = t;
+
+        VectorCopy(normal, vert->normal);
+        vert->lightFlags = 0;
+    }
+}
+
 static void
 Mod_LoadFaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 {
@@ -919,12 +1000,11 @@ Mod_LoadFaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
         {
             GL3_LM_CreateSurfaceLightmap(out);
         }
-
+        */
         if (!(out->texinfo->flags & SURF_WARP))
         {
             GL3_LM_BuildPolygonFromSurface(loadmodel, out);
         }
-        */
     }
 
 //    GL3_LM_EndBuildingLightmaps();

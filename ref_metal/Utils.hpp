@@ -41,4 +41,9 @@ struct DrawParticleCommandData {
     Particle particle;
 };
 
+struct DrawPolyCommandData {
+    int numVerts;
+    Vertex vertices[4];
+};
+
 #endif /* Utils_hpp */
