@@ -88,13 +88,13 @@ MetalRenderer::MetalRenderer() : modelLoader(imageLoader) {
 }
 
 void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer, MTL::Resource* pLayer) {
-    draw = std::make_unique<MetalDraw>(_width, _height, imageLoader);
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     _pRenderer = pRenderer;
     _pMetalLayer = pLayer;
     _pDevice = pDevice->retain();
     _pCommandQueue = _pDevice->newCommandQueue();    
     SDL_Metal_GetDrawableSize(pWindow, &_width, &_height);
+    draw = std::make_unique<MetalDraw>(_width, _height, imageLoader);
     auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, _width, _height, false);
     textureDesc->setUsage(MTL::TextureUsageRenderTarget);
     _pTexture = _pDevice->newTexture(textureDesc);
