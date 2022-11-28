@@ -10,10 +10,12 @@
 #define MetalRenderer_hpp
 
 #define MAX_PARTICLES_COUNT 1000
+#define VERTEX_BATCH_SIZE 1000
 
 #include <unordered_map>
 #include <vector>
 #include <memory>
+#include <string_view>
 
 #include "Utils.hpp"
 #include "MetalDraw.hpp"
@@ -23,7 +25,7 @@
 
 using ParticleBuffer = BufferAllocator<sizeof(DrawParticleCommandData::particle) * MAX_PARTICLES_COUNT>;
 using TextureVertexBuffer = BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>;
-using VertexBuffer = BufferAllocator<sizeof(DrawPolyCommandData::vertices)>;
+using VertexBuffer = BufferAllocator<sizeof(DrawPolyCommandData::vertices) * VERTEX_BATCH_SIZE>;
 
 class MetalRenderer {
 private:
@@ -82,6 +84,7 @@ private:
     void encode2DCommands(MTL::RenderCommandEncoder*);
     void encodeParticlesCommands(MTL::RenderCommandEncoder*);
     void encodePolyCommands(MTL::RenderCommandEncoder*);
+    void encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName);
     void flashScreen();
     void drawParticles();
     void renderView();

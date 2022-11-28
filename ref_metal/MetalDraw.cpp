@@ -29,7 +29,7 @@ image_s* MetalDraw::DrawFindPic(char* name) {
     return image;
 }
 
-MTL::Texture* _createTexture(int width, int height, MTL::Device* pDevice, byte* data) {
+MTL::Texture* MetalDraw::createTexture(int width, int height, MTL::Device* pDevice, byte* data) {
     MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
     pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
     pTextureDescriptor->setWidth(width);
@@ -57,7 +57,7 @@ std::pair<ImageSize, MTL::Texture*> MetalDraw::loadTexture(std::string pic, MTL:
         throw std::logic_error(ss.str());
     }
     
-    return {ImageSize{image->width, image->height}, _createTexture(image->width, image->height, pDevice, image->data)};
+    return {ImageSize{image->width, image->height}, createTexture(image->width, image->height, pDevice, image->data)};
 }
 
 MTL::Texture* MetalDraw::createdColoredTexture(vector_float4 colorBGRA, MTL::Device* pDevice) {
@@ -73,7 +73,7 @@ MTL::Texture* MetalDraw::createdColoredTexture(vector_float4 colorBGRA, MTL::Dev
         }
     }
     
-    return _createTexture(screenWidth, screenHeight, pDevice, data);
+    return createTexture(screenWidth, screenHeight, pDevice, data);
 }
 
 /*

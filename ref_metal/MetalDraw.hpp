@@ -30,6 +30,7 @@ public:
     image_s* drawFindPic(char* name);
     void drawGetPicSize(int *w, int *h, char *name);
     std::optional<DrawPicCommandData> drawCharScaled(int x, int y, int num, float scale);
+    MTL::Texture* createTexture(int width, int height, MTL::Device* pDevice, byte* data);
 };
 
 #endif /* MetalDraw_hpp */

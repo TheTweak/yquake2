@@ -42,8 +42,8 @@ struct DrawParticleCommandData {
 };
 
 struct DrawPolyCommandData {
-    int numVerts;
-    Vertex vertices[4];
+    std::string textureName;
+    Vertex vertices[3];
 };
 
 #endif /* Utils_hpp */

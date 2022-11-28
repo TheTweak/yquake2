@@ -10,7 +10,7 @@ using namespace metal;
 
 typedef struct {
     float4 position [[ position ]];
-    float4 color;
+    float2 textureCoordinate;
 } VertexRasteriserData;
 
 vertex VertexRasteriserData
@@ -22,12 +22,16 @@ vertexShader(uint vertexID [[ vertex_id ]],
     VertexRasteriserData out;
     Vertex v = vertexArray[vertexID];
     out.position = *mvpMatrix * *identityMatrix * float4(v.position, 1.0);
-    out.color = float4(0.0, 255.0, 0.0, 100.0);
+    out.textureCoordinate = v.texCoordinate;
     return out;
 }
 
 fragment float4
-fragFunc(VertexRasteriserData in [[stage_in]])
+fragFunc(VertexRasteriserData in [[stage_in]],
+         texture2d<half, access::sample> colorTexture [[ texture(TextureIndexBaseColor) ]])
 {
-    return in.color;
+    constexpr sampler textureSampler (mag_filter::linear,
+                                      min_filter::linear);
+    const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
+    return float4(colorSample);
 }

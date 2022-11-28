@@ -370,11 +370,8 @@ void MetalRenderer::drawWorld() {
 }
 
 void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
-    int i;
-    image_s *image;
-    msurface_t *s;
     for (auto it = imageLoader.GetLoadedImages().begin(); it != imageLoader.GetLoadedImages().end(); it++) {
-        s = it->second->texturechain;
+        msurface_t* s = it->second->texturechain;
         
         if (!s) {
             continue;
@@ -386,11 +383,17 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
             if (!p || !p->numverts) continue;
             
             DrawPolyCommandData dp;
-            dp.numVerts = 4;
-            for (int i = 0; i < 4; i++) {
+            dp.textureName = it->first;
+            if (auto tit = _textureMap.find(dp.textureName); tit == _textureMap.end()) {
+                auto image = it->second;
+                _textureMap[dp.textureName] = {ImageSize{image->width, image->height},
+                    draw->createTexture(image->width, image->height, _pDevice, image->data)};
+            }
+            for (int i = 0; i < 3; i++) {
                 auto v = p->vertices[i];
                 vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
-                dp.vertices[i] = {vertex};
+                vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
+                dp.vertices[i] = {vertex, texCoord};
             }
             drawPolyCmds.push_back(dp);
         }
@@ -684,21 +687,36 @@ void MetalRenderer::drawParticles() {
     }
 }
 
+void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName) {
+    MTL::Buffer* pVertexBuffer = _vertexBufferAllocator->getNextBuffer();
+    assert(pVertexBuffer);
+    std::memcpy(pVertexBuffer->contents(), vertexBatch, batchSize*sizeof(Vertex));
+    pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+    pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
+    pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
+    auto texture = _textureMap.at(std::string(textureName.data(), textureName.size())).second;
+    pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
+    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(batchSize));
+}
+
 void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
     if (drawPolyCmds.empty()) {
         return;
     }
     pEnc->setRenderPipelineState(_pVertexPSO);
+    std::vector<Vertex> vertexBatch;
+    std::string_view prevTexture;
     for (auto& cmd: drawPolyCmds) {
-        MTL::Buffer* pVertexBuffer = _vertexBufferAllocator->getNextBuffer();
-        assert(pVertexBuffer);
-        std::memcpy(pVertexBuffer->contents(), cmd.vertices, sizeof(cmd.vertices));
-        pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
-        pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
-        pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
-        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(4));
+        if (prevTexture.size() != 0 && prevTexture != std::string_view(cmd.textureName)) {
+            encodePolyCommandBatch(pEnc, vertexBatch.data(), (int) vertexBatch.size(), prevTexture);
+            vertexBatch.clear();
+        }
+        for (int j = 0; j < 4; j++) {
+            vertexBatch.push_back(cmd.vertices[j]);
+        }
+        prevTexture = cmd.textureName;
     }
-    
+    encodePolyCommandBatch(pEnc, vertexBatch.data(), (int) vertexBatch.size(), prevTexture);
     drawPolyCmds.clear();
 }
 

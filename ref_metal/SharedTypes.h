@@ -49,5 +49,6 @@ struct Particle {
 
 struct Vertex {
     vector_float3 position;
+    vector_float2 texCoordinate;
 };
 #endif /* SharedTypes_h */
