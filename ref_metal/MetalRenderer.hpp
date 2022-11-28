@@ -10,7 +10,6 @@
 #define MetalRenderer_hpp
 
 #define MAX_PARTICLES_COUNT 1000
-#define VERTEX_BATCH_SIZE 1000
 
 #include <unordered_map>
 #include <vector>
@@ -25,7 +24,6 @@
 
 using ParticleBuffer = BufferAllocator<sizeof(DrawParticleCommandData::particle) * MAX_PARTICLES_COUNT>;
 using TextureVertexBuffer = BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>;
-using VertexBuffer = BufferAllocator<sizeof(DrawPolyCommandData::vertices) * VERTEX_BATCH_SIZE>;
 
 class MetalRenderer {
 private:
@@ -71,7 +69,6 @@ private:
     dispatch_semaphore_t _semaphore;
     std::unique_ptr<TextureVertexBuffer> _textureVertexBufferAllocator;
     std::unique_ptr<ParticleBuffer> _particleBufferAllocator;
-    std::unique_ptr<VertexBuffer> _vertexBufferAllocator;
     simd_float4x4 projectionMatrix;
     simd_float4x4 modelViewMatrix;
     simd_float4x4 mvpMatrix;

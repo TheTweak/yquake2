@@ -104,7 +104,6 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     pPool->release();
     _textureVertexBufferAllocator = std::make_unique<TextureVertexBuffer>(_pDevice);
     _particleBufferAllocator = std::make_unique<ParticleBuffer>(_pDevice);
-    _vertexBufferAllocator = std::make_unique<VertexBuffer>(_pDevice);
 }
 
 void MetalRenderer::drawInit() {
@@ -688,15 +687,12 @@ void MetalRenderer::drawParticles() {
 }
 
 void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName) {
-    MTL::Buffer* pVertexBuffer = _vertexBufferAllocator->getNextBuffer();
-    assert(pVertexBuffer);
-    std::memcpy(pVertexBuffer->contents(), vertexBatch, batchSize*sizeof(Vertex));
-    pEnc->setVertexBuffer(pVertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+    pEnc->setVertexBytes(vertexBatch, batchSize*sizeof(Vertex), VertexInputIndex::VertexInputIndexVertices);
     pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
     pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
     auto texture = _textureMap.at(std::string(textureName.data(), textureName.size())).second;
     pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
-    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(batchSize));
+    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangleStrip, NS::UInteger(0), NS::UInteger(batchSize));
 }
 
 void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
@@ -704,19 +700,13 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
         return;
     }
     pEnc->setRenderPipelineState(_pVertexPSO);
-    std::vector<Vertex> vertexBatch;
-    std::string_view prevTexture;
     for (auto& cmd: drawPolyCmds) {
-        if (prevTexture.size() != 0 && prevTexture != std::string_view(cmd.textureName)) {
-            encodePolyCommandBatch(pEnc, vertexBatch.data(), (int) vertexBatch.size(), prevTexture);
-            vertexBatch.clear();
-        }
+        std::vector<Vertex> vertexBatch;
         for (int j = 0; j < 4; j++) {
             vertexBatch.push_back(cmd.vertices[j]);
         }
-        prevTexture = cmd.textureName;
+        encodePolyCommandBatch(pEnc, vertexBatch.data(), (int) vertexBatch.size(), cmd.textureName);
     }
-    encodePolyCommandBatch(pEnc, vertexBatch.data(), (int) vertexBatch.size(), prevTexture);
     drawPolyCmds.clear();
 }
 
