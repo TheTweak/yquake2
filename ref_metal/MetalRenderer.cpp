@@ -381,20 +381,36 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
             
             if (!p || !p->numverts) continue;
             
-            DrawPolyCommandData dp;
-            dp.textureName = it->first;
-            if (auto tit = _textureMap.find(dp.textureName); tit == _textureMap.end()) {
+            if (p->numverts != 4) continue; //todo remove
+            
+            if (auto tit = _textureMap.find(it->first); tit == _textureMap.end()) {
                 auto image = it->second;
-                _textureMap[dp.textureName] = {ImageSize{image->width, image->height},
+                _textureMap[it->first] = {ImageSize{image->width, image->height},
                     draw->createTexture(image->width, image->height, _pDevice, image->data)};
             }
-            for (int i = 0; i < 3; i++) {
-                auto v = p->vertices[i];
-                vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
-                vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
-                dp.vertices[i] = {vertex, texCoord};
+            for (int i = 2; i < 4; i++) {
+                DrawPolyCommandData dp;
+                dp.textureName = it->first;
+                {
+                    auto v = p->vertices[0];
+                    vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
+                    vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
+                    dp.vertices[0] = {vertex, texCoord};
+                }
+                {
+                    auto v = p->vertices[i-1];
+                    vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
+                    vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
+                    dp.vertices[1] = {vertex, texCoord};
+                }
+                {
+                    auto v = p->vertices[i];
+                    vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
+                    vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
+                    dp.vertices[2] = {vertex, texCoord};
+                }
+                drawPolyCmds.push_back(dp);
             }
-            drawPolyCmds.push_back(dp);
         }
         
         it->second->texturechain = nullptr;
@@ -692,7 +708,7 @@ void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vert
     pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
     auto texture = _textureMap.at(std::string(textureName.data(), textureName.size())).second;
     pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
-    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangleStrip, NS::UInteger(0), NS::UInteger(batchSize));
+    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(batchSize));
 }
 
 void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
@@ -701,11 +717,7 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
     }
     pEnc->setRenderPipelineState(_pVertexPSO);
     for (auto& cmd: drawPolyCmds) {
-        std::vector<Vertex> vertexBatch;
-        for (int j = 0; j < 4; j++) {
-            vertexBatch.push_back(cmd.vertices[j]);
-        }
-        encodePolyCommandBatch(pEnc, vertexBatch.data(), (int) vertexBatch.size(), cmd.textureName);
+        encodePolyCommandBatch(pEnc, cmd.vertices, sizeof(cmd.vertices)/sizeof(Vertex), cmd.textureName);
     }
     drawPolyCmds.clear();
 }
