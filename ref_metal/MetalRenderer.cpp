@@ -381,14 +381,12 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
             
             if (!p || !p->numverts) continue;
             
-            if (p->numverts != 4) continue; //todo remove
-            
             if (auto tit = _textureMap.find(it->first); tit == _textureMap.end()) {
                 auto image = it->second;
                 _textureMap[it->first] = {ImageSize{image->width, image->height},
                     draw->createTexture(image->width, image->height, _pDevice, image->data)};
             }
-            for (int i = 2; i < 4; i++) {
+            for (int i = 2; i < p->numverts; i++) {
                 DrawPolyCommandData dp;
                 dp.textureName = it->first;
                 {
