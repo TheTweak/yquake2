@@ -531,7 +531,7 @@ void MetalRenderer::markLeaves() {
     _oldViewCluster = _viewCluster;
     _oldViewCluster2 = _viewCluster2;
     
-    if (r_novis->value || _viewCluster == -1 || worldModel->vis) {
+    if (r_novis->value || _viewCluster == -1 || !worldModel->vis) {
         for (int i = 0; i < worldModel->numleafs; i++) {
             worldModel->leafs[i].visframe = _visFrameCount;
         }
