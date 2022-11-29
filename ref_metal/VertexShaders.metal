@@ -31,7 +31,8 @@ fragFunc(VertexRasteriserData in [[stage_in]],
          texture2d<half, access::sample> colorTexture [[ texture(TextureIndexBaseColor) ]])
 {
     constexpr sampler textureSampler (mag_filter::linear,
-                                      min_filter::linear);
+                                      min_filter::linear,
+                                      address::repeat);
     const half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
     return float4(colorSample);
 }
