@@ -178,6 +178,24 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
     return {pcx_width, pcx_height};
 }
 
+void ApplyPalette(byte* paletted, byte* orig, int width, int height) {
+    if (!_palette_loaded) {
+        _palette = _LoadPalette();
+        _palette_loaded = true;
+    }
+    
+    for (int x = 0; x < width; x++) {
+        for (int y = 0; y < height; y++) {
+            size_t index = (y * width + x) * 4;
+            int colorIndex = static_cast<int>(*orig++);
+            paletted[index] = byte(_palette[colorIndex * 3 + 2]);
+            paletted[index + 1] = byte(_palette[colorIndex * 3 + 1]);
+            paletted[index + 2] = byte(_palette[colorIndex * 3]);
+            paletted[index + 3] = byte{255};
+        }
+    }
+}
+
 image_s* LoadPic(char* name, byte* pic, int width,
                  int height, int realWidth, int realHeight,
                  imagetype_t type, int bits) {
@@ -192,7 +210,11 @@ image_s* LoadPic(char* name, byte* pic, int width,
     }
     size_t size = 4 * max(width, 1) * max(height, 1);
     result->data = static_cast<byte*>(malloc(size));
-    memcpy(result->data, pic, size);
+    if (type == it_wall) {
+        ApplyPalette(result->data, pic, width, height);
+    } else {
+        memcpy(result->data, pic, size);
+    }
     return result;
 }
 
