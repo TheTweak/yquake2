@@ -210,7 +210,7 @@ image_s* LoadPic(char* name, byte* pic, int width,
     }
     size_t size = 4 * max(width, 1) * max(height, 1);
     result->data = static_cast<byte*>(malloc(size));
-    if (type == it_wall) {
+    if (type != it_pic) {
         ApplyPalette(result->data, pic, width, height);
     } else {
         memcpy(result->data, pic, size);

@@ -44,6 +44,7 @@ struct DrawParticleCommandData {
 struct DrawPolyCommandData {
     std::string textureName;
     Vertex vertices[3];
+    float alpha;
 };
 
 #endif /* Utils_hpp */

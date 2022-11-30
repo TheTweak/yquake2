@@ -48,6 +48,7 @@ private:
     Img imageLoader;
     std::shared_ptr<mtl_model_t> worldModel;
     float vBlend[4]; /* final blending color */
+    msurface_t* alphaSurfaces;
     
     vec3_t vup;
     vec3_t vpn;
@@ -81,7 +82,7 @@ private:
     void encode2DCommands(MTL::RenderCommandEncoder*);
     void encodeParticlesCommands(MTL::RenderCommandEncoder*);
     void encodePolyCommands(MTL::RenderCommandEncoder*);
-    void encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName);
+    void encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha);
     void flashScreen();
     void drawParticles();
     void renderView();
@@ -96,6 +97,7 @@ private:
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();
+    DrawPolyCommandData createDrawPolyCommand(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image, float alpha);
     
 public:
     static MetalRenderer* INSTANCE;

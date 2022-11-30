@@ -368,6 +368,35 @@ void MetalRenderer::drawWorld() {
     drawTextureChains(&ent);
 }
 
+DrawPolyCommandData MetalRenderer::createDrawPolyCommand(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image, float alpha) {
+    if (auto tit = _textureMap.find(textureName); tit == _textureMap.end()) {
+        _textureMap[textureName] = {ImageSize{image->width, image->height},
+            draw->createTexture(image->width, image->height, _pDevice, image->data)};
+    }
+    DrawPolyCommandData dp;
+    dp.textureName = textureName;
+    dp.alpha = alpha;
+    {
+        auto v = poly->vertices[0];
+        vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
+        vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
+        dp.vertices[0] = {vertex, texCoord};
+    }
+    {
+        auto v = poly->vertices[vertexIndex-1];
+        vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
+        vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
+        dp.vertices[1] = {vertex, texCoord};
+    }
+    {
+        auto v = poly->vertices[vertexIndex];
+        vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
+        vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
+        dp.vertices[2] = {vertex, texCoord};
+    }
+    return dp;
+}
+
 void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
     for (auto it = imageLoader.GetLoadedImages().begin(); it != imageLoader.GetLoadedImages().end(); it++) {
         msurface_t* s = it->second->texturechain;
@@ -381,33 +410,8 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
             
             if (!p || !p->numverts) continue;
             
-            if (auto tit = _textureMap.find(it->first); tit == _textureMap.end()) {
-                auto image = it->second;
-                _textureMap[it->first] = {ImageSize{image->width, image->height},
-                    draw->createTexture(image->width, image->height, _pDevice, image->data)};
-            }
             for (int i = 2; i < p->numverts; i++) {
-                DrawPolyCommandData dp;
-                dp.textureName = it->first;
-                {
-                    auto v = p->vertices[0];
-                    vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
-                    vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
-                    dp.vertices[0] = {vertex, texCoord};
-                }
-                {
-                    auto v = p->vertices[i-1];
-                    vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
-                    vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
-                    dp.vertices[1] = {vertex, texCoord};
-                }
-                {
-                    auto v = p->vertices[i];
-                    vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
-                    vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
-                    dp.vertices[2] = {vertex, texCoord};
-                }
-                drawPolyCmds.push_back(dp);
+                drawPolyCmds.push_back(createDrawPolyCommand(it->first, p, i, it->second.get(), 1.0f));
             }
         }
         
@@ -500,9 +504,9 @@ void MetalRenderer::recursiveWorldNode(entity_t* currentEntity, mnode_t* node) {
             //GL3_AddSkySurface(surf);
         } else if (surf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66)) {
             /* add to the translucent chain */
-//            surf->texturechain = gl3_alpha_surfaces;
-//            gl3_alpha_surfaces = surf;
-//            gl3_alpha_surfaces->texinfo->image = TextureAnimation(currententity, surf->texinfo);
+            surf->texturechain = alphaSurfaces;
+            alphaSurfaces = surf;
+            alphaSurfaces->texinfo->image = Utils::TextureAnimation(currentEntity, surf->texinfo);
         } else {
             /* the polygon is visible, so add it to the texture sorted chain */
             image = Utils::TextureAnimation(currentEntity, surf->texinfo);
@@ -591,7 +595,44 @@ void MetalRenderer::drawEntities() {
 }
 
 void MetalRenderer::drawAlphaSurfaces() {
-    
+    /* go back to the world matrix */
+//    gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
+
+    for (msurface_t* s = alphaSurfaces; s != NULL; s = s->texturechain)
+    {
+        float alpha = 1.0f;
+        if (s->texinfo->flags & SURF_TRANS33)
+        {
+            alpha = 0.333f;
+        }
+        else if (s->texinfo->flags & SURF_TRANS66)
+        {
+            alpha = 0.666f;
+        }
+
+        if (s->flags & SURF_DRAWTURB)
+        {
+//            GL3_EmitWaterPolys(s);
+            for (glpoly_s* bp = s->polys; bp != NULL; bp = bp->next) {
+                for (int i = 2; i < bp->numverts; i++) {
+                    auto textureName = s->texinfo->image->path;
+                    drawPolyCmds.push_back(createDrawPolyCommand(textureName, bp, i, s->texinfo->image, alpha));
+                }
+            }
+        }
+        else if (s->texinfo->flags & SURF_FLOWING)
+        {
+//            GL3_UseProgram(gl3state.si3DtransFlow.shaderProgram);
+//            GL3_DrawGLFlowingPoly(s);
+        }
+        else
+        {
+//            GL3_UseProgram(gl3state.si3Dtrans.shaderProgram);
+//            GL3_DrawGLPoly(s);
+        }
+    }
+
+    alphaSurfaces = NULL;
 }
 
 void MetalRenderer::setupFrame() {
@@ -700,10 +741,11 @@ void MetalRenderer::drawParticles() {
     }
 }
 
-void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName) {
+void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha) {
     pEnc->setVertexBytes(vertexBatch, batchSize*sizeof(Vertex), VertexInputIndex::VertexInputIndexVertices);
     pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
     pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
+    pEnc->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
     auto texture = _textureMap.at(std::string(textureName.data(), textureName.size())).second;
     pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
     pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(batchSize));
@@ -715,7 +757,7 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
     }
     pEnc->setRenderPipelineState(_pVertexPSO);
     for (auto& cmd: drawPolyCmds) {
-        encodePolyCommandBatch(pEnc, cmd.vertices, sizeof(cmd.vertices)/sizeof(Vertex), cmd.textureName);
+        encodePolyCommandBatch(pEnc, cmd.vertices, sizeof(cmd.vertices)/sizeof(Vertex), cmd.textureName, cmd.alpha);
     }
     drawPolyCmds.clear();
 }
