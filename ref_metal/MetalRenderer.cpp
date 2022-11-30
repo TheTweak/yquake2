@@ -612,7 +612,6 @@ void MetalRenderer::drawAlphaSurfaces() {
 
         if (s->flags & SURF_DRAWTURB)
         {
-//            GL3_EmitWaterPolys(s);
             for (glpoly_s* bp = s->polys; bp != NULL; bp = bp->next) {
                 for (int i = 2; i < bp->numverts; i++) {
                     auto textureName = s->texinfo->image->path;
@@ -622,13 +621,21 @@ void MetalRenderer::drawAlphaSurfaces() {
         }
         else if (s->texinfo->flags & SURF_FLOWING)
         {
-//            GL3_UseProgram(gl3state.si3DtransFlow.shaderProgram);
-//            GL3_DrawGLFlowingPoly(s);
+            for (glpoly_s* bp = s->polys; bp != NULL; bp = bp->next) {
+                for (int i = 2; i < bp->numverts; i++) {
+                    auto textureName = s->texinfo->image->path;
+                    drawPolyCmds.push_back(createDrawPolyCommand(textureName, bp, i, s->texinfo->image, alpha));
+                }
+            }
         }
         else
         {
-//            GL3_UseProgram(gl3state.si3Dtrans.shaderProgram);
-//            GL3_DrawGLPoly(s);
+            for (glpoly_s* bp = s->polys; bp != NULL; bp = bp->next) {
+                for (int i = 2; i < bp->numverts; i++) {
+                    auto textureName = s->texinfo->image->path;
+                    drawPolyCmds.push_back(createDrawPolyCommand(textureName, bp, i, s->texinfo->image, alpha));
+                }
+            }
         }
     }
 
