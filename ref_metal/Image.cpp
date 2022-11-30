@@ -333,7 +333,7 @@ std::optional<image_s*> Img::LoadWal(char *origname, imagetype_t type) {
     return image;
 }
 
-const std::unordered_map<std::string, std::shared_ptr<image_s>>& Img::GetLoadedImages() const {
+const std::map<std::string, std::shared_ptr<image_s>>& Img::GetLoadedImages() const {
     return _imageCache;
 }
 
