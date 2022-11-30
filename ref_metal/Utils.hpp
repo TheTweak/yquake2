@@ -10,6 +10,7 @@
 
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 #include "SharedTypes.h"
 #include "model.h"
@@ -43,7 +44,7 @@ struct DrawParticleCommandData {
 
 struct DrawPolyCommandData {
     std::string textureName;
-    Vertex vertices[3];
+    std::vector<Vertex> vertices;
     float alpha;
 };
 

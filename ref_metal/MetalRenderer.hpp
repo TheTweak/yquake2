@@ -97,7 +97,7 @@ private:
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();
-    DrawPolyCommandData createDrawPolyCommand(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image, float alpha);
+    std::array<Vertex, 3> getPolyVertices(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image, float alpha);
     
 public:
     static MetalRenderer* INSTANCE;
