@@ -37,6 +37,7 @@ private:
     SDL_Renderer* _pRenderer;
     MTL::Resource* _pMetalLayer;
     MTL::DepthStencilState* _pDepthStencilState;
+    MTL::DepthStencilState* _pNoDepthTest;
     MTL::Texture* _pDepthTexture;
     
     int _width = 0;

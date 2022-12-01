@@ -126,6 +126,11 @@ void MetalRenderer::buildDepthStencilState() {
     pDesc->setDepthCompareFunction(MTL::CompareFunctionLess);
     _pDepthStencilState = _pDevice->newDepthStencilState(pDesc);
     pDesc->release();
+    
+    pDesc = MTL::DepthStencilDescriptor::alloc()->init();
+    pDesc->setDepthWriteEnabled(false);
+    _pNoDepthTest = _pDevice->newDepthStencilState(pDesc);
+    pDesc->release();
 }
 
 void MetalRenderer::buildShaders() {
@@ -175,7 +180,6 @@ void MetalRenderer::buildShaders() {
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
         
         MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
-        pDesc->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float);
         
         NS::Error* pError = nullptr;
         _pVertexPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
@@ -326,6 +330,7 @@ MTL::RenderPipelineDescriptor* MetalRenderer::createPipelineStateDescriptor(MTL:
     pDesc->colorAttachments()->object(0)->setSourceAlphaBlendFactor(MTL::BlendFactorSourceAlpha);
     pDesc->colorAttachments()->object(0)->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
     pDesc->colorAttachments()->object(0)->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+    pDesc->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float);
     return pDesc;
 }
 
@@ -866,8 +871,10 @@ void MetalRenderer::encodeMetalCommands() {
     
     pEnc->setDepthStencilState(_pDepthStencilState);
     encodePolyCommands(pEnc);
-//    encodeParticlesCommands(pEnc);
-//    encode2DCommands(pEnc);
+    
+    pEnc->setDepthStencilState(_pNoDepthTest);
+    encodeParticlesCommands(pEnc);
+    encode2DCommands(pEnc);
     pEnc->endEncoding();
     
     auto blitCmdEnc = pCmd->blitCommandEncoder();
