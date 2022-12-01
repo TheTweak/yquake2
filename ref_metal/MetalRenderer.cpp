@@ -95,11 +95,20 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     _pCommandQueue = _pDevice->newCommandQueue();    
     SDL_Metal_GetDrawableSize(pWindow, &_width, &_height);
     draw = std::make_unique<MetalDraw>(_width, _height, imageLoader);
+    
     auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, _width, _height, false);
     textureDesc->setUsage(MTL::TextureUsageRenderTarget);
     _pTexture = _pDevice->newTexture(textureDesc);
+    
+    auto *dTextureDesc = MTL::TextureDescriptor::texture2DDescriptor(MTL::PixelFormatDepth32Float, _width, _height, false);
+    dTextureDesc->setUsage(MTL::TextureUsageRenderTarget);
+    _pDepthTexture = _pDevice->newTexture(dTextureDesc);
+    _pDepthTexture->setLabel(NS::MakeConstantString("depth buffer"));
+    
     _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, _width, _height);
+    
     buildShaders();
+    buildDepthStencilState();
     drawInit();
     pPool->release();
     _textureVertexBufferAllocator = std::make_unique<TextureVertexBuffer>(_pDevice);
@@ -109,6 +118,14 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
 void MetalRenderer::drawInit() {
     /* load console characters */
     loadTexture("conchars");
+}
+
+void MetalRenderer::buildDepthStencilState() {
+    MTL::DepthStencilDescriptor* pDesc = MTL::DepthStencilDescriptor::alloc()->init();
+    pDesc->setDepthWriteEnabled(true);
+    pDesc->setDepthCompareFunction(MTL::CompareFunctionLess);
+    _pDepthStencilState = _pDevice->newDepthStencilState(pDesc);
+    pDesc->release();
 }
 
 void MetalRenderer::buildShaders() {
@@ -158,6 +175,7 @@ void MetalRenderer::buildShaders() {
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
         
         MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
+        pDesc->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float);
         
         NS::Error* pError = nullptr;
         _pVertexPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
@@ -319,6 +337,8 @@ MTL::RenderPassDescriptor* MetalRenderer::createRenderPassDescriptor() {
     colorAttachmentDesc->setStoreAction(MTL::StoreActionStore);
     colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.0f, 0.0f, 0));
     pRpd->setRenderTargetArrayLength(1);
+    pRpd->depthAttachment()->setClearDepth(1.0);
+    pRpd->depthAttachment()->setTexture(_pDepthTexture);
     return pRpd;
 }
 
@@ -844,9 +864,10 @@ void MetalRenderer::encodeMetalCommands() {
     MTL::RenderPassDescriptor* pRpd = createRenderPassDescriptor();
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
     
+    pEnc->setDepthStencilState(_pDepthStencilState);
     encodePolyCommands(pEnc);
-    encodeParticlesCommands(pEnc);
-    encode2DCommands(pEnc);
+//    encodeParticlesCommands(pEnc);
+//    encode2DCommands(pEnc);
     pEnc->endEncoding();
     
     auto blitCmdEnc = pCmd->blitCommandEncoder();

@@ -36,6 +36,8 @@ private:
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
     MTL::Resource* _pMetalLayer;
+    MTL::DepthStencilState* _pDepthStencilState;
+    MTL::Texture* _pDepthTexture;
     
     int _width = 0;
     int _height = 0;
@@ -76,6 +78,7 @@ private:
     
     MetalRenderer();
     void buildShaders();
+    void buildDepthStencilState();
     void drawInit();
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
     void encodeMetalCommands();
