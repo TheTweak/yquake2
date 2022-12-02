@@ -184,8 +184,8 @@ void ApplyPalette(byte* paletted, byte* orig, int width, int height) {
         _palette_loaded = true;
     }
     
-    for (int x = 0; x < width; x++) {
-        for (int y = 0; y < height; y++) {
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
             size_t index = (y * width + x) * 4;
             int colorIndex = static_cast<int>(*orig++);
             paletted[index] = byte(_palette[colorIndex * 3 + 2]);
