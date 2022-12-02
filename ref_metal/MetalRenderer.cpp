@@ -113,6 +113,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     pPool->release();
     _textureVertexBufferAllocator = std::make_unique<TextureVertexBuffer>(_pDevice);
     _particleBufferAllocator = std::make_unique<ParticleBuffer>(_pDevice);
+    _vertexBufferAllocator = std::make_unique<VertexBuffer>(_pDevice);
 }
 
 void MetalRenderer::drawInit() {
@@ -256,6 +257,7 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     encodeMetalCommands();
     
     _textureVertexBufferAllocator->updateFrame(_frame);
+    _vertexBufferAllocator->updateFrame(_frame);
     _frame = (_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
@@ -449,6 +451,12 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
                 auto vertexArray = getPolyVertices(textureName, p, i, it->second.get(), 1.0f);
                 for (int j = 0; j < vertexArray.size(); j++) {
                     dp.vertices.push_back(vertexArray[j]);
+                    
+                    if (dp.vertices.size() == VERTEX_BATCH_SIZE) {
+                        dp.textureName = textureName;
+                        drawPolyCmds.push_back(dp);
+                        dp.vertices.clear();
+                    }
                 }
             }
         }
@@ -790,8 +798,9 @@ void MetalRenderer::drawParticles() {
 }
 
 void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha) {
-    MTL::Buffer* pBuffer = _pDevice->newBuffer(batchSize*sizeof(Vertex), MTL::ResourceStorageModeShared);
+//    MTL::Buffer* pBuffer = _pDevice->newBuffer(batchSize*sizeof(Vertex), MTL::ResourceStorageModeShared);
 //    pEnc->setVertexBytes(vertexBatch, batchSize*sizeof(Vertex), VertexInputIndex::VertexInputIndexVertices);
+    MTL::Buffer* pBuffer = _vertexBufferAllocator->getNextBuffer();
     std::memcpy(pBuffer->contents(), vertexBatch, batchSize*sizeof(Vertex));
     pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
     pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
