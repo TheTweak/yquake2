@@ -157,7 +157,7 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
                     x += runLength;
                     runLength = 0;
                 } else {
-                    size_t index = (y * pcx_width + x) * 4;
+                    size_t index = (y * (pcx_width + 1) + x) * 4;
                     x++;
                     
                     pix[index] = byte(_palette[dataByte * 3 + 2]);    // blue
@@ -175,7 +175,7 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
     }
                 
     ri.FS_FreeFile(pcx);
-    return {pcx_width, pcx_height};
+    return {pcx_width + 1, pcx_height + 1};
 }
 
 void ApplyPalette(byte* paletted, byte* orig, int width, int height) {
