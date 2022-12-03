@@ -418,7 +418,46 @@ void MetalRenderer::drawWorld() {
     drawTextureChains(&ent);
 }
 
+void MetalRenderer::drawAliasModel(entity_t* entity) {
+    
+}
+
+void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
+    
+}
+
+void MetalRenderer::drawSpriteModel(entity_t* entity, model_s* model) {
+    
+}
+
+void MetalRenderer::drawEntity(entity_t* currentEntity) {
+    if (currentEntity->flags & RF_BEAM) {
+        drawBeam(currentEntity);
+    } else {
+        model_s *currentModel = currentEntity->model;
+        
+        if (!currentModel) {
+            drawNullModel(currentEntity);
+        } else {
+            switch (currentModel->type) {
+               case mod_alias:
+                   drawAliasModel(currentEntity);
+                   break;
+               case mod_brush:
+                   drawBrushModel(currentEntity, currentModel);
+                   break;
+               case mod_sprite:
+                   drawSpriteModel(currentEntity, currentModel);
+               default:
+                   ri.Sys_Error(ERR_DROP, "Bad modeltype");
+                   break;
+            }
+        }
+    }
+}
+
 void MetalRenderer::drawEntities() {
+    // draw solid models first
     for (int i = 0; i < mtl_newrefdef.num_entities; i++) {
         entity_t *currentEntity = &mtl_newrefdef.entities[i];
         
@@ -426,18 +465,18 @@ void MetalRenderer::drawEntities() {
             continue;
         }
         
-        if (currentEntity->flags & RF_BEAM) {
-            drawBeam(currentEntity);
-        } else {
-            model_s *currentModel = currentEntity->model;
-            
-            if (!currentModel) {
-                drawNullModel(currentEntity);
-                continue;
-            }
-            
+        drawEntity(currentEntity);
+    }
+    
+    // then draw translucent
+    for (int i = 0; i < mtl_newrefdef.num_entities; i++) {
+        entity_t *currentEntity = &mtl_newrefdef.entities[i];
+        
+        if (!(currentEntity->flags & RF_TRANSLUCENT)) {
+            continue;
         }
         
+        drawEntity(currentEntity);
     }
 }
 

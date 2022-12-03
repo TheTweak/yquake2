@@ -96,6 +96,7 @@ private:
     
     void drawWorld();
     void drawEntities();
+    void drawEntity(entity_t*);
     void drawAlphaSurfaces();
     void drawTextureChains(entity_t*);
     void drawBeam(entity_t*);
