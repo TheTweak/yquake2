@@ -233,7 +233,32 @@ void MetalRenderer::BeginRegistration(char* map) {
 }
 
 model_s* MetalRenderer::RegisterModel(char* name) {
-    return NULL;
+    auto modelOpt = modelLoader.getModel(name, worldModel, false);
+    if (modelOpt) {
+        auto model = *modelOpt;
+        if (model->type == mod_sprite) {
+            dsprite_t *sprout = (dsprite_t *) model->extradata;
+            
+            for (int i = 0; i < sprout->numframes; i++) {
+                model->skins[i] = imageLoader.FindImage(sprout->frames[i].name, it_sprite);
+            }
+        } else if (model->type == mod_alias) {
+            dmdl_t *pheader = (dmdl_t *) model->extradata;
+            
+            for (int i = 0; i < pheader->num_skins; i++) {
+                model->skins[i] = imageLoader.FindImage((char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
+            }
+            
+            model->numframes = pheader->num_frames;
+        } else if (model->type == mod_brush) {
+            for (int i = 0; i < model->numtexinfo; i++) {
+//                model->texinfo[i].image
+            }
+        }
+        
+        return model.get();
+    }
+    return nullptr;
 }
 
 image_s* MetalRenderer::RegisterSkin(char* name) {
@@ -391,6 +416,37 @@ void MetalRenderer::drawWorld() {
     
     recursiveWorldNode(&ent, worldModel->nodes);
     drawTextureChains(&ent);
+}
+
+void MetalRenderer::drawEntities() {
+    for (int i = 0; i < mtl_newrefdef.num_entities; i++) {
+        entity_t *currentEntity = &mtl_newrefdef.entities[i];
+        
+        if (currentEntity->flags & RF_TRANSLUCENT) {
+            continue;
+        }
+        
+        if (currentEntity->flags & RF_BEAM) {
+            drawBeam(currentEntity);
+        } else {
+            model_s *currentModel = currentEntity->model;
+            
+            if (!currentModel) {
+                drawNullModel(currentEntity);
+                continue;
+            }
+            
+        }
+        
+    }
+}
+
+void MetalRenderer::drawBeam(entity_t *entity) {
+    
+}
+
+void MetalRenderer::drawNullModel(entity_t *entity) {
+    
 }
 
 std::array<Vertex, 3> MetalRenderer::getPolyVertices(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image) {
@@ -620,10 +676,6 @@ void MetalRenderer::markLeaves() {
             while (node);
         }
     }
-}
-
-void MetalRenderer::drawEntities() {
-    
 }
 
 void MetalRenderer::drawAlphaSurfaces() {

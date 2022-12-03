@@ -88,16 +88,23 @@ private:
     void encodePolyCommands(MTL::RenderCommandEncoder*);
     void encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha);
     void flashScreen();
-    void drawParticles();
     void renderView();
     void setupFrame();
     void setupFrustum();
     void markLeaves();
-    void drawWorld();
     void recursiveWorldNode(entity_t*, mnode_t*);
+    
+    void drawWorld();
     void drawEntities();
     void drawAlphaSurfaces();
     void drawTextureChains(entity_t*);
+    void drawBeam(entity_t*);
+    void drawNullModel(entity_t*);
+    void drawParticles();
+    void drawAliasModel(entity_t*);
+    void drawBrushModel(entity_t*, model_s*);
+    void drawSpriteModel(entity_t*, model_s*);
+    
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();
