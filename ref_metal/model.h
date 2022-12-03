@@ -185,7 +185,7 @@ typedef struct mleaf_s
 
 // this, must be struct model_s, not gl3model_s,
 // because struct model_s* is returned by re.RegisterModel()
-struct mtl_model_t
+typedef struct model_s
 {
     char name[MAX_QPATH];
 
@@ -209,7 +209,7 @@ struct mtl_model_t
     int lightmap; /* only for submodels */
 
     int numsubmodels;
-    mtl_model_t *submodels;
+    model_s *submodels;
 
     int numplanes;
     cplane_t *planes;
@@ -251,7 +251,7 @@ struct mtl_model_t
 
     // submodules
     vec3_t        origin;    // for sounds or lights
-};
+} mtl_model_t;
 
 
 #endif /* model_h */

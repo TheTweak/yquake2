@@ -5,6 +5,8 @@
 //  Created by SOROKIN EVGENY on 23.11.2022.
 //
 
+#include <sstream>
+
 #include "Model.hpp"
 #include "Image.hpp"
 
@@ -22,6 +24,14 @@ const byte* Model::clusterPVS(int cluster, const mtl_model_t* model) {
 
 std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, std::optional<std::shared_ptr<mtl_model_t>> parent, bool crash) {
     if (name.at(0) == '*' && parent) {
+        std::string parentName = parent.value()->name;
+        std::stringstream ss;
+        ss << parentName << '_' << name;
+        std::string fullName = ss.str();
+        if (auto it = models.find(fullName); it != models.end()) {
+            return it->second;
+        }
+        
         int i = (int) strtol(name.data() + 1, (char **) NULL, 10);
         
         if (i < 1 || i >= parent.value()->numsubmodels) {
@@ -29,7 +39,9 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
         }
         
         mtl_model_t* m = &parent.value()->submodels[i];
-        return std::shared_ptr<mtl_model_t>(m);
+        auto result = std::shared_ptr<mtl_model_t>(m);
+        models[fullName] = result;
+        return result;
     }
     
     if (auto it = models.find(name); it != models.end()) {
@@ -68,6 +80,8 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
     }
     result->extradatasize = Hunk_End();
     ri.FS_FreeFile(buf);
+    
+    models[name] = result;
     
     return result;
 }
