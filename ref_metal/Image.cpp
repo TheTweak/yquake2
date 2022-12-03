@@ -408,17 +408,6 @@ image_s* Img::FindImage(char* name, imagetype_t type) {
             /* Upload the PCX */
             image = LoadPic(name, pic, width, height, 0, 0, type, 8);
         }
-        
-        /*
-        auto [width, height] = _LoadPCX(&pic, name);
-
-        if (!pic)
-        {
-            return NULL;
-        }
-
-        image = LoadPic(name, pic, width, height, 0, 0, type, 8);
-         */
     }
     else if (strcmp(ext, "wal") == 0 || strcmp(ext, "m8") == 0)
     {
