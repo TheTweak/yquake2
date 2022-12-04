@@ -25,7 +25,10 @@ namespace Utils {
 inline constexpr double pi = 3.14159265358979323846;
 float toRadians(float);
 bool CullBox(vec3_t mins, vec3_t maxs, cplane_t *frustum);
+bool CullAliasModel(vec3_t bbox[8], entity_t *e, cplane_t *frustum);
 image_s* TextureAnimation(entity_t *currententity, mtexinfo_t *tex);
+simd_float4x4 gluPerspective(float fovy, float aspect, float zNear, float zFar);
+void LerpVerts(bool powerUpEffect, int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3]);
 
 };
 

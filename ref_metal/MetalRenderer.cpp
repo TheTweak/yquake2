@@ -80,6 +80,8 @@ cvar_t *r_fixsurfsky;
 cvar_t *r_novis;
 cvar_t *r_lockpvs;
 cvar_t *r_drawworld;
+cvar_t *gl_lefthand;
+cvar_t *r_gunfov;
 
 #pragma endregion Utils }
 
@@ -419,7 +421,163 @@ void MetalRenderer::drawWorld() {
 }
 
 void MetalRenderer::drawAliasModel(entity_t* entity) {
+    vec3_t bbox[8];
+    if (!(entity->flags & RF_WEAPONMODEL) && Utils::CullAliasModel(bbox, entity, frustum)) {
+        return;
+    }
     
+    if ((entity->flags & RF_WEAPONMODEL) && gl_lefthand->value == 2) {
+        return;
+    }
+    
+    mtl_model_t* model = entity->model;
+    dmdl_t *paliashdr = (dmdl_t *) model->extradata;
+    
+    if (entity->flags & RF_DEPTHHACK) {
+        //gl set depth range todo: alternative in metal
+    }
+    
+    if (entity->flags & RF_WEAPONMODEL) {
+        float screenaspect = (float)mtl_newrefdef.width / mtl_newrefdef.height;
+        float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
+        
+        simd_float4x4 projMat;
+        if (r_gunfov->value < 0) {
+            projMat = Utils::gluPerspective(mtl_newrefdef.fov_y, screenaspect, 4, dist);
+        } else {
+            projMat = Utils::gluPerspective(r_gunfov->value, screenaspect, 4, dist);
+        }
+        
+        if (gl_lefthand->value == 1.0f) {
+            // to mirror gun so it's rendered left-handed, just invert X-axis column
+            // of projection matrix
+            for(int i=0; i<4; ++i) {
+                projMat.columns[0][i] = -projMat.columns[0][i];
+            }
+        }
+    }
+    
+    image_s *skin;
+    if (entity->skin) {
+        skin = entity->skin;
+    } else {
+        if (entity->skinnum >= MAX_MD2SKINS) {
+            skin = model->skins[0];
+        } else {
+            skin = model->skins[entity->skinnum];
+            if (!skin) {
+                skin = model->skins[0];
+            }
+        }
+    }
+    assert(skin);
+    
+    if ((entity->frame >= paliashdr->num_frames) ||
+        (entity->frame < 0)) {
+        R_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such frame %d\n",
+                model->name, entity->frame);
+        entity->frame = 0;
+        entity->oldframe = 0;
+    }
+    
+    if ((entity->oldframe >= paliashdr->num_frames) ||
+        (entity->oldframe < 0)) {
+        R_Printf(PRINT_DEVELOPER, "R_DrawAliasModel %s: no such oldframe %d\n",
+                model->name, entity->oldframe);
+        entity->frame = 0;
+        entity->oldframe = 0;
+    }
+    
+    {
+        bool colorOnly = 0 != (entity->flags &
+                               (RF_SHELL_RED | RF_SHELL_GREEN | RF_SHELL_BLUE | RF_SHELL_DOUBLE |
+                                RF_SHELL_HALF_DAM));
+        
+        daliasframe_t *frame = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames + entity->frame * paliashdr->framesize);
+        
+        dtrivertx_t *v, *ov, *verts;
+        verts = frame->verts;
+        v = verts;
+        
+        daliasframe_t *oldframe = (daliasframe_t *)((byte *)paliashdr + paliashdr->ofs_frames + entity->oldframe * paliashdr->framesize);
+        ov = oldframe->verts;
+        
+        int *order = (int *)((byte *)paliashdr + paliashdr->ofs_glcmds);
+        
+        float alpha;
+        if (entity->flags & RF_TRANSLUCENT) {
+            alpha = entity->alpha * 0.666f;
+        } else {
+            alpha = 1.0;
+        }
+        
+        vec3_t delta;
+        _VectorSubtract(entity->oldorigin, entity->origin, delta);
+        vec3_t vectors[3];
+        AngleVectors(entity->angles, vectors[0], vectors[1], vectors[2]);
+        
+        vec3_t move;
+        move[0] = DotProduct(delta, vectors[0]); /* forward */
+        move[1] = -DotProduct(delta, vectors[1]); /* left */
+        move[2] = DotProduct(delta, vectors[2]); /* up */
+        
+        VectorAdd(move, oldframe->translate, move);
+        
+        float backlerp = entity->backlerp;
+        float frontlerp = 1.0 - backlerp;
+        float *lerp;
+        
+        vec3_t frontv, backv;
+        for (int i = 0; i < 3; i++) {
+            move[i] = backlerp * move[i] + frontlerp * frame->translate[i];
+
+            frontv[i] = frontlerp * frame->scale[i];
+            backv[i] = backlerp * oldframe->scale[i];
+        }
+        
+        lerp = s_lerped[0];
+        Utils::LerpVerts(colorOnly, paliashdr->num_xyz, v, ov, verts, lerp, move, frontv, backv);
+        
+        int count;
+        int index_xyz;
+        while (1) {
+            count = *order++;
+            
+            if (!count) {
+                break;
+            }
+            
+            count = abs(count);
+            
+            if (colorOnly) {
+                
+            } else {
+                DrawPolyCommandData dp;
+                dp.textureName = skin->path;
+                dp.alpha = alpha;
+                if (auto tit = _textureMap.find(dp.textureName); tit == _textureMap.end()) {
+                    _textureMap[dp.textureName] = {ImageSize{skin->width, skin->height},
+                        draw->createTexture(skin->width, skin->height, _pDevice, skin->data)};
+                }
+                for (int i = 0; i < count; i++) {
+                    Vertex v;
+                    v.texCoordinate[0] = ((float *) order)[0];
+                    v.texCoordinate[1] = ((float *) order)[1];
+                    
+                    index_xyz = order[2];
+                    
+                    order += 3;
+                    for (int j = 0; j < 3; j++) {
+                        v.position[j] = s_lerped[index_xyz][j];
+                    }
+                    
+                    dp.vertices.push_back(v);
+                }
+                
+                drawPolyCmds.push_back(dp);
+            }
+        }
+    }
 }
 
 void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
@@ -1068,6 +1226,8 @@ bool Metal_Init() {
     r_novis = ri.Cvar_Get("r_novis", "0", 0);
     r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
     r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
+    gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+    r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_ARCHIVE);
     
     ri.Vid_GetModeInfo(&screenWidth, &screenHeight, r_mode->value);
     

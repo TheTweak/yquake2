@@ -25,6 +25,8 @@
 using ParticleBuffer = BufferAllocator<sizeof(DrawParticleCommandData::particle) * MAX_PARTICLES_COUNT>;
 using TextureVertexBuffer = BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>;
 
+typedef float vec4_t[4];
+
 class MetalRenderer {
 private:
     MTL::Device* _pDevice;
@@ -58,6 +60,7 @@ private:
     vec3_t vright;
     vec3_t origin;
     vec3_t modelOrigin;
+    vec4_t s_lerped[MAX_VERTS];
     
     cplane_t frustum[4];
     
@@ -68,6 +71,7 @@ private:
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawParticleCommandData> drawPartCmds;
     std::vector<DrawPolyCommandData> drawPolyCmds;
+    std::vector<DrawPolyCommandData> drawAliasModPolyCmds;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unique_ptr<MetalDraw> draw;
     dispatch_semaphore_t _semaphore;
