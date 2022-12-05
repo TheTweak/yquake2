@@ -34,7 +34,6 @@ private:
     MTL::RenderPipelineState* _p2dPSO;
     MTL::RenderPipelineState* _pParticlePSO;
     MTL::RenderPipelineState* _pVertexPSO;
-    MTL::RenderPipelineState* _pAliasModPSO;
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;

@@ -194,24 +194,7 @@ void MetalRenderer::buildShaders() {
         pFragFn->release();
         pDesc->release();
     }
-    
-    {
-        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
-        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
-        
-        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
-        
-        NS::Error* pError = nullptr;
-        _pAliasModPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
-        if (!_pAliasModPSO) {
-            __builtin_printf("%s", pError->localizedDescription()->utf8String());
-            assert(false);
-        }
-        
-        pVertexFn->release();
-        pFragFn->release();
-        pDesc->release();
-    }
+
     pLibrary->release();
     pPool->release();
 }
@@ -1117,7 +1100,6 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         return;
     }
     
-    pEnc->setRenderPipelineState(_pAliasModPSO);
     for (auto& cmd: drawAliasModPolyCmds) {
         simd_float4x4* mvp = &mvpMatrix;
         if (cmd.projMat) {
@@ -1144,9 +1126,9 @@ void MetalRenderer::encodeMetalCommands() {
     
     pEnc->setDepthStencilState(_pDepthStencilState);
     encodePolyCommands(pEnc);
+    encodeAliasModPolyCommands(pEnc);
     
     pEnc->setDepthStencilState(_pNoDepthTest);
-    encodeAliasModPolyCommands(pEnc);
     encodeParticlesCommands(pEnc);
     encode2DCommands(pEnc);
     pEnc->endEncoding();
