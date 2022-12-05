@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <optional>
 
 #include "SharedTypes.h"
 #include "model.h"
@@ -48,6 +49,7 @@ struct DrawParticleCommandData {
 struct DrawPolyCommandData {
     std::string textureName;
     std::vector<Vertex> vertices;
+    std::optional<simd_float4x4> projMat;
     float alpha;
 };
 

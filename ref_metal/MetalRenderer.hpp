@@ -34,6 +34,7 @@ private:
     MTL::RenderPipelineState* _p2dPSO;
     MTL::RenderPipelineState* _pParticlePSO;
     MTL::RenderPipelineState* _pVertexPSO;
+    MTL::RenderPipelineState* _pAliasModPSO;
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
@@ -90,7 +91,8 @@ private:
     void encode2DCommands(MTL::RenderCommandEncoder*);
     void encodeParticlesCommands(MTL::RenderCommandEncoder*);
     void encodePolyCommands(MTL::RenderCommandEncoder*);
-    void encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha);
+    void encodeAliasModPolyCommands(MTL::RenderCommandEncoder*);
+    void encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha, simd_float4x4* mvp);
     void flashScreen();
     void renderView();
     void setupFrame();

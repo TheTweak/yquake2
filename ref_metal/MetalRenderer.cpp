@@ -195,6 +195,23 @@ void MetalRenderer::buildShaders() {
         pDesc->release();
     }
     
+    {
+        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
+        
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
+        
+        NS::Error* pError = nullptr;
+        _pAliasModPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
+        if (!_pAliasModPSO) {
+            __builtin_printf("%s", pError->localizedDescription()->utf8String());
+            assert(false);
+        }
+        
+        pVertexFn->release();
+        pFragFn->release();
+        pDesc->release();
+    }
     pLibrary->release();
     pPool->release();
 }
@@ -437,11 +454,11 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         //gl set depth range todo: alternative in metal
     }
     
+    simd_float4x4 projMat;
     if (entity->flags & RF_WEAPONMODEL) {
         float screenaspect = (float)mtl_newrefdef.width / mtl_newrefdef.height;
         float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
         
-        simd_float4x4 projMat;
         if (r_gunfov->value < 0) {
             projMat = Utils::gluPerspective(mtl_newrefdef.fov_y, screenaspect, 4, dist);
         } else {
@@ -554,6 +571,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
             } else {
                 DrawPolyCommandData dp;
                 dp.textureName = skin->path;
+                dp.projMat = projMat;
                 dp.alpha = alpha;
                 if (auto tit = _textureMap.find(dp.textureName); tit == _textureMap.end()) {
                     _textureMap[dp.textureName] = {ImageSize{skin->width, skin->height},
@@ -574,7 +592,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                     dp.vertices.push_back(v);
                 }
                 
-                drawPolyCmds.push_back(dp);
+                drawAliasModPolyCmds.push_back(dp);
             }
         }
     }
@@ -1031,9 +1049,9 @@ void MetalRenderer::drawParticles() {
     }
 }
 
-void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha) {
+void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha, simd_float4x4* mvp) {
     pEnc->setVertexBytes(vertexBatch, batchSize*sizeof(Vertex), VertexInputIndex::VertexInputIndexVertices);
-    pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
+    pEnc->setVertexBytes(mvp, sizeof(*mvp), VertexInputIndex::VertexInputIndexMVPMatrix);
     pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
     pEnc->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
     auto texture = _textureMap.at(std::string(textureName.data(), textureName.size())).second;
@@ -1047,7 +1065,7 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
     }
     pEnc->setRenderPipelineState(_pVertexPSO);
     for (auto& cmd: drawPolyCmds) {
-        encodePolyCommandBatch(pEnc, cmd.vertices.data(), (int) cmd.vertices.size(), cmd.textureName, cmd.alpha);
+        encodePolyCommandBatch(pEnc, cmd.vertices.data(), (int) cmd.vertices.size(), cmd.textureName, cmd.alpha, &mvpMatrix);
     }
     drawPolyCmds.clear();
 }
@@ -1094,6 +1112,22 @@ void MetalRenderer::encodeParticlesCommands(MTL::RenderCommandEncoder* pEnc) {
     drawPartCmds.clear();
 }
 
+void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) {
+    if (drawAliasModPolyCmds.empty()) {
+        return;
+    }
+    
+    pEnc->setRenderPipelineState(_pAliasModPSO);
+    for (auto& cmd: drawAliasModPolyCmds) {
+        simd_float4x4* mvp = &mvpMatrix;
+        if (cmd.projMat) {
+            mvp = &cmd.projMat.value();
+        }
+        encodePolyCommandBatch(pEnc, cmd.vertices.data(), (int) cmd.vertices.size(), cmd.textureName, cmd.alpha, mvp);
+    }
+    drawAliasModPolyCmds.clear();
+}
+
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -1112,6 +1146,7 @@ void MetalRenderer::encodeMetalCommands() {
     encodePolyCommands(pEnc);
     
     pEnc->setDepthStencilState(_pNoDepthTest);
+    encodeAliasModPolyCommands(pEnc);
     encodeParticlesCommands(pEnc);
     encode2DCommands(pEnc);
     pEnc->endEncoding();
