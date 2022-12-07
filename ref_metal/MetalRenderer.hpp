@@ -42,6 +42,8 @@ private:
     MTL::DepthStencilState* _pNoDepthTest;
     MTL::Texture* _pDepthTexture;
     
+    std::unordered_map<std::string, MTL::Buffer*> aliasBufferMap[MAX_FRAMES_IN_FLIGHT];
+    
     int _width = 0;
     int _height = 0;
     int _oldViewCluster;
@@ -71,7 +73,7 @@ private:
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawParticleCommandData> drawPartCmds;
     std::vector<DrawPolyCommandData> drawPolyCmds;
-    std::vector<DrawPolyCommandData> drawAliasModPolyCmds;
+    std::vector<DrawAliasPolyCommandData> drawAliasModPolyCmds;
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unique_ptr<MetalDraw> draw;
     dispatch_semaphore_t _semaphore;

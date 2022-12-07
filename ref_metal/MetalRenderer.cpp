@@ -437,11 +437,12 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         //gl set depth range todo: alternative in metal
     }
     
-    simd_float4x4 projMat;
+    std::optional<simd_float4x4> projMatOpt = std::nullopt;
     if (entity->flags & RF_WEAPONMODEL) {
         float screenaspect = (float)mtl_newrefdef.width / mtl_newrefdef.height;
         float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
         
+        simd_float4x4 projMat;
         if (r_gunfov->value < 0) {
             projMat = Utils::gluPerspective(mtl_newrefdef.fov_y, screenaspect, 4, dist);
         } else {
@@ -455,6 +456,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                 projMat.columns[0][i] = -projMat.columns[0][i];
             }
         }
+        projMatOpt = projMat;
     }
     
     image_s *skin;
@@ -540,26 +542,33 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         
         int count;
         int index_xyz;
+        if (auto tit = _textureMap.find(skin->path); tit == _textureMap.end()) {
+            _textureMap[skin->path] = {ImageSize{skin->width, skin->height},
+                draw->createTexture(skin->width, skin->height, _pDevice, skin->data)};
+        }
+        DrawAliasPolyCommandData dp;
+        dp.textureName = skin->path;
+        dp.projMat = projMatOpt;
+        dp.alpha = alpha;
         while (1) {
+
             count = *order++;
             
             if (!count) {
                 break;
             }
             
-            count = abs(count);
+            if (count < 0) {
+                count = -count;
+                dp.primitiveType = MTL::PrimitiveType::PrimitiveTypeTriangle;
+            } else {
+                dp.primitiveType = MTL::PrimitiveType::PrimitiveTypeTriangleStrip;
+            }
             
+            std::vector<Vertex> vertices;
             if (colorOnly) {
                 
             } else {
-                DrawPolyCommandData dp;
-                dp.textureName = skin->path;
-                dp.projMat = projMat;
-                dp.alpha = alpha;
-                if (auto tit = _textureMap.find(dp.textureName); tit == _textureMap.end()) {
-                    _textureMap[dp.textureName] = {ImageSize{skin->width, skin->height},
-                        draw->createTexture(skin->width, skin->height, _pDevice, skin->data)};
-                }
                 for (int i = 0; i < count; i++) {
                     Vertex v;
                     v.texCoordinate[0] = ((float *) order)[0];
@@ -572,12 +581,18 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                         v.position[j] = s_lerped[index_xyz][j];
                     }
                     
-                    dp.vertices.push_back(v);
+                    vertices.push_back(v);
                 }
-                
-                drawAliasModPolyCmds.push_back(dp);
+            }
+            if (dp.primitiveType == MTL::PrimitiveType::PrimitiveTypeTriangle) {
+                for (int i = 1; i < count-1; i++) {
+                    dp.vertices.push_back(vertices.at(0));
+                    dp.vertices.push_back(std::move(vertices.at(i)));
+                    dp.vertices.push_back(std::move(vertices.at(i+1)));
+                }
             }
         }
+        drawAliasModPolyCmds.push_back(dp);
     }
 }
 
@@ -1101,11 +1116,32 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
     }
     
     for (auto& cmd: drawAliasModPolyCmds) {
-        simd_float4x4* mvp = &mvpMatrix;
+        if (cmd.vertices.empty()) {
+            continue;
+        }
+        
+        simd_float4x4* mvp;
         if (cmd.projMat) {
             mvp = &cmd.projMat.value();
+        } else {
+            mvp = &mvpMatrix;
         }
-        encodePolyCommandBatch(pEnc, cmd.vertices.data(), (int) cmd.vertices.size(), cmd.textureName, cmd.alpha, mvp);
+        auto& bufferMap = aliasBufferMap[_frame];
+        if (auto it = bufferMap.find(cmd.textureName); it == bufferMap.end()) {
+            auto pBuffer = _pDevice->newBuffer(cmd.vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeShared);
+            bufferMap[cmd.textureName] = pBuffer;
+        }
+        auto pBuffer = bufferMap.at(cmd.textureName);
+        std::memcpy(pBuffer->contents(), cmd.vertices.data(), cmd.vertices.size()*sizeof(Vertex));
+        pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+        pEnc->setVertexBytes(mvp, sizeof(*mvp), VertexInputIndex::VertexInputIndexMVPMatrix);
+        pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
+        pEnc->setVertexBytes(&cmd.alpha, sizeof(cmd.alpha), VertexInputIndex::VertexInputIndexAlpha);
+        auto texture = _textureMap.at(std::string(cmd.textureName.data(), cmd.textureName.size())).second;
+        pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
+        pEnc->drawPrimitives(cmd.primitiveType, NS::UInteger(0), NS::UInteger(cmd.vertices.size()));
+        
+//        encodePolyCommandBatch(pEnc, cmd.vertices.data(), (int) cmd.vertices.size(), cmd.textureName, cmd.alpha, mvp);
     }
     drawAliasModPolyCmds.clear();
 }

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <MetalKit/MetalKit.hpp>
 
 #include "SharedTypes.h"
 #include "model.h"
@@ -51,6 +52,14 @@ struct DrawPolyCommandData {
     std::vector<Vertex> vertices;
     std::optional<simd_float4x4> projMat;
     float alpha;
+};
+
+struct DrawAliasPolyCommandData {
+    std::string textureName;
+    std::vector<Vertex> vertices;
+    std::optional<simd_float4x4> projMat;
+    float alpha;
+    MTL::PrimitiveType primitiveType;
 };
 
 #endif /* Utils_hpp */
