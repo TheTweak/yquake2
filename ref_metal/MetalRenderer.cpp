@@ -420,6 +420,12 @@ void MetalRenderer::drawWorld() {
     drawTextureChains(&ent);
 }
 
+void MetalRenderer::rotateForEntity(entity_t* entity) {
+    // angles: pitch (around y), yaw (around z), roll (around x)
+    // rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
+    simd_float4x4 transMat =
+}
+
 void MetalRenderer::drawAliasModel(entity_t* entity) {
     vec3_t bbox[8];
     if (!(entity->flags & RF_WEAPONMODEL) && Utils::CullAliasModel(bbox, entity, frustum)) {
@@ -456,8 +462,10 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                 projMat.columns[0][i] = -projMat.columns[0][i];
             }
         }
-        projMatOpt = projMat;
+        projMatOpt = simd_mul(projMat, modelViewMatrix);
     }
+    entity->angles[PITCH] = -entity->angles[PITCH];
+    
     
     image_s *skin;
     if (entity->skin) {

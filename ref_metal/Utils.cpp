@@ -4,6 +4,7 @@
 //
 //  Created by SOROKIN EVGENY on 14.11.2022.
 //
+#include <cmath>
 
 #include "Utils.hpp"
 #include "../src/common/header/shared.h"
@@ -267,4 +268,26 @@ void Utils::LerpVerts(bool powerUpEffect, int nverts, dtrivertx_t *v, dtrivertx_
             lerp[2] = move[2] + ov->v[2] * backv[2] + v->v[2] * frontv[2];
         }
     }
+}
+
+simd_float4x4 Utils::rotateAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroundXdeg) {
+    float alpha = toRadians(aroundZdeg);
+    float beta = toRadians(aroundYdeg);
+    float gamma = toRadians(aroundXdeg);
+    
+    float sinA = std::sinf(alpha);
+    float cosA = std::cosf(alpha);
+    float sinB = std::sinf(beta);
+    float cosB = std::cosf(beta);
+    float sinG = std::sinf(gamma);
+    float cosG = std::cosf(gamma);
+    
+    simd_float4x4 result = simd_matrix_from_rows(
+        simd_make_float4(cosA*cosB, cosA*sinB*sinG - sinA*cosG, cosA*sinB*cosG + sinA*sinG, 0),
+        simd_make_float4(sinA*cosB, sinA*sinB*sinG + cosA*cosG, sinA*sinB*cosG - cosA*sinG, 0),
+        simd_make_float4(-sinB, cosB*sinG, cosB*cosG, 0),
+        simd_make_float4(0, 0, 0, 1)
+    );
+    
+    return result;
 }
