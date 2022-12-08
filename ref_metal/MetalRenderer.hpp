@@ -101,7 +101,7 @@ private:
     void markLeaves();
     void recursiveWorldNode(entity_t*, mnode_t*);
     
-    void rotateForEntity(entity_t*);
+    simd_float4x4 rotateForEntity(entity_t*);
     
     void drawWorld();
     void drawEntities();

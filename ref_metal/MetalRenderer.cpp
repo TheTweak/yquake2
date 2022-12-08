@@ -420,10 +420,16 @@ void MetalRenderer::drawWorld() {
     drawTextureChains(&ent);
 }
 
-void MetalRenderer::rotateForEntity(entity_t* entity) {
+simd_float4x4 MetalRenderer::rotateForEntity(entity_t* entity) {
     // angles: pitch (around y), yaw (around z), roll (around x)
     // rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
-    simd_float4x4 transMat =
+    simd_float4x4 transMat = Utils::rotateAroundAxisZYX(entity->angles[1], -entity->angles[0], -entity->angles[2]);
+    
+    for (int i = 0; i < 3; i++) {
+        transMat.columns[3][i] = entity->origin[i];
+    }
+    
+    return simd_mul(matrix_identity_float4x4, transMat);
 }
 
 void MetalRenderer::drawAliasModel(entity_t* entity) {
@@ -465,7 +471,8 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         projMatOpt = simd_mul(projMat, modelViewMatrix);
     }
     entity->angles[PITCH] = -entity->angles[PITCH];
-    
+    simd_float4x4 transModelMat = rotateForEntity(entity);
+    entity->angles[PITCH] = -entity->angles[PITCH];
     
     image_s *skin;
     if (entity->skin) {
@@ -558,6 +565,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         dp.textureName = skin->path;
         dp.projMat = projMatOpt;
         dp.alpha = alpha;
+        dp.transModelMat = transModelMat;
         while (1) {
 
             count = *order++;
@@ -1058,7 +1066,7 @@ void MetalRenderer::drawParticles() {
 void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha, simd_float4x4* mvp) {
     pEnc->setVertexBytes(vertexBatch, batchSize*sizeof(Vertex), VertexInputIndex::VertexInputIndexVertices);
     pEnc->setVertexBytes(mvp, sizeof(*mvp), VertexInputIndex::VertexInputIndexMVPMatrix);
-    pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
+    pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexTransModelMatrix);
     pEnc->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
     auto texture = _textureMap.at(std::string(textureName.data(), textureName.size())).second;
     pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
@@ -1143,7 +1151,7 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         std::memcpy(pBuffer->contents(), cmd.vertices.data(), cmd.vertices.size()*sizeof(Vertex));
         pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
         pEnc->setVertexBytes(mvp, sizeof(*mvp), VertexInputIndex::VertexInputIndexMVPMatrix);
-        pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexIdentityM);
+        pEnc->setVertexBytes(&cmd.transModelMat, sizeof(cmd.transModelMat), VertexInputIndex::VertexInputIndexTransModelMatrix);
         pEnc->setVertexBytes(&cmd.alpha, sizeof(cmd.alpha), VertexInputIndex::VertexInputIndexAlpha);
         auto texture = _textureMap.at(std::string(cmd.textureName.data(), cmd.textureName.size())).second;
         pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);

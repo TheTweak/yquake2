@@ -18,7 +18,7 @@ vertex VertexRasteriserData
 vertexShader(uint vertexID [[ vertex_id ]],
                      constant Vertex *vertexArray [[ buffer(VertexInputIndexVertices) ]],
                      constant float4x4 *mvpMatrix [[ buffer(VertexInputIndexMVPMatrix) ]],
-                     constant float4x4 *identityMatrix [[ buffer(VertexInputIndexIdentityM) ]],
+                     constant float4x4 *identityMatrix [[ buffer(VertexInputIndexTransModelMatrix) ]],
                      constant float *alpha [[ buffer(VertexInputIndexAlpha) ]])
 {
     VertexRasteriserData out;

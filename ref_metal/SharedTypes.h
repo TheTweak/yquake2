@@ -26,7 +26,7 @@ enum ParticleInputIndex {
 enum VertexInputIndex {
     VertexInputIndexVertices  = 0,
     VertexInputIndexMVPMatrix = 1,
-    VertexInputIndexIdentityM = 2,
+    VertexInputIndexTransModelMatrix = 2,
     VertexInputIndexAlpha     = 3
 };
 

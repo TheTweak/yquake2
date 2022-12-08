@@ -59,6 +59,7 @@ struct DrawAliasPolyCommandData {
     std::string textureName;
     std::vector<Vertex> vertices;
     std::optional<simd_float4x4> projMat;
+    simd_float4x4 transModelMat;
     float alpha;
     MTL::PrimitiveType primitiveType;
 };
