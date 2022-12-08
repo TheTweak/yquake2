@@ -583,7 +583,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
             
             std::vector<Vertex> vertices;
             if (colorOnly) {
-                
+               // todo
             } else {
                 for (int i = 0; i < count; i++) {
                     Vertex v;
@@ -605,6 +605,22 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                     dp.vertices.push_back(vertices.at(0));
                     dp.vertices.push_back(std::move(vertices.at(i)));
                     dp.vertices.push_back(std::move(vertices.at(i+1)));
+                }
+            } else if (dp.primitiveType == MTL::PrimitiveType::PrimitiveTypeTriangleStrip) {
+                int i;
+                for (i = 1; i < count - 2; i += 2) {
+                    dp.vertices.push_back(vertices.at(i-1));
+                    dp.vertices.push_back(vertices.at(i));
+                    dp.vertices.push_back(vertices.at(i+1));
+                    
+                    dp.vertices.push_back(vertices.at(i));
+                    dp.vertices.push_back(vertices.at(i+2));
+                    dp.vertices.push_back(vertices.at(i+1));
+                }
+                if (i < count - 1) {
+                    dp.vertices.push_back(vertices.at(i-1));
+                    dp.vertices.push_back(vertices.at(i));
+                    dp.vertices.push_back(vertices.at(i+1));
                 }
             }
         }
@@ -1156,8 +1172,6 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         auto texture = _textureMap.at(std::string(cmd.textureName.data(), cmd.textureName.size())).second;
         pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
         pEnc->drawPrimitives(cmd.primitiveType, NS::UInteger(0), NS::UInteger(cmd.vertices.size()));
-        
-//        encodePolyCommandBatch(pEnc, cmd.vertices.data(), (int) cmd.vertices.size(), cmd.textureName, cmd.alpha, mvp);
     }
     drawAliasModPolyCmds.clear();
 }
