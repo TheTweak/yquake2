@@ -62,6 +62,7 @@ struct DrawAliasPolyCommandData {
     simd_float4x4 transModelMat;
     float alpha;
     MTL::PrimitiveType primitiveType;
+    bool clamp;
 };
 
 #endif /* Utils_hpp */

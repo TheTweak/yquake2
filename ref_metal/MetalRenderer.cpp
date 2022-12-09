@@ -567,6 +567,8 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         dp.projMat = projMatOpt;
         dp.alpha = alpha;
         dp.transModelMat = transModelMat;
+        dp.clamp = entity->flags & RF_WEAPONMODEL;
+
         while (1) {
 
             count = *order++;
@@ -1315,8 +1317,17 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         pEnc->setVertexBytes(&cmd.alpha, sizeof(cmd.alpha), VertexInputIndex::VertexInputIndexAlpha);
         auto texture = _textureMap.at(std::string(cmd.textureName.data(), cmd.textureName.size())).second;
         pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
+        if (cmd.clamp) {
+            pEnc->setDepthClipMode(MTL::DepthClipModeClamp);
+            pEnc->setCullMode(MTL::CullModeBack);
+        } else {
+            pEnc->setDepthClipMode(MTL::DepthClipModeClip);
+            pEnc->setCullMode(MTL::CullModeNone);
+        }
         pEnc->drawPrimitives(cmd.primitiveType, NS::UInteger(0), NS::UInteger(cmd.vertices.size()));
     }
+    pEnc->setDepthClipMode(MTL::DepthClipModeClip);
+    pEnc->setCullMode(MTL::CullModeNone);
     drawAliasModPolyCmds.clear();
 }
 
@@ -1335,6 +1346,7 @@ void MetalRenderer::encodeMetalCommands() {
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
     
     pEnc->setDepthStencilState(_pDepthStencilState);
+
     encodePolyCommands(pEnc);
     encodeAliasModPolyCommands(pEnc);
     encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
