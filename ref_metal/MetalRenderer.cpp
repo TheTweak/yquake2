@@ -1338,9 +1338,9 @@ void MetalRenderer::encodeMetalCommands() {
     encodePolyCommands(pEnc);
     encodeAliasModPolyCommands(pEnc);
     encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
+    encodeParticlesCommands(pEnc);
     
     pEnc->setDepthStencilState(_pNoDepthTest);
-    encodeParticlesCommands(pEnc);
     encode2DCommands(pEnc, _p2dPSO, drawPicCmds);
     pEnc->endEncoding();
     
