@@ -71,9 +71,11 @@ private:
     int _visFrameCount = 0; /* bumped when going to a new PVS */
     
     std::vector<DrawPicCommandData> drawPicCmds;
+    std::vector<DrawPicCommandData> drawSpriteCmds;
     std::vector<DrawParticleCommandData> drawPartCmds;
     std::vector<DrawPolyCommandData> drawPolyCmds;
     std::vector<DrawAliasPolyCommandData> drawAliasModPolyCmds;
+    
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unique_ptr<MetalDraw> draw;
     dispatch_semaphore_t _semaphore;
@@ -89,7 +91,7 @@ private:
     void drawInit();
     std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
     void encodeMetalCommands();
-    void encode2DCommands(MTL::RenderCommandEncoder*);
+    void encode2DCommands(MTL::RenderCommandEncoder*, MTL::RenderPipelineState*, std::vector<DrawPicCommandData>&);
     void encodeParticlesCommands(MTL::RenderCommandEncoder*);
     void encodePolyCommands(MTL::RenderCommandEncoder*);
     void encodeAliasModPolyCommands(MTL::RenderCommandEncoder*);

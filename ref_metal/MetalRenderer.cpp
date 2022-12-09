@@ -708,8 +708,79 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
     }
 }
 
-void MetalRenderer::drawSpriteModel(entity_t* entity, model_s* model) {
+void MetalRenderer::drawSpriteModel(entity_t* e, model_s* currentmodel) {
+    dsprite_t* psprite = (dsprite_t *) currentmodel->extradata;
     
+    e->frame %= psprite->numframes;
+    dsprframe_t* frame = &psprite->frames[e->frame];
+    
+    float* up = vup;
+    float* right = vright;
+    
+    float alpha = 1.0f;
+    if (e->flags & RF_TRANSLUCENT) {
+        alpha = e->alpha;
+    }
+    
+    mtl_3D_vtx_t verts[4];
+    
+    verts[0].texCoord[0] = 0;
+    verts[0].texCoord[1] = 1;
+    verts[1].texCoord[0] = 0;
+    verts[1].texCoord[1] = 0;
+    verts[2].texCoord[0] = 1;
+    verts[2].texCoord[1] = 0;
+    verts[3].texCoord[0] = 1;
+    verts[3].texCoord[1] = 1;
+
+    VectorMA( e->origin, -frame->origin_y, up, verts[0].pos );
+    VectorMA( verts[0].pos, -frame->origin_x, right, verts[0].pos );
+
+    VectorMA( e->origin, frame->height - frame->origin_y, up, verts[1].pos );
+    VectorMA( verts[1].pos, -frame->origin_x, right, verts[1].pos );
+
+    VectorMA( e->origin, frame->height - frame->origin_y, up, verts[2].pos );
+    VectorMA( verts[2].pos, frame->width - frame->origin_x, right, verts[2].pos );
+
+    VectorMA( e->origin, -frame->origin_y, up, verts[3].pos );
+    VectorMA( verts[3].pos, frame->width - frame->origin_x, right, verts[3].pos );
+    
+    DrawPicCommandData dp;
+    image_s *image = currentmodel->skins[e->frame];
+    dp.pic = image->path;
+    
+    if (auto tit = _textureMap.find(dp.pic); tit == _textureMap.end()) {
+        _textureMap[dp.pic] = {ImageSize{image->width, image->height},
+            draw->createTexture(image->width, image->height, _pDevice, image->data)};
+    }
+    
+    dp.textureVertex[0] = {
+        {verts[0].pos[0], verts[0].pos[1]},
+        {verts[0].texCoord[0], verts[0].texCoord[1]}
+    };
+    dp.textureVertex[1] = {
+        {verts[1].pos[0], verts[1].pos[1]},
+        {verts[1].texCoord[0], verts[1].texCoord[1]}
+    };
+    dp.textureVertex[2] = {
+        {verts[2].pos[0], verts[2].pos[1]},
+        {verts[2].texCoord[0], verts[2].texCoord[1]}
+    };
+    
+    dp.textureVertex[3] = {
+        {verts[0].pos[0], verts[0].pos[1]},
+        {verts[0].texCoord[0], verts[0].texCoord[1]}
+    };
+    dp.textureVertex[4] = {
+        {verts[3].pos[0], verts[3].pos[1]},
+        {verts[3].texCoord[0], verts[3].texCoord[1]}
+    };
+    dp.textureVertex[5] = {
+        {verts[2].pos[0], verts[2].pos[1]},
+        {verts[2].texCoord[0], verts[2].texCoord[1]}
+    };
+    
+    drawSpriteCmds.push_back(std::move(dp));
 }
 
 void MetalRenderer::drawEntity(entity_t* currentEntity) {
@@ -1176,25 +1247,22 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
     drawPolyCmds.clear();
 }
 
-void MetalRenderer::encode2DCommands(MTL::RenderCommandEncoder* pEnc) {
-    if (drawPicCmds.empty()) {
+void MetalRenderer::encode2DCommands(MTL::RenderCommandEncoder* pEnc, MTL::RenderPipelineState* pPs, std::vector<DrawPicCommandData>& cmds) {
+    if (cmds.empty()) {
         return;
     }
     
-    pEnc->setRenderPipelineState(_p2dPSO);
+    pEnc->setRenderPipelineState(pPs);
     vector_uint2 viewPortSize;
     viewPortSize.x = _width;
     viewPortSize.y = _height;
-    for (auto& drawPicCmd: drawPicCmds) {
-        MTL::Buffer* pVertexBuffer = _textureVertexBufferAllocator->getNextBuffer();
-        assert(pVertexBuffer);
-        std::memcpy(pVertexBuffer->contents(), drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex));
-        pEnc->setVertexBuffer(pVertexBuffer, 0, TexVertexInputIndex::TexVertexInputIndexVertices);
+    for (auto& drawPicCmd: cmds) {
+        pEnc->setVertexBytes(&drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), TexVertexInputIndex::TexVertexInputIndexVertices);
         pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), TexVertexInputIndex::TexVertexInputIndexViewportSize);
         pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
         pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
     }
-    drawPicCmds.clear();
+    cmds.clear();
 }
 
 void MetalRenderer::encodeParticlesCommands(MTL::RenderCommandEncoder* pEnc) {
@@ -1269,10 +1337,11 @@ void MetalRenderer::encodeMetalCommands() {
     pEnc->setDepthStencilState(_pDepthStencilState);
     encodePolyCommands(pEnc);
     encodeAliasModPolyCommands(pEnc);
+    encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
     
     pEnc->setDepthStencilState(_pNoDepthTest);
     encodeParticlesCommands(pEnc);
-    encode2DCommands(pEnc);
+    encode2DCommands(pEnc, _p2dPSO, drawPicCmds);
     pEnc->endEncoding();
     
     auto blitCmdEnc = pCmd->blitCommandEncoder();
