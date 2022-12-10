@@ -117,6 +117,10 @@ private:
     void drawBrushModel(entity_t*, model_s*);
     void drawSpriteModel(entity_t*, model_s*);
     
+    void setLightLevel(entity_t*);
+    void lightPoint(entity_t*, vec3_t, vec3_t);
+    int recursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end);
+    
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();
