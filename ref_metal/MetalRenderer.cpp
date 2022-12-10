@@ -83,6 +83,7 @@ cvar_t *r_lockpvs;
 cvar_t *r_drawworld;
 cvar_t *gl_lefthand;
 cvar_t *r_gunfov;
+cvar_t *r_lightlevel;
 
 #pragma endregion Utils }
 
@@ -281,6 +282,7 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     if (vBlend[3] != 0.0f) {
         flashScreen();
     }
+    r_lightlevel->value = 500;
 }
 
 image_s* MetalRenderer::DrawFindPic(char* name) {
@@ -1469,6 +1471,7 @@ bool Metal_Init() {
     r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
     gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
     r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_ARCHIVE);
+    r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
     
     ri.Vid_GetModeInfo(&screenWidth, &screenHeight, r_mode->value);
     
