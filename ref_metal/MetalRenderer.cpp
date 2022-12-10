@@ -255,7 +255,8 @@ model_s* MetalRenderer::RegisterModel(char* name) {
             model->numframes = pheader->num_frames;
         } else if (model->type == mod_brush) {
             for (int i = 0; i < model->numtexinfo; i++) {
-//                model->texinfo[i].image
+//                not applicable to metal renderer
+//                model->texinfo[i].image->registration_sequence = registration_sequence;
             }
         }
         
@@ -265,7 +266,7 @@ model_s* MetalRenderer::RegisterModel(char* name) {
 }
 
 image_s* MetalRenderer::RegisterSkin(char* name) {
-    return NULL;
+    return imageLoader.FindImage(name, it_skin);
 }
 
 void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
