@@ -280,11 +280,6 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     if (vBlend[3] != 0.0f) {
         flashScreen();
     }
-    
-    encodeMetalCommands();
-    
-    _textureVertexBufferAllocator->updateFrame(_frame);
-    _frame = (_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
 image_s* MetalRenderer::DrawFindPic(char* name) {
@@ -337,7 +332,12 @@ void MetalRenderer::SetPalette(const unsigned char* palette) {}
 
 void MetalRenderer::BeginFrame(float camera_separation) {}
 
-void MetalRenderer::EndFrame() {}
+void MetalRenderer::EndFrame() {
+    encodeMetalCommands();
+    
+    _textureVertexBufferAllocator->updateFrame(_frame);
+    _frame = (_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
 
 bool MetalRenderer::EndWorldRenderpass() {
     return true;
