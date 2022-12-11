@@ -822,8 +822,8 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
             if (dp.primitiveType == MTL::PrimitiveType::PrimitiveTypeTriangle) {
                 for (int i = 1; i < count-1; i++) {
                     dp.vertices.push_back(vertices.at(0));
-                    dp.vertices.push_back(std::move(vertices.at(i)));
-                    dp.vertices.push_back(std::move(vertices.at(i+1)));
+                    dp.vertices.push_back(vertices.at(i));
+                    dp.vertices.push_back(vertices.at(i+1));
                 }
             } else if (dp.primitiveType == MTL::PrimitiveType::PrimitiveTypeTriangleStrip) {
                 int i;
