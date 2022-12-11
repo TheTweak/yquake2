@@ -42,8 +42,6 @@ private:
     MTL::DepthStencilState* _pNoDepthTest;
     MTL::Texture* _pDepthTexture;
     
-    std::unordered_map<std::string, MTL::Buffer*> aliasBufferMap[MAX_FRAMES_IN_FLIGHT];
-    
     int _width = 0;
     int _height = 0;
     int _oldViewCluster;

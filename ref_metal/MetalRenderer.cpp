@@ -1565,17 +1565,14 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         } else {
             mvp = &mvpMatrix;
         }
-        auto& bufferMap = aliasBufferMap[_frame];
-        if (auto it = bufferMap.find(cmd.textureName); it == bufferMap.end()) {
-            auto pBuffer = _pDevice->newBuffer(cmd.vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeShared);
-            bufferMap[cmd.textureName] = pBuffer;
-        }
-        auto pBuffer = bufferMap.at(cmd.textureName);
+        
+        auto pBuffer = _pDevice->newBuffer(cmd.vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeShared);
         std::memcpy(pBuffer->contents(), cmd.vertices.data(), cmd.vertices.size()*sizeof(Vertex));
         pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
         pEnc->setVertexBytes(mvp, sizeof(*mvp), VertexInputIndex::VertexInputIndexMVPMatrix);
         pEnc->setVertexBytes(&cmd.transModelMat, sizeof(cmd.transModelMat), VertexInputIndex::VertexInputIndexTransModelMatrix);
         pEnc->setVertexBytes(&cmd.alpha, sizeof(cmd.alpha), VertexInputIndex::VertexInputIndexAlpha);
+        
         auto texture = _textureMap.at(std::string(cmd.textureName.data(), cmd.textureName.size())).second;
         pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
         if (cmd.clamp) {
