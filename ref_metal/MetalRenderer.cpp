@@ -662,6 +662,51 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
     mtl_model_t* model = entity->model;
     dmdl_t *paliashdr = (dmdl_t *) model->extradata;
     
+    vec3_t shadelight;
+
+    /* get lighting information */
+    if (entity->flags &
+        (RF_SHELL_HALF_DAM | RF_SHELL_GREEN | RF_SHELL_RED |
+         RF_SHELL_BLUE | RF_SHELL_DOUBLE))
+    {
+    }
+    else if (entity->flags & RF_FULLBRIGHT)
+    {
+    }
+    else
+    {
+        lightPoint(entity, entity->origin, shadelight);
+
+        /* player lighting hack for communication back to server */
+        if (entity->flags & RF_WEAPONMODEL)
+        {
+            /* pick the greatest component, which should be
+               the same as the mono value returned by software */
+            if (shadelight[0] > shadelight[1])
+            {
+                if (shadelight[0] > shadelight[2])
+                {
+                    r_lightlevel->value = 150 * shadelight[0];
+                }
+                else
+                {
+                    r_lightlevel->value = 150 * shadelight[2];
+                }
+            }
+            else
+            {
+                if (shadelight[1] > shadelight[2])
+                {
+                    r_lightlevel->value = 150 * shadelight[1];
+                }
+                else
+                {
+                    r_lightlevel->value = 150 * shadelight[2];
+                }
+            }
+        }
+    }
+    
     if (entity->flags & RF_DEPTHHACK) {
         //gl set depth range todo: alternative in metal
     }
