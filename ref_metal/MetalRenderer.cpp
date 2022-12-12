@@ -111,6 +111,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     
     auto *dTextureDesc = MTL::TextureDescriptor::texture2DDescriptor(MTL::PixelFormatDepth32Float, _width, _height, false);
     dTextureDesc->setUsage(MTL::TextureUsageRenderTarget);
+    dTextureDesc->setStorageMode(MTL::StorageModeMemoryless);
     _pDepthTexture = _pDevice->newTexture(dTextureDesc);
     _pDepthTexture->setLabel(NS::MakeConstantString("depth buffer"));
     

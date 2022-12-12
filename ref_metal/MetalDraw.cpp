@@ -34,7 +34,7 @@ MTL::Texture* MetalDraw::createTexture(int width, int height, MTL::Device* pDevi
     pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
     pTextureDescriptor->setWidth(width);
     pTextureDescriptor->setHeight(height);
-    pTextureDescriptor->setStorageMode( MTL::StorageModeManaged );
+    pTextureDescriptor->setStorageMode( MTL::StorageModeShared );
     pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
     pTextureDescriptor->setTextureType( MTL::TextureType2D );
     
