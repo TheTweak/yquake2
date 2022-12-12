@@ -639,7 +639,6 @@
 		818EBB29292C837A003B666B /* BSP.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BSP.hpp; sourceTree = "<group>"; };
 		818EBB2B292C876D003B666B /* model.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = model.h; sourceTree = "<group>"; };
 		81AAD7A429272A7B007B8641 /* ParticleShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = ParticleShaders.metal; sourceTree = "<group>"; };
-		81AB39D42925DBE5006E428F /* BufferAllocator.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BufferAllocator.hpp; sourceTree = "<group>"; };
 		81D8B21B293309E700D13317 /* VertexShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VertexShaders.metal; sourceTree = "<group>"; };
 		81E93E8328DF9DFE00D5F04C /* Image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Image.cpp; sourceTree = "<group>"; };
 		81E93E8428DF9DFE00D5F04C /* Image.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Image.hpp; sourceTree = "<group>"; };
@@ -1213,7 +1212,6 @@
 				8141FA622921E7B6003F0E01 /* Utils.hpp */,
 				8141FA642921E9A0003F0E01 /* MetalDraw.cpp */,
 				8141FA652921E9A0003F0E01 /* MetalDraw.hpp */,
-				81AB39D42925DBE5006E428F /* BufferAllocator.hpp */,
 				81AAD7A429272A7B007B8641 /* ParticleShaders.metal */,
 				818EBB28292C837A003B666B /* BSP.cpp */,
 				818EBB29292C837A003B666B /* BSP.hpp */,

@@ -120,8 +120,6 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     buildDepthStencilState();
     drawInit();
     pPool->release();
-    _textureVertexBufferAllocator = std::make_unique<TextureVertexBuffer>(_pDevice);
-    _particleBufferAllocator = std::make_unique<ParticleBuffer>(_pDevice);
 }
 
 void MetalRenderer::drawInit() {
@@ -343,7 +341,6 @@ void MetalRenderer::BeginFrame(float camera_separation) {}
 void MetalRenderer::EndFrame() {
     encodeMetalCommands();
     
-    _textureVertexBufferAllocator->updateFrame(_frame);
     _frame = (_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
@@ -1534,19 +1531,19 @@ void MetalRenderer::encodeParticlesCommands(MTL::RenderCommandEncoder* pEnc) {
     }
     
     pEnc->setRenderPipelineState(_pParticlePSO);
-    Particle particles[MAX_PARTICLES_COUNT];
-    int i;
-    for (i = 0; i < MAX_PARTICLES_COUNT && i < drawPartCmds.size(); i++) {
-        particles[i] = drawPartCmds.at(i).particle;
+    std::vector<Particle> particles;
+    for (int i = 0; i < drawPartCmds.size(); i++) {
+        particles.push_back(drawPartCmds.at(i).particle);
     }
-    MTL::Buffer* pBuffer = _particleBufferAllocator->getNextBuffer();
+    auto pBuffer = _pDevice->newBuffer(particles.size()*sizeof(Particle), MTL::ResourceStorageModeManaged);
     assert(pBuffer);
-    std::memcpy(pBuffer->contents(), particles, i);
+    std::memcpy(pBuffer->contents(), particles.data(), particles.size()*sizeof(Particle));
     pEnc->setVertexBuffer(pBuffer, 0, ParticleInputIndex::ParticleInputIndexVertices);
     pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), ParticleInputIndex::ParticleInputIndexMVPMatrix);
     pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), ParticleInputIndex::ParticleInputIndexIdentityM);
-    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypePoint, NS::UInteger(0), NS::UInteger(i));
+    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypePoint, NS::UInteger(0), NS::UInteger(particles.size()));
     drawPartCmds.clear();
+    pBuffer->release();
 }
 
 void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) {
@@ -1554,6 +1551,7 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         return;
     }
     
+    std::vector<MTL::Buffer*> buffers;
     for (auto& cmd: drawAliasModPolyCmds) {
         if (cmd.vertices.empty()) {
             continue;
@@ -1567,6 +1565,8 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         }
         
         auto pBuffer = _pDevice->newBuffer(cmd.vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeShared);
+        assert(pBuffer);
+        buffers.push_back(pBuffer);
         std::memcpy(pBuffer->contents(), cmd.vertices.data(), cmd.vertices.size()*sizeof(Vertex));
         pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
         pEnc->setVertexBytes(mvp, sizeof(*mvp), VertexInputIndex::VertexInputIndexMVPMatrix);
@@ -1587,6 +1587,10 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
     pEnc->setDepthClipMode(MTL::DepthClipModeClip);
     pEnc->setCullMode(MTL::CullModeNone);
     drawAliasModPolyCmds.clear();
+    
+    for (auto pBuffer: buffers) {
+        pBuffer->release();
+    }
 }
 
 void MetalRenderer::encodeMetalCommands() {

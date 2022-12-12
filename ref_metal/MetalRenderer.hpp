@@ -18,12 +18,8 @@
 
 #include "Utils.hpp"
 #include "MetalDraw.hpp"
-#include "BufferAllocator.hpp"
 #include "Model.hpp"
 #include "Image.hpp"
-
-using ParticleBuffer = BufferAllocator<sizeof(DrawParticleCommandData::particle) * MAX_PARTICLES_COUNT>;
-using TextureVertexBuffer = BufferAllocator<sizeof(DrawPicCommandData::textureVertex)>;
 
 typedef float vec4_t[4];
 
@@ -77,8 +73,6 @@ private:
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unique_ptr<MetalDraw> draw;
     dispatch_semaphore_t _semaphore;
-    std::unique_ptr<TextureVertexBuffer> _textureVertexBufferAllocator;
-    std::unique_ptr<ParticleBuffer> _particleBufferAllocator;
     simd_float4x4 projectionMatrix;
     simd_float4x4 modelViewMatrix;
     simd_float4x4 mvpMatrix;
