@@ -51,7 +51,7 @@ struct DrawParticleCommandData {
 struct DrawPolyCommandData {
     std::string textureName;
     std::vector<Vertex> vertices;
-    std::optional<simd_float4x4> projMat;
+    std::optional<simd_float4x4> transModelMat;
     float alpha;
 };
 

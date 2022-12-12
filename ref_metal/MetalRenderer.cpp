@@ -958,6 +958,7 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
                     DrawPolyCommandData dp;
                     dp.alpha = 1.0f;
                     dp.textureName = image->path;
+                    dp.transModelMat = transModelMat;
                     auto vertexArray = getPolyVertices(dp.textureName, p, i, image);
                     for (int j = 0; j < vertexArray.size(); j++) {
                         dp.vertices.push_back(vertexArray[j]);
@@ -1130,7 +1131,6 @@ std::array<Vertex, 3> MetalRenderer::getPolyVertices(std::string textureName, gl
 }
 
 void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
-    std::optional<std::string> prevTexture;
     for (auto it = imageLoader.GetLoadedImages().begin(); it != imageLoader.GetLoadedImages().end(); it++) {
 
         msurface_t* s = it->second->texturechain;
@@ -1500,6 +1500,7 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
             texturePolys[cmd.textureName].vertices.push_back(v);
         }
         texturePolys[cmd.textureName].alpha = cmd.alpha;
+        texturePolys[cmd.textureName].transModelMat = cmd.transModelMat;
     }
     std::vector<MTL::Buffer*> buffers;
     for (auto it = texturePolys.begin(); it != texturePolys.end(); it++) {
@@ -1509,8 +1510,12 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
         std::memcpy(pBuffer->contents(), it->second.vertices.data(), it->second.vertices.size()*sizeof(Vertex));
         pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
         
+        if (it->second.transModelMat) {
+            pEnc->setVertexBytes(&it->second.transModelMat.value(), sizeof(it->second.transModelMat.value()), VertexInputIndex::VertexInputIndexTransModelMatrix);
+        } else {
+            pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexTransModelMatrix);
+        }
         pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
-        pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexTransModelMatrix);
         pEnc->setVertexBytes(&it->second.alpha, sizeof(it->second.alpha), VertexInputIndex::VertexInputIndexAlpha);
         
         auto texture = _textureMap.at(std::string(it->first.data(), it->first.size())).second;

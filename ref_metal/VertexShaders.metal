@@ -18,12 +18,12 @@ vertex VertexRasteriserData
 vertexShader(uint vertexID [[ vertex_id ]],
                      constant Vertex *vertexArray [[ buffer(VertexInputIndexVertices) ]],
                      constant float4x4 *mvpMatrix [[ buffer(VertexInputIndexMVPMatrix) ]],
-                     constant float4x4 *identityMatrix [[ buffer(VertexInputIndexTransModelMatrix) ]],
+                     constant float4x4 *transMatrix [[ buffer(VertexInputIndexTransModelMatrix) ]],
                      constant float *alpha [[ buffer(VertexInputIndexAlpha) ]])
 {
     VertexRasteriserData out;
     Vertex v = vertexArray[vertexID];
-    out.position = *mvpMatrix * *identityMatrix * float4(v.position, 1.0);
+    out.position = *mvpMatrix * *transMatrix * float4(v.position, 1.0);
     out.textureCoordinate = v.texCoordinate;
     out.alpha = *alpha;
     return out;
