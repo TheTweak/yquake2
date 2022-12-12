@@ -1500,6 +1500,7 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
             texturePolys[cmd.textureName].vertices.push_back(v);
         }
         texturePolys[cmd.textureName].alpha = cmd.alpha;
+        // todo: group by texture name AND translation matrix to fix elevator doors rendering
         texturePolys[cmd.textureName].transModelMat = cmd.transModelMat;
     }
     std::vector<MTL::Buffer*> buffers;
