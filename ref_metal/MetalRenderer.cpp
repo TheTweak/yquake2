@@ -1487,23 +1487,40 @@ void MetalRenderer::drawParticles() {
     }
 }
 
-void MetalRenderer::encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha, simd_float4x4* mvp) {
-    pEnc->setVertexBytes(vertexBatch, batchSize*sizeof(Vertex), VertexInputIndex::VertexInputIndexVertices);
-    pEnc->setVertexBytes(mvp, sizeof(*mvp), VertexInputIndex::VertexInputIndexMVPMatrix);
-    pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexTransModelMatrix);
-    pEnc->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
-    auto texture = _textureMap.at(std::string(textureName.data(), textureName.size())).second;
-    pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
-    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(batchSize));
-}
-
 void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
     if (drawPolyCmds.empty()) {
         return;
     }
     pEnc->setRenderPipelineState(_pVertexPSO);
+    
+    std::unordered_map<std::string_view, DrawPolyCommandData> texturePolys;
+    // group polygons by texture
     for (auto& cmd: drawPolyCmds) {
-        encodePolyCommandBatch(pEnc, cmd.vertices.data(), (int) cmd.vertices.size(), cmd.textureName, cmd.alpha, &mvpMatrix);
+        for (auto& v: cmd.vertices) {
+            texturePolys[cmd.textureName].vertices.push_back(v);
+        }
+        texturePolys[cmd.textureName].alpha = cmd.alpha;
+    }
+    std::vector<MTL::Buffer*> buffers;
+    for (auto it = texturePolys.begin(); it != texturePolys.end(); it++) {
+        auto pBuffer = _pDevice->newBuffer(it->second.vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeManaged);
+        assert(pBuffer);
+        buffers.push_back(pBuffer);
+        std::memcpy(pBuffer->contents(), it->second.vertices.data(), it->second.vertices.size()*sizeof(Vertex));
+        pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+        
+        pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
+        pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexTransModelMatrix);
+        pEnc->setVertexBytes(&it->second.alpha, sizeof(it->second.alpha), VertexInputIndex::VertexInputIndexAlpha);
+        
+        auto texture = _textureMap.at(std::string(it->first.data(), it->first.size())).second;
+        pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
+        
+        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(it->second.vertices.size()));
+    }
+    
+    for (auto pBuffer: buffers) {
+        pBuffer->release();
     }
     drawPolyCmds.clear();
 }

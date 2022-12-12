@@ -87,7 +87,6 @@ private:
     void encodeParticlesCommands(MTL::RenderCommandEncoder*);
     void encodePolyCommands(MTL::RenderCommandEncoder*);
     void encodeAliasModPolyCommands(MTL::RenderCommandEncoder*);
-    void encodePolyCommandBatch(MTL::RenderCommandEncoder* pEnc, Vertex* vertexBatch, int batchSize, std::string_view textureName, float alpha, simd_float4x4* mvp);
     void flashScreen();
     void renderView();
     void setupFrame();
