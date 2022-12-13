@@ -946,8 +946,8 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
             if (psurf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66)) {
                 /* add to the translucent chain */
                 // todo
-            } else if(!(psurf->flags & SURF_DRAWTURB)) {
-                // todo
+//            } else if(!(psurf->flags & SURF_DRAWTURB)) {
+                // check in GL3_DrawGLFlowingPoly
             } else {
                 image_s* image = Utils::TextureAnimation(entity, psurf->texinfo);
                 glpoly_t *p = psurf->polys;
