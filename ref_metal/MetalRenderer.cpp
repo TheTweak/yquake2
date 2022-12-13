@@ -716,9 +716,9 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         
         simd_float4x4 projMat;
         if (r_gunfov->value < 0) {
-            projMat = Utils::gluPerspective(mtl_newrefdef.fov_y, screenaspect, 4, dist);
+            projMat = Utils::gluPerspective(mtl_newrefdef.fov_y, screenaspect, 2, dist);
         } else {
-            projMat = Utils::gluPerspective(r_gunfov->value, screenaspect, 4, dist);
+            projMat = Utils::gluPerspective(r_gunfov->value, screenaspect, 2, dist);
         }
         
         if (gl_lefthand->value == 1.0f) {
