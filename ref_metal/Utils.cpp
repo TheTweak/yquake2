@@ -17,6 +17,22 @@ float Utils::toRadians(float deg) {
     return deg * (pi / 180.0f);
 }
 
+bool DrawPolyCommandKey::operator==(const DrawPolyCommandKey& other) const {
+    if (textureName != other.textureName) {
+        return false;
+    }
+    
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (transModelMat.columns[i][j] != other.transModelMat.columns[i][j]) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
+}
+
 /*
  * Returns true if the box is completely outside the frustom
  */

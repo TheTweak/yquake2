@@ -55,6 +55,28 @@ struct DrawPolyCommandData {
     float alpha;
 };
 
+struct DrawPolyCommandKey {
+    std::string textureName;
+    simd_float4x4 transModelMat;
+    
+    bool operator==(const DrawPolyCommandKey& other) const;
+};
+
+struct DrawPolyCommandKeyHash {
+    size_t operator()(const DrawPolyCommandKey& key) const {
+        size_t result = std::hash<std::string>()(key.textureName);
+        
+        auto floatHasher = std::hash<float>();
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                result = floatHasher(key.transModelMat.columns[i][j]) ^ result << 1;
+            }
+        }
+        
+        return result;
+    }
+};
+
 struct DrawAliasPolyCommandData {
     std::string textureName;
     std::vector<Vertex> vertices;

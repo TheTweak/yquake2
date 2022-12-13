@@ -1493,15 +1493,21 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
     }
     pEnc->setRenderPipelineState(_pVertexPSO);
     
-    std::unordered_map<std::string_view, DrawPolyCommandData> texturePolys;
-    // group polygons by texture
+    std::unordered_map<DrawPolyCommandKey, DrawPolyCommandData, DrawPolyCommandKeyHash> texturePolys;
+    // group polygons by texture and translation matrix
     for (auto& cmd: drawPolyCmds) {
-        for (auto& v: cmd.vertices) {
-            texturePolys[cmd.textureName].vertices.push_back(v);
+        DrawPolyCommandKey key;
+        key.textureName = cmd.textureName;
+        if (cmd.transModelMat) {
+            key.transModelMat = cmd.transModelMat.value();
+        } else {
+            key.transModelMat = matrix_identity_float4x4;
         }
-        texturePolys[cmd.textureName].alpha = cmd.alpha;
-        // todo: group by texture name AND translation matrix to fix elevator doors rendering
-        texturePolys[cmd.textureName].transModelMat = cmd.transModelMat;
+        for (auto& v: cmd.vertices) {
+            texturePolys[key].vertices.push_back(v);
+        }
+        texturePolys[key].alpha = cmd.alpha;
+        texturePolys[key].transModelMat = cmd.transModelMat;
     }
     std::vector<MTL::Buffer*> buffers;
     for (auto it = texturePolys.begin(); it != texturePolys.end(); it++) {
@@ -1519,7 +1525,7 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
         pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
         pEnc->setVertexBytes(&it->second.alpha, sizeof(it->second.alpha), VertexInputIndex::VertexInputIndexAlpha);
         
-        auto texture = _textureMap.at(std::string(it->first.data(), it->first.size())).second;
+        auto texture = _textureMap.at(it->first.textureName).second;
         pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
         
         pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(it->second.vertices.size()));
