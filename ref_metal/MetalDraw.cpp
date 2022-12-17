@@ -37,6 +37,7 @@ MTL::Texture* MetalDraw::createTexture(int width, int height, MTL::Device* pDevi
     pTextureDescriptor->setStorageMode( MTL::StorageModeShared );
     pTextureDescriptor->setUsage( MTL::ResourceUsageSample | MTL::ResourceUsageRead );
     pTextureDescriptor->setTextureType( MTL::TextureType2D );
+    pTextureDescriptor->setMipmapLevelCount(4);
     
     MTL::Texture* pFragmentTexture = pDevice->newTexture(pTextureDescriptor);
     MTL::Region region = {

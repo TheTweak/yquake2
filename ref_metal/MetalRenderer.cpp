@@ -1647,8 +1647,16 @@ void MetalRenderer::encodeMetalCommands() {
     pEnc->setDepthStencilState(_pNoDepthTest);
     encode2DCommands(pEnc, _p2dPSO, drawPicCmds);
     pEnc->endEncoding();
-    
+
     auto blitCmdEnc = pCmd->blitCommandEncoder();
+    
+    if (!mipMapsGenerated) {
+        for (auto it = _textureMap.begin(); it != _textureMap.end(); it++) {
+            blitCmdEnc->generateMipmaps(it->second.second);
+        }
+        mipMapsGenerated = true;
+    }
+    
     blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
     blitCmdEnc->endEncoding();
     pCmd->commit();

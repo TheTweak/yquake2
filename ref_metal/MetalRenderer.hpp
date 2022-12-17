@@ -77,6 +77,8 @@ private:
     simd_float4x4 modelViewMatrix;
     simd_float4x4 mvpMatrix;
     
+    bool mipMapsGenerated = false;
+    
     MetalRenderer();
     void buildShaders();
     void buildDepthStencilState();
