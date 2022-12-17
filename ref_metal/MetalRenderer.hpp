@@ -15,6 +15,7 @@
 #include <vector>
 #include <memory>
 #include <string_view>
+#include <unordered_set>
 
 #include "Utils.hpp"
 #include "MetalDraw.hpp"
@@ -71,13 +72,12 @@ private:
     std::vector<DrawAliasPolyCommandData> drawAliasModPolyCmds;
     
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
+    std::unordered_set<std::string> generatedMipMaps;
     std::unique_ptr<MetalDraw> draw;
     dispatch_semaphore_t _semaphore;
     simd_float4x4 projectionMatrix;
     simd_float4x4 modelViewMatrix;
     simd_float4x4 mvpMatrix;
-    
-    bool mipMapsGenerated = false;
     
     MetalRenderer();
     void buildShaders();

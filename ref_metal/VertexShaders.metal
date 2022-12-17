@@ -35,7 +35,8 @@ fragFunc(VertexRasteriserData in [[stage_in]],
 {
     constexpr sampler textureSampler (mag_filter::linear,
                                       min_filter::linear,
-                                      address::repeat);
+                                      address::repeat,
+                                      mip_filter::linear);
     half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
     colorSample[3] = in.alpha;
     return float4(colorSample);

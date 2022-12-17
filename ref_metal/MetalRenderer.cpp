@@ -1650,13 +1650,13 @@ void MetalRenderer::encodeMetalCommands() {
 
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     
-    if (!mipMapsGenerated) {
-        for (auto it = _textureMap.begin(); it != _textureMap.end(); it++) {
+    for (auto it = _textureMap.begin(); it != _textureMap.end(); it++) {
+        if (it->second.second != NULL && generatedMipMaps.find(it->first) == generatedMipMaps.end()) {
             blitCmdEnc->generateMipmaps(it->second.second);
+            generatedMipMaps.insert(it->first);            
         }
-        mipMapsGenerated = true;
     }
-    
+
     blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
     blitCmdEnc->endEncoding();
     pCmd->commit();
