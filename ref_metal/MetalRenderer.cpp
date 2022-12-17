@@ -819,7 +819,8 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         int index_xyz;
         if (auto tit = _textureMap.find(skin->path); tit == _textureMap.end()) {
             _textureMap[skin->path] = {ImageSize{skin->width, skin->height},
-                draw->createTexture(skin->width, skin->height, _pDevice, skin->data)};
+                draw->createTexture(skin->width, skin->height, _pDevice, skin->data)};            
+            _textureMap[skin->path].second->setLabel(NS::String::string(skin->path.data(), NS::StringEncoding::UTF8StringEncoding));
         }
         DrawAliasPolyCommandData dp;
         dp.textureName = skin->path;
@@ -1014,6 +1015,7 @@ void MetalRenderer::drawSpriteModel(entity_t* e, model_s* currentmodel) {
     if (auto tit = _textureMap.find(dp.pic); tit == _textureMap.end()) {
         _textureMap[dp.pic] = {ImageSize{image->width, image->height},
             draw->createTexture(image->width, image->height, _pDevice, image->data)};
+        _textureMap[dp.pic].second->setLabel(NS::String::string(dp.pic.data(), NS::StringEncoding::UTF8StringEncoding));
     }
     
     dp.textureVertex[0] = {
@@ -1107,6 +1109,7 @@ std::array<Vertex, 3> MetalRenderer::getPolyVertices(std::string textureName, gl
     if (auto tit = _textureMap.find(textureName); tit == _textureMap.end()) {
         _textureMap[textureName] = {ImageSize{image->width, image->height},
             draw->createTexture(image->width, image->height, _pDevice, image->data)};
+        _textureMap[textureName].second->setLabel(NS::String::string(textureName.data(), NS::StringEncoding::UTF8StringEncoding));
     }
     std::array<Vertex, 3> vertices;
     {
