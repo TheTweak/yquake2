@@ -151,7 +151,7 @@ void MetalRenderer::buildShaders() {
         MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader2D", UTF8StringEncoding) );
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader2D", UTF8StringEncoding) );
         
-        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, true);
         
         NS::Error* pError = nullptr;
         _p2dPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
@@ -169,7 +169,7 @@ void MetalRenderer::buildShaders() {
         MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("particleVertexShader", UTF8StringEncoding) );
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("particleFragFunc", UTF8StringEncoding) );
         
-        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, false);
         
         NS::Error* pError = nullptr;
         _pParticlePSO = _pDevice->newRenderPipelineState(pDesc, &pError);
@@ -187,7 +187,7 @@ void MetalRenderer::buildShaders() {
         MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
         
-        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn);
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, false);
         
         NS::Error* pError = nullptr;
         _pVertexPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
@@ -352,12 +352,13 @@ bool MetalRenderer::EndWorldRenderpass() {
 #pragma mark - Private_Methods
 #pragma region Private_Methods {
 
-MTL::RenderPipelineDescriptor* MetalRenderer::createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn) {
+MTL::RenderPipelineDescriptor* MetalRenderer::createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn,
+                                                                            bool blendingEnabled) {
     MTL::RenderPipelineDescriptor* pDesc = MTL::RenderPipelineDescriptor::alloc()->init();
     pDesc->setVertexFunction(pVertexFn);
     pDesc->setFragmentFunction(pFragFn);
     pDesc->colorAttachments()->object(0)->setPixelFormat(PIXEL_FORMAT);
-    pDesc->colorAttachments()->object(0)->setBlendingEnabled(true);
+    pDesc->colorAttachments()->object(0)->setBlendingEnabled(blendingEnabled);
     pDesc->colorAttachments()->object(0)->setRgbBlendOperation(MTL::BlendOperationAdd);
     pDesc->colorAttachments()->object(0)->setAlphaBlendOperation(MTL::BlendOperationAdd);
     pDesc->colorAttachments()->object(0)->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);

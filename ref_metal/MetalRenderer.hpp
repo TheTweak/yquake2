@@ -114,7 +114,7 @@ private:
     void lightPoint(entity_t*, vec3_t, vec3_t);
     int recursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end);
     
-    MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn);
+    MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn, bool blendingEnabled);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();
     std::array<Vertex, 3> getPolyVertices(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image);
