@@ -1611,15 +1611,12 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
         if (cmd.clamp) {
             pEnc->setDepthClipMode(MTL::DepthClipModeClamp);
-            pEnc->setCullMode(MTL::CullModeBack);
         } else {
             pEnc->setDepthClipMode(MTL::DepthClipModeClip);
-            pEnc->setCullMode(MTL::CullModeNone);
         }
         pEnc->drawPrimitives(cmd.primitiveType, NS::UInteger(0), NS::UInteger(cmd.vertices.size()));
     }
     pEnc->setDepthClipMode(MTL::DepthClipModeClip);
-    pEnc->setCullMode(MTL::CullModeNone);
     drawAliasModPolyCmds.clear();
     
     for (auto pBuffer: buffers) {
@@ -1642,6 +1639,7 @@ void MetalRenderer::encodeMetalCommands() {
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
     
     pEnc->setDepthStencilState(_pDepthStencilState);
+    pEnc->setCullMode(MTL::CullModeBack);
 
     encodePolyCommands(pEnc);
     encodeAliasModPolyCommands(pEnc);
