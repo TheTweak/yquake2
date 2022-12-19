@@ -4,7 +4,7 @@
 
 #include <metal_stdlib>
 #include <simd/simd.h>
-#include "SharedTypes.h"
+#include "../SharedTypes.h"
 
 using namespace metal;
 

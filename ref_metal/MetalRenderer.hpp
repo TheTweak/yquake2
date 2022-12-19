@@ -9,8 +9,6 @@
 #ifndef MetalRenderer_hpp
 #define MetalRenderer_hpp
 
-#define MAX_PARTICLES_COUNT 1000
-
 #include <unordered_map>
 #include <vector>
 #include <memory>
