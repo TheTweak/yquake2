@@ -16,7 +16,7 @@
 
 #include "model.h"
 
-class Img {
+class Image {
     std::map<std::string, std::shared_ptr<image_s>> _imageCache;
 public:
     image_s* FindImage(char* name, imagetype_t type);

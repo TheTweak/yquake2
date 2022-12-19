@@ -22,7 +22,7 @@
 #define BLOCK_HEIGHT 512
 
 class Model {
-    Img& imageLoader;
+    Image& imageLoader;
     
     std::unordered_map<std::string, std::shared_ptr<mtl_model_t>> models;
     std::shared_ptr<mtl_model_t> loadMD2(std::string name, void *buffer, int modfilelen);
@@ -36,7 +36,7 @@ public:
     std::optional<std::shared_ptr<mtl_model_t>> getModel(std::string name, std::optional<std::shared_ptr<mtl_model_t>> parent, bool crash);
     const byte* clusterPVS(int cluster, const mtl_model_t* model);
     
-    Model(Img& il);
+    Model(Image& il);
 };
 
 #endif /* Model_hpp */

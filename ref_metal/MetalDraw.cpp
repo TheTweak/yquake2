@@ -10,7 +10,7 @@
 
 #include "MetalDraw.hpp"
 
-MetalDraw::MetalDraw(int sWidth, int sHeight, Img& il) : screenWidth(sWidth), screenHeight(sHeight), imageLoader(il) {}
+MetalDraw::MetalDraw(int sWidth, int sHeight, Image& il) : screenWidth(sWidth), screenHeight(sHeight), imageLoader(il) {}
 
 image_s* MetalDraw::DrawFindPic(char* name) {
     image_s* image;

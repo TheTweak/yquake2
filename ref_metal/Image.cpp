@@ -218,7 +218,7 @@ image_s* LoadPic(char* name, byte* pic, int width,
     return result;
 }
 
-std::optional<image_s*> Img::LoadM8(char *origname, imagetype_t type) {
+std::optional<image_s*> Image::LoadM8(char *origname, imagetype_t type) {
     m8tex_t *mt;
     int width, height, ofs, size;
     image_s *image;
@@ -285,7 +285,7 @@ std::optional<image_s*> Img::LoadM8(char *origname, imagetype_t type) {
     return image;
 }
 
-std::optional<image_s*> Img::LoadWal(char *origname, imagetype_t type) {
+std::optional<image_s*> Image::LoadWal(char *origname, imagetype_t type) {
     miptex_t *mt;
     int width, height, ofs, size;
     image_s *image;
@@ -333,11 +333,11 @@ std::optional<image_s*> Img::LoadWal(char *origname, imagetype_t type) {
     return image;
 }
 
-const std::map<std::string, std::shared_ptr<image_s>>& Img::GetLoadedImages() const {
+const std::map<std::string, std::shared_ptr<image_s>>& Image::GetLoadedImages() const {
     return _imageCache;
 }
 
-image_s* Img::FindImage(char* name, imagetype_t type) {
+image_s* Image::FindImage(char* name, imagetype_t type) {
     if (auto it = _imageCache.find(name); it != end(_imageCache)) {
         return it->second.get();
     }
@@ -496,7 +496,7 @@ image_s* Img::FindImage(char* name, imagetype_t type) {
     return image;
 }
 
-std::array<float, 4> Img::GetPalleteColor(int c, float alpha) {
+std::array<float, 4> Image::GetPalleteColor(int c, float alpha) {
     if (c > 255) {
         c = 255;
     }

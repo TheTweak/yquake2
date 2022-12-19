@@ -10,7 +10,7 @@
 #include "Model.hpp"
 #include "Image.hpp"
 
-Model::Model(Img& il) : imageLoader(il) {
+Model::Model(Image& il) : imageLoader(il) {
     memset(mod_novis, 0xff, sizeof(mod_novis));
 }
 

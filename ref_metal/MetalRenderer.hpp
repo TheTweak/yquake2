@@ -45,7 +45,7 @@ private:
     int _viewCluster2;
     
     Model modelLoader;
-    Img imageLoader;
+    Image imageLoader;
     std::shared_ptr<mtl_model_t> worldModel;
     float vBlend[4]; /* final blending color */
     msurface_t* alphaSurfaces;
