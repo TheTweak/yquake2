@@ -5,7 +5,7 @@
 //  Created by SOROKIN EVGENY on 22.11.2022.
 //
 
-#include "BSP.hpp"
+#include "BSPUtils.hpp"
 
 mleaf_t* BSPUtils::PointInLeaf(vec_t *p, mtl_model_t *model) {
     mnode_t *node;
