@@ -7,10 +7,10 @@
 #include <cmath>
 
 #include "Utils.hpp"
-#include "../src/common/header/shared.h"
+#include "../../src/common/header/shared.h"
 
 static float r_avertexnormals[NUMVERTEXNORMALS][3] = {
-#include "../src/client/refresh/constants/anorms.h"
+#include "../../src/client/refresh/constants/anorms.h"
 };
 
 float Utils::toRadians(float deg) {

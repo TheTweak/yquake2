@@ -31,7 +31,7 @@
 #include "MetalRenderer.hpp"
 #include "Image.hpp"
 #include "model.h"
-#include "BSPUtils.hpp"
+#include "utils/BSPUtils.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {

@@ -10,7 +10,7 @@
 
 #include <stdio.h>
 
-#include "model.h"
+#include "../model.h"
 
 namespace BSPUtils {
 

@@ -12,7 +12,7 @@
 #include <optional>
 #include <MetalKit/MetalKit.hpp>
 
-#include "Utils.hpp"
+#include "utils/Utils.hpp"
 #include "Image.hpp"
 #include "../src/client/vid/header/ref.h"
 
