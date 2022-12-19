@@ -15,7 +15,7 @@
 #include <MetalKit/MetalKit.hpp>
 
 #include "../SharedTypes.h"
-#include "../model.h"
+#include "../model/model.h"
 
 #define PIXEL_FORMAT MTL::PixelFormatBGRA8Unorm
 #define MAX_FRAMES_IN_FLIGHT 3

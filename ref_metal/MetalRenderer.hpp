@@ -17,8 +17,8 @@
 
 #include "utils/Utils.hpp"
 #include "MetalDraw.hpp"
-#include "Model.hpp"
-#include "Image.hpp"
+#include "model/Model.hpp"
+#include "image/Image.hpp"
 
 typedef float vec4_t[4];
 

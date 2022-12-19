@@ -8,7 +8,7 @@
 #include <sstream>
 
 #include "Model.hpp"
-#include "Image.hpp"
+#include "../image/Image.hpp"
 
 Model::Model(Image& il) : imageLoader(il) {
     memset(mod_novis, 0xff, sizeof(mod_novis));

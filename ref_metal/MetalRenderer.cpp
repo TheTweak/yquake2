@@ -29,8 +29,6 @@
 #include "../src/common/header/shared.h"
 #include "../src/common/header/common.h"
 #include "MetalRenderer.hpp"
-#include "Image.hpp"
-#include "model.h"
 #include "utils/BSPUtils.hpp"
 
 #pragma mark - Utils

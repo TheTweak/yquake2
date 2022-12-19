@@ -14,7 +14,7 @@
 #include <optional>
 #include <map>
 
-#include "model.h"
+#include "../model/model.h"
 
 class Image {
     std::map<std::string, std::shared_ptr<image_s>> _imageCache;

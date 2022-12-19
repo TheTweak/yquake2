@@ -13,7 +13,7 @@
 #include <MetalKit/MetalKit.hpp>
 
 #include "utils/Utils.hpp"
-#include "Image.hpp"
+#include "image/Image.hpp"
 #include "../src/client/vid/header/ref.h"
 
 class MetalDraw {

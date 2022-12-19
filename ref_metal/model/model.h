@@ -31,7 +31,7 @@
 #pragma once
 
 #include <string>
-#include "../src/client/refresh/ref_shared.h"
+#include "../../src/client/refresh/ref_shared.h"
 
 enum {
     SIDE_FRONT = 0,
