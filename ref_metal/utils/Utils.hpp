@@ -14,7 +14,7 @@
 #include <optional>
 #include <MetalKit/MetalKit.hpp>
 
-#include "../SharedTypes.h"
+#include "SharedTypes.h"
 #include "../model/model.h"
 
 #define PIXEL_FORMAT MTL::PixelFormatBGRA8Unorm

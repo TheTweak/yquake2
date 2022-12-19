@@ -1,6 +1,6 @@
 #include <metal_stdlib>
 #include <simd/simd.h>
-#include "../SharedTypes.h"
+#include "../utils/SharedTypes.h"
 
 using namespace metal;
 
