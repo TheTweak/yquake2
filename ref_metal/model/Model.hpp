@@ -17,7 +17,6 @@
 #include "model.h"
 #include "../image/Image.hpp"
 
-#define MAX_LIGHTMAPS_PER_SURFACE 4
 #define BLOCK_WIDTH 1024
 #define BLOCK_HEIGHT 512
 

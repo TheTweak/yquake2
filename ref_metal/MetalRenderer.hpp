@@ -19,6 +19,7 @@
 #include "MetalDraw.hpp"
 #include "model/Model.hpp"
 #include "image/Image.hpp"
+#include "legacy/LegacyLight.hpp"
 
 typedef float vec4_t[4];
 
@@ -108,9 +109,7 @@ private:
     void drawBrushModel(entity_t*, model_s*);
     void drawSpriteModel(entity_t*, model_s*);
     
-    void setLightLevel(entity_t*);
-    void lightPoint(entity_t*, vec3_t, vec3_t);
-    int recursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end);
+    LegacyLight legacyLight;
     
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn, bool blendingEnabled);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();

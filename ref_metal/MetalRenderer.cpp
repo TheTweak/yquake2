@@ -9,10 +9,6 @@
 #define MTL_PRIVATE_IMPLEMENTATION
 #define MTK_PRIVATE_IMPLEMENTATION
 #define CA_PRIVATE_IMPLEMENTATION
-#define FADE_SCREEN_TEXTURE "_FADE_SCREEN"
-#define FLASH_SCREEN_TEXTURE "_FLASH_SCREEN"
-#define FILL_TEXTURE "_FILL_SCREEN_"
-#define BACKFACE_EPSILON 0.01
 
 #include <iostream>
 #include <sstream>
@@ -30,6 +26,8 @@
 #include "../src/common/header/common.h"
 #include "MetalRenderer.hpp"
 #include "utils/BSPUtils.hpp"
+#include "legacy/ConsoleVars.h"
+#include "utils/Constants.h"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -71,18 +69,6 @@ Com_Printf(char *msg, ...)
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
 refimport_t ri;
 refdef_t mtl_newrefdef;
-
-cvar_t *r_mode;
-cvar_t *metal_particle_size;
-cvar_t *r_farsee;
-cvar_t *r_fixsurfsky;
-cvar_t *r_novis;
-cvar_t *r_lockpvs;
-cvar_t *r_drawworld;
-cvar_t *gl_lefthand;
-cvar_t *r_gunfov;
-cvar_t *r_lightlevel;
-cvar_t *r_modulate;
 
 vec3_t lightspot;
 static cplane_t *lightplane; /* used as shadow plane */
@@ -280,7 +266,7 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
     mtl_newrefdef = *fd;
             
     renderView();
-    setLightLevel(NULL);
+    legacyLight.setLightLevel(NULL, mtl_newrefdef, worldModel);
     
     if (vBlend[3] != 0.0f) {
         flashScreen();
@@ -407,216 +393,8 @@ void MetalRenderer::renderView() {
 //    drawAlphaSurfaces();
 }
 
-int MetalRenderer::recursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end) {
-    float front, back, frac;
-    int side;
-    cplane_t *plane;
-    vec3_t mid;
-    msurface_t *surf;
-    int s, t, ds, dt;
-    int i;
-    mtexinfo_t *tex;
-    byte *lightmap;
-    int maps;
-    int r;
-
-    if (node->contents != -1)
-    {
-        return -1;     /* didn't hit anything */
-    }
-
-    /* calculate mid point */
-    plane = node->plane;
-    front = DotProduct(start, plane->normal) - plane->dist;
-    back = DotProduct(end, plane->normal) - plane->dist;
-    side = front < 0;
-
-    if ((back < 0) == side)
-    {
-        return recursiveLightPoint(node->children[side], start, end);
-    }
-
-    frac = front / (front - back);
-    mid[0] = start[0] + (end[0] - start[0]) * frac;
-    mid[1] = start[1] + (end[1] - start[1]) * frac;
-    mid[2] = start[2] + (end[2] - start[2]) * frac;
-
-    /* go down front side */
-    r = recursiveLightPoint(node->children[side], start, mid);
-
-    if (r >= 0)
-    {
-        return r;     /* hit something */
-    }
-
-    if ((back < 0) == side)
-    {
-        return -1;     /* didn't hit anuthing */
-    }
-
-    /* check for impact on this node */
-    VectorCopy(mid, lightspot);
-    lightplane = plane;
-
-    surf = worldModel->surfaces + node->firstsurface;
-
-    for (i = 0; i < node->numsurfaces; i++, surf++)
-    {
-        if (surf->flags & (SURF_DRAWTURB | SURF_DRAWSKY))
-        {
-            continue; /* no lightmaps */
-        }
-
-        tex = surf->texinfo;
-
-        s = DotProduct(mid, tex->vecs[0]) + tex->vecs[0][3];
-        t = DotProduct(mid, tex->vecs[1]) + tex->vecs[1][3];
-
-        if ((s < surf->texturemins[0]) ||
-            (t < surf->texturemins[1]))
-        {
-            continue;
-        }
-
-        ds = s - surf->texturemins[0];
-        dt = t - surf->texturemins[1];
-
-        if ((ds > surf->extents[0]) || (dt > surf->extents[1]))
-        {
-            continue;
-        }
-
-        if (!surf->samples)
-        {
-            return 0;
-        }
-
-        ds >>= 4;
-        dt >>= 4;
-
-        lightmap = surf->samples;
-        VectorCopy(vec3_origin, pointcolor);
-
-        lightmap += 3 * (dt * ((surf->extents[0] >> 4) + 1) + ds);
-
-        for (maps = 0; maps < MAX_LIGHTMAPS_PER_SURFACE && surf->styles[maps] != 255;
-             maps++)
-        {
-            const float *rgb;
-            int j;
-
-            rgb = mtl_newrefdef.lightstyles[surf->styles[maps]].rgb;
-
-            /* Apply light level to models */
-            for (j = 0; j < 3; j++)
-            {
-                float    scale;
-
-                scale = rgb[j] * r_modulate->value;
-                pointcolor[j] += lightmap[j] * scale * (1.0 / 255);
-            }
-
-            lightmap += 3 * ((surf->extents[0] >> 4) + 1) *
-                        ((surf->extents[1] >> 4) + 1);
-        }
-
-        return 1;
-    }
-
-    /* go down back side */
-    return recursiveLightPoint(node->children[!side], mid, end);
-}
-
-void MetalRenderer::lightPoint(entity_t* currententity, vec3_t p, vec3_t color) {
-    vec3_t end;
-    float r;
-    int lnum;
-    dlight_t *dl;
-    vec3_t dist;
-    float add;
-
-    if (!worldModel->lightdata || !currententity)
-    {
-        color[0] = color[1] = color[2] = 1.0;
-        return;
-    }
-
-    end[0] = p[0];
-    end[1] = p[1];
-    end[2] = p[2] - 2048;
-
-    // TODO: don't just aggregate the color, but also save position of brightest+nearest light
-    //       for shadow position and maybe lighting on model?
-
-    r = recursiveLightPoint(worldModel->nodes, p, end);
-
-    if (r == -1)
-    {
-        VectorCopy(vec3_origin, color);
-    }
-    else
-    {
-        VectorCopy(pointcolor, color);
-    }
-
-    /* add dynamic lights */
-    dl = mtl_newrefdef.dlights;
-
-    for (lnum = 0; lnum < mtl_newrefdef.num_dlights; lnum++, dl++)
-    {
-        VectorSubtract(currententity->origin,
-                dl->origin, dist);
-        add = dl->intensity - VectorLength(dist);
-        add *= (1.0f / 256.0f);
-
-        if (add > 0)
-        {
-            VectorMA(color, add, dl->color, color);
-        }
-    }
-
-    VectorScale(color, r_modulate->value, color);
-}
-
-void MetalRenderer::setLightLevel(entity_t* currententity) {
-    vec3_t shadelight = {0};
-    
-    if (mtl_newrefdef.rdflags & RDF_NOWORLDMODEL) {
-        return;
-    }
-    
-    /* save off light value for server to look at */
-    lightPoint(currententity, mtl_newrefdef.vieworg, shadelight);
-
-    /* pick the greatest component, which should be the
-     * same as the mono value returned by software */
-    if (shadelight[0] > shadelight[1])
-    {
-        if (shadelight[0] > shadelight[2])
-        {
-            r_lightlevel->value = 150 * shadelight[0];
-        }
-        else
-        {
-            r_lightlevel->value = 150 * shadelight[2];
-        }
-    }
-    else
-    {
-        if (shadelight[1] > shadelight[2])
-        {
-            r_lightlevel->value = 150 * shadelight[1];
-        }
-        else
-        {
-            r_lightlevel->value = 150 * shadelight[2];
-        }
-    }
-    
-}
-
 void MetalRenderer::drawWorld() {
-    if (!r_drawworld->value) {
+    if (!cvar::r_drawworld->value) {
         return;
     }
     
@@ -652,7 +430,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         return;
     }
     
-    if ((entity->flags & RF_WEAPONMODEL) && gl_lefthand->value == 2) {
+    if ((entity->flags & RF_WEAPONMODEL) && cvar::gl_lefthand->value == 2) {
         return;
     }
     
@@ -672,7 +450,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
     }
     else
     {
-        lightPoint(entity, entity->origin, shadelight);
+        legacyLight.lightPoint(entity, entity->origin, shadelight, mtl_newrefdef, worldModel);
 
         /* player lighting hack for communication back to server */
         if (entity->flags & RF_WEAPONMODEL)
@@ -683,22 +461,22 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
             {
                 if (shadelight[0] > shadelight[2])
                 {
-                    r_lightlevel->value = 150 * shadelight[0];
+                    cvar::r_lightlevel->value = 150 * shadelight[0];
                 }
                 else
                 {
-                    r_lightlevel->value = 150 * shadelight[2];
+                    cvar::r_lightlevel->value = 150 * shadelight[2];
                 }
             }
             else
             {
                 if (shadelight[1] > shadelight[2])
                 {
-                    r_lightlevel->value = 150 * shadelight[1];
+                    cvar::r_lightlevel->value = 150 * shadelight[1];
                 }
                 else
                 {
-                    r_lightlevel->value = 150 * shadelight[2];
+                    cvar::r_lightlevel->value = 150 * shadelight[2];
                 }
             }
         }
@@ -711,16 +489,16 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
     std::optional<simd_float4x4> projMatOpt = std::nullopt;
     if (entity->flags & RF_WEAPONMODEL) {
         float screenaspect = (float)mtl_newrefdef.width / mtl_newrefdef.height;
-        float dist = (r_farsee->value == 0) ? 4096.0f : 8192.0f;
+        float dist = (cvar::r_farsee->value == 0) ? 4096.0f : 8192.0f;
         
         simd_float4x4 projMat;
-        if (r_gunfov->value < 0) {
+        if (cvar::r_gunfov->value < 0) {
             projMat = Utils::gluPerspective(mtl_newrefdef.fov_y, screenaspect, 2, dist);
         } else {
-            projMat = Utils::gluPerspective(r_gunfov->value, screenaspect, 2, dist);
+            projMat = Utils::gluPerspective(cvar::r_gunfov->value, screenaspect, 2, dist);
         }
         
-        if (gl_lefthand->value == 1.0f) {
+        if (cvar::gl_lefthand->value == 1.0f) {
             // to mirror gun so it's rendered left-handed, just invert X-axis column
             // of projection matrix
             for(int i=0; i<4; ++i) {
@@ -838,9 +616,9 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
             
             if (count < 0) {
                 count = -count;
-                dp.primitiveType = MTL::PrimitiveType::PrimitiveTypeTriangle;
+                dp.triangle = true;
             } else {
-                dp.primitiveType = MTL::PrimitiveType::PrimitiveTypeTriangleStrip;
+                dp.triangle = false;
             }
             
             std::vector<Vertex> vertices;
@@ -862,13 +640,13 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                     vertices.push_back(v);
                 }
             }
-            if (dp.primitiveType == MTL::PrimitiveType::PrimitiveTypeTriangle) {
+            if (dp.triangle) {
                 for (int i = 1; i < count-1; i++) {
                     dp.vertices.push_back(vertices.at(0));
                     dp.vertices.push_back(vertices.at(i));
                     dp.vertices.push_back(vertices.at(i+1));
                 }
-            } else if (dp.primitiveType == MTL::PrimitiveType::PrimitiveTypeTriangleStrip) {
+            } else {
                 int i;
                 for (i = 1; i < count - 2; i += 2) {
                     dp.vertices.push_back(vertices.at(i-1));
@@ -1265,12 +1043,12 @@ void MetalRenderer::recursiveWorldNode(entity_t* currentEntity, mnode_t* node) {
 void MetalRenderer::markLeaves() {
     if (_oldViewCluster == _viewCluster &&
         _oldViewCluster2 == _viewCluster2 &&
-        !r_novis->value &&
+        !cvar::r_novis->value &&
         _viewCluster != -1) {
         return;
     }
     
-    if (r_lockpvs->value) {
+    if (cvar::r_lockpvs->value) {
         return;
     }
     
@@ -1278,7 +1056,7 @@ void MetalRenderer::markLeaves() {
     _oldViewCluster = _viewCluster;
     _oldViewCluster2 = _viewCluster2;
     
-    if (r_novis->value || _viewCluster == -1 || !worldModel->vis) {
+    if (cvar::r_novis->value || _viewCluster == -1 || !worldModel->vis) {
         for (int i = 0; i < worldModel->numleafs; i++) {
             worldModel->leafs[i].visframe = _visFrameCount;
         }
@@ -1471,7 +1249,7 @@ void MetalRenderer::setupFrustum() {
 void MetalRenderer::drawParticles() {
     const particle_t* p;
     int i = 0;
-    float pointSize = metal_particle_size->value * (float) mtl_newrefdef.height/480.0f;
+    float pointSize = cvar::metal_particle_size->value * (float) mtl_newrefdef.height/480.0f;
     vector_float3 viewOrigin = {mtl_newrefdef.vieworg[0], mtl_newrefdef.vieworg[1], mtl_newrefdef.vieworg[2]};
     for (i = 0, p = mtl_newrefdef.particles; i < mtl_newrefdef.num_particles; i++, p++) {
         vector_float3 pOrigin = {p->origin[0], p->origin[1], p->origin[2]};
@@ -1612,7 +1390,7 @@ void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) 
         } else {
             pEnc->setDepthClipMode(MTL::DepthClipModeClip);
         }
-        pEnc->drawPrimitives(cmd.primitiveType, NS::UInteger(0), NS::UInteger(cmd.vertices.size()));
+        pEnc->drawPrimitives(cmd.triangle ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeLineStrip, NS::UInteger(0), NS::UInteger(cmd.vertices.size()));
     }
     pEnc->setDepthClipMode(MTL::DepthClipModeClip);
     drawAliasModPolyCmds.clear();
@@ -1674,7 +1452,7 @@ void MetalRenderer::encodeMetalCommands() {
 
 void MetalRenderer::updateMVPMatrix() {
     float screenAspect = (float) mtl_newrefdef.width / mtl_newrefdef.height;
-    float dist = r_farsee->value == 0 ? 4096.0f : 8192.0f;
+    float dist = cvar::r_farsee->value == 0 ? 4096.0f : 8192.0f;
     
     {
         // calculate projection matrix
@@ -1759,19 +1537,19 @@ bool Metal_Init() {
     int screenWidth = 640;
     int screenHeight = 480;
     
-    r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
-    metal_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
-    r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
-    r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
-    r_novis = ri.Cvar_Get("r_novis", "0", 0);
-    r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
-    r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
-    gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
-    r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_ARCHIVE);
-    r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
-    r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
+    cvar::r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
+    cvar::metal_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
+    cvar::r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+    cvar::r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
+    cvar::r_novis = ri.Cvar_Get("r_novis", "0", 0);
+    cvar::r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
+    cvar::r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
+    cvar::gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+    cvar::r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_ARCHIVE);
+    cvar::r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
+    cvar::r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
     
-    ri.Vid_GetModeInfo(&screenWidth, &screenHeight, r_mode->value);
+    ri.Vid_GetModeInfo(&screenWidth, &screenHeight, cvar::r_mode->value);
     
     if (!ri.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
         return rserr_invalid_mode;

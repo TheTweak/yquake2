@@ -5,6 +5,8 @@
 //  Created by SOROKIN EVGENY on 02.10.2022.
 //
 
+#pragma once
+
 #ifndef SharedTypes_h
 #define SharedTypes_h
 

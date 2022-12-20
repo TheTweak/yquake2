@@ -12,13 +12,9 @@
 #include <string>
 #include <vector>
 #include <optional>
-#include <MetalKit/MetalKit.hpp>
 
 #include "SharedTypes.h"
 #include "../model/model.h"
-
-#define PIXEL_FORMAT MTL::PixelFormatBGRA8Unorm
-#define MAX_FRAMES_IN_FLIGHT 3
 
 #pragma once
 
@@ -83,7 +79,7 @@ struct DrawAliasPolyCommandData {
     std::optional<simd_float4x4> projMat;
     simd_float4x4 transModelMat;
     float alpha;
-    MTL::PrimitiveType primitiveType;
+    bool triangle;
     bool clamp;
 };
 

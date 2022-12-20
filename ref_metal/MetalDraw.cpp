@@ -9,6 +9,7 @@
 #include <sstream>
 
 #include "MetalDraw.hpp"
+#include "../utils/Constants.h"
 
 MetalDraw::MetalDraw(int sWidth, int sHeight, Image& il) : screenWidth(sWidth), screenHeight(sHeight), imageLoader(il) {}
 
