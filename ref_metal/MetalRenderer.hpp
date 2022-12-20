@@ -118,8 +118,7 @@ private:
     std::array<Vertex, 3> getPolyVertices(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image);
     
 public:
-    static MetalRenderer* INSTANCE;
-    
+    static MetalRenderer& getInstance();
     void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer, MTL::Resource* pLayer);
     bool Init();
     void Shutdown();

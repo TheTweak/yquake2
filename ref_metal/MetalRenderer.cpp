@@ -33,9 +33,12 @@
 #pragma mark - Utils
 #pragma region Utils {
 
-MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
-
 #pragma endregion Utils }
+
+MetalRenderer& MetalRenderer::getInstance() {
+    static MetalRenderer instance;
+    return instance;
+}
 
 MetalRenderer::MetalRenderer() : modelLoader(imageLoader) {
     _semaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
@@ -1519,7 +1522,7 @@ bool Metal_Init() {
 }
 
 void Metal_Shutdown() {
-    MetalRenderer::INSTANCE->Shutdown();
+    MetalRenderer::getInstance().Shutdown();
 }
 
 int Metal_PrepareForWindow() {
@@ -1536,92 +1539,92 @@ int Metal_InitContext(void* p_sdlWindow) {
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_PRESENTVSYNC);
     MTL::Resource* layer = static_cast<MTL::Resource*>(SDL_RenderGetMetalLayer(renderer));
     MTL::Device* device = layer->device();
-    MetalRenderer::INSTANCE->InitMetal(device, window, renderer, layer);
+    MetalRenderer::getInstance().InitMetal(device, window, renderer, layer);
     return 1;
 }
 
 void Metal_ShutdownContext() {
-    MetalRenderer::INSTANCE->ShutdownContext();
+    MetalRenderer::getInstance().ShutdownContext();
 }
 
 bool Metal_IsVSyncActive() {
-    return MetalRenderer::INSTANCE->IsVSyncActive();
+    return MetalRenderer::getInstance().IsVSyncActive();
 }
 
 void Metal_BeginRegistration(char* map) {
-    MetalRenderer::INSTANCE->BeginRegistration(map);
+    MetalRenderer::getInstance().BeginRegistration(map);
 }
 
 model_s* Metal_RegisterModel(char* name) {
-    return MetalRenderer::INSTANCE->RegisterModel(name);
+    return MetalRenderer::getInstance().RegisterModel(name);
 }
 
 image_s* Metal_RegisterSkin(char* name) {
-    return MetalRenderer::INSTANCE->RegisterSkin(name);
+    return MetalRenderer::getInstance().RegisterSkin(name);
 }
 
 void Metal_SetSky(char* name, float rotate, vec3_t axis) {
-    MetalRenderer::INSTANCE->SetSky(name, rotate, axis);
+    MetalRenderer::getInstance().SetSky(name, rotate, axis);
 }
 
 void Metal_EndRegistration() {
-    MetalRenderer::INSTANCE->EndRegistration();
+    MetalRenderer::getInstance().EndRegistration();
 }
 
 void Metal_RenderFrame(refdef_t* fd) {
-    MetalRenderer::INSTANCE->RenderFrame(fd);
+    MetalRenderer::getInstance().RenderFrame(fd);
 }
 
 image_s* Metal_DrawFindPic(char* name) {
-    return MetalRenderer::INSTANCE->DrawFindPic(name);
+    return MetalRenderer::getInstance().DrawFindPic(name);
 }
 
 void Metal_DrawGetPicSize(int *w, int *h, char *name) {
-    MetalRenderer::INSTANCE->DrawGetPicSize(w, h, name);
+    MetalRenderer::getInstance().DrawGetPicSize(w, h, name);
 }
 
 void Metal_DrawPicScaled(int x, int y, char* pic, float factor) {
-    MetalRenderer::INSTANCE->DrawPicScaled(x, y, pic, factor);
+    MetalRenderer::getInstance().DrawPicScaled(x, y, pic, factor);
 }
 
 void Metal_DrawStretchPic(int x, int y, int w, int h, char* name) {
-    MetalRenderer::INSTANCE->DrawStretchPic(x, y, w, h, name);
+    MetalRenderer::getInstance().DrawStretchPic(x, y, w, h, name);
 }
 
 void Metal_DrawCharScaled(int x, int y, int num, float scale) {
-    MetalRenderer::INSTANCE->DrawCharScaled(x, y, num, scale);
+    MetalRenderer::getInstance().DrawCharScaled(x, y, num, scale);
 }
 
 void Metal_DrawTileClear(int x, int y, int w, int h, char* name) {
-    MetalRenderer::INSTANCE->DrawTileClear(x, y, w, h, name);
+    MetalRenderer::getInstance().DrawTileClear(x, y, w, h, name);
 }
 
 void Metal_DrawFill(int x, int y, int w, int h, int c) {
-    MetalRenderer::INSTANCE->DrawFill(x, y, w, h, c);
+    MetalRenderer::getInstance().DrawFill(x, y, w, h, c);
 }
 
 void Metal_DrawFadeScreen() {
-    MetalRenderer::INSTANCE->DrawFadeScreen();
+    MetalRenderer::getInstance().DrawFadeScreen();
 }
 
 void Metal_DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {
-    MetalRenderer::INSTANCE->DrawStretchRaw(x, y, w, h, cols, rows, data);
+    MetalRenderer::getInstance().DrawStretchRaw(x, y, w, h, cols, rows, data);
 }
 
 void Metal_SetPalette(const unsigned char* palette) {
-    MetalRenderer::INSTANCE->SetPalette(palette);
+    MetalRenderer::getInstance().SetPalette(palette);
 }
 
 void Metal_BeginFrame(float camera_separation) {
-    MetalRenderer::INSTANCE->BeginFrame(camera_separation);
+    MetalRenderer::getInstance().BeginFrame(camera_separation);
 }
 
 void Metal_EndFrame() {
-    MetalRenderer::INSTANCE->EndFrame();
+    MetalRenderer::getInstance().EndFrame();
 }
 
 bool Metal_EndWorldRenderpass() {
-    return MetalRenderer::INSTANCE->EndWorldRenderpass();
+    return MetalRenderer::getInstance().EndWorldRenderpass();
 }
 
 refimport_t ri;
