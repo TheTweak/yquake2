@@ -28,51 +28,12 @@
 #include "utils/BSPUtils.hpp"
 #include "legacy/ConsoleVars.h"
 #include "utils/Constants.h"
+#include "legacy/State.h"
 
 #pragma mark - Utils
 #pragma region Utils {
 
-void R_Printf(int level, const char* msg, ...)
-{
-    va_list argptr;
-    va_start(argptr, msg);
-    ri.Com_VPrintf(level, msg, argptr);
-    va_end(argptr);
-}
-
-/*
- * this is only here so the functions in shared source files
- * (shared.c, rand.c, flash.c, mem.c/hunk.c) can link
- */
-void
-Sys_Error(char *error, ...)
-{
-    va_list argptr;
-    char text[4096]; // MAXPRINTMSG == 4096
-
-    va_start(argptr, error);
-    vsnprintf(text, sizeof(text), error, argptr);
-    va_end(argptr);
-
-    ri.Sys_Error(ERR_FATAL, "%s", text);
-}
-
-void
-Com_Printf(char *msg, ...)
-{
-    va_list argptr;
-    va_start(argptr, msg);
-    ri.Com_VPrintf(PRINT_ALL, msg, argptr);
-    va_end(argptr);
-}
-
 MetalRenderer* MetalRenderer::INSTANCE = new MetalRenderer();
-refimport_t ri;
-refdef_t mtl_newrefdef;
-
-vec3_t lightspot;
-static cplane_t *lightplane; /* used as shadow plane */
-static vec3_t pointcolor;
 
 #pragma endregion Utils }
 
@@ -212,7 +173,7 @@ bool MetalRenderer::IsVSyncActive() {
 void MetalRenderer::BeginRegistration(char* map) {
     _oldViewCluster = -1;
     
-    cvar_t *flushMap = ri.Cvar_Get("flushmap", "0", 0);
+    cvar_t *flushMap = GAME_API.Cvar_Get("flushmap", "0", 0);
     std::stringstream ss;
     ss << "maps/" << map << ".bsp";
     std::string mapName = ss.str();
@@ -843,7 +804,7 @@ void MetalRenderer::drawEntity(entity_t* currentEntity) {
                case mod_sprite:
                    drawSpriteModel(currentEntity, currentModel);
                default:
-                   ri.Sys_Error(ERR_DROP, "Bad modeltype");
+                   GAME_API.Sys_Error(ERR_DROP, "Bad modeltype");
                    break;
             }
         }
@@ -1532,26 +1493,26 @@ enum {
 
 bool Metal_Init() {
     Swap_Init();
-    ri.Vid_MenuInit();
+    GAME_API.Vid_MenuInit();
     
     int screenWidth = 640;
     int screenHeight = 480;
     
-    cvar::r_mode = ri.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
-    cvar::metal_particle_size = ri.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
-    cvar::r_farsee = ri.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
-    cvar::r_fixsurfsky = ri.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
-    cvar::r_novis = ri.Cvar_Get("r_novis", "0", 0);
-    cvar::r_lockpvs = ri.Cvar_Get("r_lockpvs", "0", 0);
-    cvar::r_drawworld = ri.Cvar_Get("r_drawworld", "1", 0);
-    cvar::gl_lefthand = ri.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
-    cvar::r_gunfov = ri.Cvar_Get("r_gunfov", "80", CVAR_ARCHIVE);
-    cvar::r_lightlevel = ri.Cvar_Get("r_lightlevel", "0", 0);
-    cvar::r_modulate = ri.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
+    cvar::r_mode = GAME_API.Cvar_Get("r_mode", "4", CVAR_ARCHIVE);
+    cvar::metal_particle_size = GAME_API.Cvar_Get("gl3_particle_size", "40", CVAR_ARCHIVE);
+    cvar::r_farsee = GAME_API.Cvar_Get("r_farsee", "0", CVAR_LATCH | CVAR_ARCHIVE);
+    cvar::r_fixsurfsky = GAME_API.Cvar_Get("r_fixsurfsky", "0", CVAR_ARCHIVE);
+    cvar::r_novis = GAME_API.Cvar_Get("r_novis", "0", 0);
+    cvar::r_lockpvs = GAME_API.Cvar_Get("r_lockpvs", "0", 0);
+    cvar::r_drawworld = GAME_API.Cvar_Get("r_drawworld", "1", 0);
+    cvar::gl_lefthand = GAME_API.Cvar_Get("hand", "0", CVAR_USERINFO | CVAR_ARCHIVE);
+    cvar::r_gunfov = GAME_API.Cvar_Get("r_gunfov", "80", CVAR_ARCHIVE);
+    cvar::r_lightlevel = GAME_API.Cvar_Get("r_lightlevel", "0", 0);
+    cvar::r_modulate = GAME_API.Cvar_Get("r_modulate", "1", CVAR_ARCHIVE);
     
-    ri.Vid_GetModeInfo(&screenWidth, &screenHeight, cvar::r_mode->value);
+    GAME_API.Vid_GetModeInfo(&screenWidth, &screenHeight, cvar::r_mode->value);
     
-    if (!ri.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
+    if (!GAME_API.GLimp_InitGraphics(0, &screenWidth, &screenHeight)) {
         return rserr_invalid_mode;
     }
     return true;
@@ -1567,7 +1528,7 @@ int Metal_PrepareForWindow() {
 
 int Metal_InitContext(void* p_sdlWindow) {
     if (p_sdlWindow == NULL) {
-        ri.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
+        GAME_API.Sys_Error(ERR_FATAL, "R_InitContext() must not be called with NULL argument!");
         return false;
     }
 
@@ -1663,9 +1624,12 @@ bool Metal_EndWorldRenderpass() {
     return MetalRenderer::INSTANCE->EndWorldRenderpass();
 }
 
+refimport_t ri;
+
 __attribute__((__visibility__("default")))
 extern "C" refexport_t GetRefAPI(refimport_t ri_) {
-    ri = ri_;
+    GAME_API = ri_;
+    ri = GAME_API; // this is required for game API, when called from this renderer library, to work
     refexport_t re;
     re.api_version = API_VERSION;
     
@@ -1703,7 +1667,7 @@ extern "C" refexport_t GetRefAPI(refimport_t ri_) {
     re.EndWorldRenderpass = Metal_EndWorldRenderpass;
     re.EndFrame = Metal_EndFrame;
     
-    ri.Vid_RequestRestart(RESTART_NO);
+    GAME_API.Vid_RequestRestart(RESTART_NO);
 
     return re;
 }

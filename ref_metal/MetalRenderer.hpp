@@ -48,6 +48,7 @@ private:
     Model modelLoader;
     Image imageLoader;
     std::shared_ptr<mtl_model_t> worldModel;
+    refdef_t mtl_newrefdef;
     float vBlend[4]; /* final blending color */
     msurface_t* alphaSurfaces;
     

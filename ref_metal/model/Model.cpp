@@ -10,6 +10,7 @@
 #include "Model.hpp"
 #include "../image/Image.hpp"
 #include "../utils/Constants.h"
+#include "../legacy/State.h"
 
 Model::Model(Image& il) : imageLoader(il) {
     memset(mod_novis, 0xff, sizeof(mod_novis));
@@ -36,7 +37,7 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
         int i = (int) strtol(name.data() + 1, (char **) NULL, 10);
         
         if (i < 1 || i >= parent.value()->numsubmodels) {
-            ri.Sys_Error(ERR_DROP, "%s: bad inline model number", __func__);
+            GAME_API.Sys_Error(ERR_DROP, "%s: bad inline model number", __func__);
         }
         
         mtl_model_t* m = &parent.value()->submodels[i];
@@ -50,10 +51,10 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
     }
     
     unsigned* buf;
-    int modfilelen = ri.FS_LoadFile(name.data(), (void **)&buf);
+    int modfilelen = GAME_API.FS_LoadFile(name.data(), (void **)&buf);
     if (!buf) {
         if (crash) {
-            ri.Sys_Error(ERR_DROP, "%s: %s not found", __func__, name.data());
+            GAME_API.Sys_Error(ERR_DROP, "%s: %s not found", __func__, name.data());
         }
         
         return std::nullopt;
@@ -76,11 +77,11 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
             break;
 
         default:
-            ri.Sys_Error(ERR_DROP, "%s: unknown fileid for %s", __func__, name.data());
+            GAME_API.Sys_Error(ERR_DROP, "%s: unknown fileid for %s", __func__, name.data());
             break;
     }
     result->extradatasize = Hunk_End();
-    ri.FS_FreeFile(buf);
+    GAME_API.FS_FreeFile(buf);
     
     models[name] = result;
     
@@ -102,12 +103,12 @@ std::shared_ptr<mtl_model_t> Model::loadMD2(std::string name, void *buffer, int 
     version = LittleLong(pinmodel->version);
 
     if (version != ALIAS_VERSION) {
-        ri.Sys_Error(ERR_DROP, "%s has wrong version number (%i should be %i)", name.data(), version, ALIAS_VERSION);
+        GAME_API.Sys_Error(ERR_DROP, "%s has wrong version number (%i should be %i)", name.data(), version, ALIAS_VERSION);
     }
 
     ofs_end = LittleLong(pinmodel->ofs_end);
     if (ofs_end < 0 || ofs_end > modfilelen) {
-        ri.Sys_Error (ERR_DROP, "model %s file size(%d) too small, should be %d", name.data(), modfilelen, ofs_end);
+        GAME_API.Sys_Error (ERR_DROP, "model %s file size(%d) too small, should be %d", name.data(), modfilelen, ofs_end);
     }
     
     auto mod = std::make_shared<mtl_model_t>();
@@ -123,28 +124,28 @@ std::shared_ptr<mtl_model_t> Model::loadMD2(std::string name, void *buffer, int 
     }
 
     if (pheader->skinheight > MAX_LBM_HEIGHT) {
-        ri.Sys_Error(ERR_DROP, "model %s has a skin taller than %d", mod->name,
+        GAME_API.Sys_Error(ERR_DROP, "model %s has a skin taller than %d", mod->name,
                 MAX_LBM_HEIGHT);
     }
 
     if (pheader->num_xyz <= 0) {
-        ri.Sys_Error(ERR_DROP, "model %s has no vertices", mod->name);
+        GAME_API.Sys_Error(ERR_DROP, "model %s has no vertices", mod->name);
     }
 
     if (pheader->num_xyz > MAX_VERTS) {
-        ri.Sys_Error(ERR_DROP, "model %s has too many vertices", mod->name);
+        GAME_API.Sys_Error(ERR_DROP, "model %s has too many vertices", mod->name);
     }
 
     if (pheader->num_st <= 0) {
-        ri.Sys_Error(ERR_DROP, "model %s has no st vertices", mod->name);
+        GAME_API.Sys_Error(ERR_DROP, "model %s has no st vertices", mod->name);
     }
 
     if (pheader->num_tris <= 0) {
-        ri.Sys_Error(ERR_DROP, "model %s has no triangles", mod->name);
+        GAME_API.Sys_Error(ERR_DROP, "model %s has no triangles", mod->name);
     }
 
     if (pheader->num_frames <= 0) {
-        ri.Sys_Error(ERR_DROP, "model %s has no frames", mod->name);
+        GAME_API.Sys_Error(ERR_DROP, "model %s has no frames", mod->name);
     }
 
     /* load base s and t vertices (not used in gl version) */
@@ -247,13 +248,13 @@ std::shared_ptr<mtl_model_t> Model::loadSP2(std::string name, void *buffer, int 
 
     if (sprout->version != SPRITE_VERSION)
     {
-        ri.Sys_Error(ERR_DROP, "%s has wrong version number (%i should be %i)",
+        GAME_API.Sys_Error(ERR_DROP, "%s has wrong version number (%i should be %i)",
                 mod->name, sprout->version, SPRITE_VERSION);
     }
 
     if (sprout->numframes > MAX_MD2SKINS)
     {
-        ri.Sys_Error(ERR_DROP, "%s has too many frames (%i > %i)",
+        GAME_API.Sys_Error(ERR_DROP, "%s has too many frames (%i > %i)",
                 mod->name, sprout->numframes, MAX_MD2SKINS);
     }
 
@@ -379,7 +380,7 @@ Mod_LoadVertexes(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -408,7 +409,7 @@ Mod_LoadEdges(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -435,7 +436,7 @@ Mod_LoadSurfedges(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -443,7 +444,7 @@ Mod_LoadSurfedges(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if ((count < 1) || (count >= MAX_MAP_SURFEDGES))
     {
-        ri.Sys_Error(ERR_DROP, "%s: bad surfedges count in %s: %i",
+        GAME_API.Sys_Error(ERR_DROP, "%s: bad surfedges count in %s: %i",
                 __func__, loadmodel->name, count);
     }
 
@@ -484,7 +485,7 @@ Mod_LoadPlanes(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -526,7 +527,7 @@ void Model::Mod_LoadTexinfo(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -691,7 +692,7 @@ R_SubdividePolygon(int numverts, float *verts, msurface_t *warpface)
 
     if (numverts > 60)
     {
-        ri.Sys_Error(ERR_DROP, "numverts = %i", numverts);
+        GAME_API.Sys_Error(ERR_DROP, "numverts = %i", numverts);
     }
 
     R_BoundPoly(numverts, verts, mins, maxs);
@@ -927,7 +928,7 @@ Mod_LoadFaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -960,7 +961,7 @@ Mod_LoadFaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
         if ((ti < 0) || (ti >= loadmodel->numtexinfo))
         {
-            ri.Sys_Error(ERR_DROP, "%s: bad texinfo number",
+            GAME_API.Sys_Error(ERR_DROP, "%s: bad texinfo number",
                     __func__);
         }
 
@@ -1036,7 +1037,7 @@ Mod_LoadMarksurfaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -1052,7 +1053,7 @@ Mod_LoadMarksurfaces(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
         if ((j < 0) || (j >= loadmodel->numsurfaces))
         {
-            ri.Sys_Error(ERR_DROP, "%s: bad surface number", __func__);
+            GAME_API.Sys_Error(ERR_DROP, "%s: bad surface number", __func__);
         }
 
         out[i] = loadmodel->surfaces + j;
@@ -1093,7 +1094,7 @@ Mod_LoadLeafs(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -1126,7 +1127,7 @@ Mod_LoadLeafs(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
         out->firstmarksurface = loadmodel->marksurfaces + firstleafface;
         if ((firstleafface + out->nummarksurfaces) > loadmodel->nummarksurfaces)
         {
-            ri.Sys_Error(ERR_DROP, "%s: wrong marksurfaces position in %s",
+            GAME_API.Sys_Error(ERR_DROP, "%s: wrong marksurfaces position in %s",
                 __func__, loadmodel->name);
         }
     }
@@ -1157,7 +1158,7 @@ Mod_LoadNodes(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -1211,7 +1212,7 @@ Mod_LoadSubmodels(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
     if (l->filelen % sizeof(*in))
     {
-        ri.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
+        GAME_API.Sys_Error(ERR_DROP, "%s: funny lump size in %s",
                 __func__, loadmodel->name);
     }
 
@@ -1253,7 +1254,7 @@ Mod_LoadSubmodels(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
         //  check limits
         if (out->firstnode >= loadmodel->numnodes)
         {
-            ri.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
+            GAME_API.Sys_Error(ERR_DROP, "%s: Inline model %i has bad firstnode",
                     __func__, i);
         }
     }
@@ -1270,7 +1271,7 @@ std::shared_ptr<mtl_model_t> Model::loadBrushModel(std::string name, void *buffe
 
     if (i != BSPVERSION)
     {
-        ri.Sys_Error(ERR_DROP, "%s: %s has wrong version number (%i should be %i)",
+        GAME_API.Sys_Error(ERR_DROP, "%s: %s has wrong version number (%i should be %i)",
                 __func__, name.data(), i, BSPVERSION);
     }
 

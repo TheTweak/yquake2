@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "Image.hpp"
+#include "../legacy/State.h"
 
 image_s::~image_s() {
     if (data != NULL) {
@@ -25,7 +26,7 @@ std::array<int, 768> _LoadPalette() {
     pcx_t *pcx;
     std::byte *raw;
     
-    int size = ri.FS_LoadFile("pics/colormap.pcx", (void **)&raw);
+    int size = GAME_API.FS_LoadFile("pics/colormap.pcx", (void **)&raw);
 
     /* parse the PCX file */
     pcx = (pcx_t *)raw;
@@ -80,7 +81,7 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
     }
     
     /* load the file */
-    len = ri.FS_LoadFile(filename, (void **)&raw);
+    len = GAME_API.FS_LoadFile(filename, (void **)&raw);
     
     if (!raw || len < sizeof(pcx_t))
     {
@@ -100,7 +101,7 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
         (pcx_width >= 4096) || (pcx_height >= 4096))
     {
         R_Printf(PRINT_ALL, "Bad pcx file %s\n", filename);
-        ri.FS_FreeFile(pcx);
+        GAME_API.FS_FreeFile(pcx);
         return {0, 0};
     }
 
@@ -110,7 +111,7 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
     if (!out)
     {
         R_Printf(PRINT_ALL, "Can't allocate\n");
-        ri.FS_FreeFile(pcx);
+        GAME_API.FS_FreeFile(pcx);
         return {0, 0};
     }
     
@@ -174,7 +175,7 @@ std::pair<int, int> _LoadPCX(byte **pic, char* origname) {
         R_Printf(PRINT_ALL, "PCX file %s has possible size issues.\n", filename);
     }
                 
-    ri.FS_FreeFile(pcx);
+    GAME_API.FS_FreeFile(pcx);
     return {pcx_width + 1, pcx_height + 1};
 }
 
@@ -233,7 +234,7 @@ std::optional<image_s*> Image::LoadM8(char *origname, imagetype_t type) {
         Q_strlcat(name, ".m8", sizeof(name));
     }
 
-    size = ri.FS_LoadFile(name, (void **)&mt);
+    size = GAME_API.FS_LoadFile(name, (void **)&mt);
 
     if (!mt)
     {
@@ -244,14 +245,14 @@ std::optional<image_s*> Image::LoadM8(char *origname, imagetype_t type) {
     if (size < sizeof(m8tex_t))
     {
         R_Printf(PRINT_ALL, "%s: can't load %s, small header\n", __func__, name);
-        ri.FS_FreeFile((void *)mt);
+        GAME_API.FS_FreeFile((void *)mt);
         return std::nullopt;
     }
 
     if (LittleLong (mt->version) != M8_VERSION)
     {
         R_Printf(PRINT_ALL, "LoadWal: can't load %s, wrong magic value.\n", name);
-        ri.FS_FreeFile ((void *)mt);
+        GAME_API.FS_FreeFile ((void *)mt);
         return std::nullopt;
     }
 
@@ -263,7 +264,7 @@ std::optional<image_s*> Image::LoadM8(char *origname, imagetype_t type) {
         (((size - ofs) / height) < width))
     {
         R_Printf(PRINT_ALL, "%s: can't load %s, small body\n", __func__, name);
-        ri.FS_FreeFile((void *)mt);
+        GAME_API.FS_FreeFile((void *)mt);
         return std::nullopt;
     }
 
@@ -280,7 +281,7 @@ std::optional<image_s*> Image::LoadM8(char *origname, imagetype_t type) {
     image = LoadPic(name, image_buffer, width, height, 0, 0, type, 32);
     free(image_buffer);
 
-    ri.FS_FreeFile((void *)mt);
+    GAME_API.FS_FreeFile((void *)mt);
 
     return image;
 }
@@ -299,7 +300,7 @@ std::optional<image_s*> Image::LoadWal(char *origname, imagetype_t type) {
         Q_strlcat(name, ".wal", sizeof(name));
     }
 
-    size = ri.FS_LoadFile(name, (void **)&mt);
+    size = GAME_API.FS_LoadFile(name, (void **)&mt);
 
     if (!mt)
     {
@@ -310,7 +311,7 @@ std::optional<image_s*> Image::LoadWal(char *origname, imagetype_t type) {
     if (size < sizeof(miptex_t))
     {
         R_Printf(PRINT_ALL, "LoadWal: can't load %s, small header\n", name);
-        ri.FS_FreeFile((void *)mt);
+        GAME_API.FS_FreeFile((void *)mt);
         return std::nullopt;
     }
 
@@ -322,13 +323,13 @@ std::optional<image_s*> Image::LoadWal(char *origname, imagetype_t type) {
         (((size - ofs) / height) < width))
     {
         R_Printf(PRINT_ALL, "LoadWal: can't load %s, small body\n", name);
-        ri.FS_FreeFile((void *)mt);
+        GAME_API.FS_FreeFile((void *)mt);
         return std::nullopt;
     }
 
     image = LoadPic(name, (byte *)mt + ofs, width, height, 0, 0, type, 8);
 
-    ri.FS_FreeFile((void *)mt);
+    GAME_API.FS_FreeFile((void *)mt);
 
     return image;
 }

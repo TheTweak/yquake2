@@ -6,6 +6,7 @@
 //
 
 #include "BSPUtils.hpp"
+#include "../legacy/State.h"
 
 mleaf_t* BSPUtils::PointInLeaf(vec_t *p, mtl_model_t *model) {
     mnode_t *node;
@@ -14,7 +15,7 @@ mleaf_t* BSPUtils::PointInLeaf(vec_t *p, mtl_model_t *model) {
 
     if (!model || !model->nodes)
     {
-        ri.Sys_Error(ERR_DROP, "%s: bad model", __func__);
+        GAME_API.Sys_Error(ERR_DROP, "%s: bad model", __func__);
     }
 
     node = model->nodes;
