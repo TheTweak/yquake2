@@ -7,9 +7,6 @@
 
 #pragma once
 
-#ifndef Image_hpp
-#define Image_hpp
-
 #include <array>
 #include <optional>
 #include <map>
@@ -18,12 +15,13 @@
 
 class Image {
     std::map<std::string, std::shared_ptr<image_s>> _imageCache;
+    Image();
 public:
+    static Image& getInstance();
     image_s* FindImage(char* name, imagetype_t type);
     std::array<float, 4> GetPalleteColor(int, float);
     std::optional<image_s*> LoadM8(char *origname, imagetype_t type);
     std::optional<image_s*> LoadWal(char *origname, imagetype_t type);
     const std::map<std::string, std::shared_ptr<image_s>>& GetLoadedImages() const;
+    image_s* DrawFindPic(char* name);
 };
-
-#endif /* Image_hpp */

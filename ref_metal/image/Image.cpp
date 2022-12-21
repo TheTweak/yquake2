@@ -13,10 +13,17 @@
 #include "Image.hpp"
 #include "../legacy/State.h"
 
+Image::Image() {}
+
 image_s::~image_s() {
     if (data != NULL) {
         free(data);
     }
+}
+
+Image& Image::getInstance() {
+    static Image instance;
+    return instance;
 }
 
 static std::array<int, 768> _palette;
@@ -507,4 +514,21 @@ std::array<float, 4> Image::GetPalleteColor(int c, float alpha) {
     result[1] = _palette[c * 3 + 1];
     result[0] = _palette[c * 3];
     return result;
+}
+
+image_s* Image::DrawFindPic(char* name) {
+    image_s* image;
+    char fullname[MAX_QPATH];
+    
+    if ((name[0] != '/') && (name[0] != '\\'))
+    {
+        Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
+        image = FindImage(fullname, it_pic);
+    }
+    else
+    {
+        image = FindImage(name + 1, it_pic);
+    }
+    
+    return image;
 }

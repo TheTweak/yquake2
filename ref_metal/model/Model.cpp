@@ -12,7 +12,7 @@
 #include "../utils/Constants.h"
 #include "../legacy/State.h"
 
-Model::Model(Image& il) : imageLoader(il) {
+Model::Model() {
     memset(mod_novis, 0xff, sizeof(mod_novis));
 }
 
@@ -218,7 +218,7 @@ std::shared_ptr<mtl_model_t> Model::loadMD2(std::string name, void *buffer, int 
 
     for (i = 0; i < pheader->num_skins; i++)
     {
-        mod->skins[i] = imageLoader.FindImage((char *)pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
+        mod->skins[i] = Image::getInstance().FindImage((char *)pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
     }
 
     mod->mins[0] = -32;
@@ -266,7 +266,7 @@ std::shared_ptr<mtl_model_t> Model::loadSP2(std::string name, void *buffer, int 
         sprout->frames[i].origin_x = LittleLong(sprin->frames[i].origin_x);
         sprout->frames[i].origin_y = LittleLong(sprin->frames[i].origin_y);
         memcpy(sprout->frames[i].name, sprin->frames[i].name, MAX_SKINNAME);
-        mod->skins[i] = imageLoader.FindImage(sprout->frames[i].name, it_sprite);
+        mod->skins[i] = Image::getInstance().FindImage(sprout->frames[i].name, it_sprite);
     }
 
     mod->type = mod_sprite;
@@ -559,12 +559,12 @@ void Model::Mod_LoadTexinfo(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
 
         Com_sprintf(name, sizeof(name), "textures/%s.wal", in->texture);
 
-        out->image = imageLoader.FindImage(name, it_wall);
+        out->image = Image::getInstance().FindImage(name, it_wall);
 
         if (!out->image)
         {
             Com_sprintf(name, sizeof(name), "textures/%s.m8", in->texture);
-            out->image = imageLoader.FindImage(name, it_wall);
+            out->image = Image::getInstance().FindImage(name, it_wall);
         }
 
         if (!out->image)

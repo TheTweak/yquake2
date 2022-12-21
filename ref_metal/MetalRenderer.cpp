@@ -29,6 +29,8 @@
 #include "legacy/ConsoleVars.h"
 #include "utils/Constants.h"
 #include "legacy/State.h"
+#include "render/Pic.hpp"
+#include "texture/TextureCache.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -40,7 +42,7 @@ MetalRenderer& MetalRenderer::getInstance() {
     return instance;
 }
 
-MetalRenderer::MetalRenderer() : modelLoader(imageLoader) {
+MetalRenderer::MetalRenderer() {
     _semaphore = dispatch_semaphore_create(MAX_FRAMES_IN_FLIGHT);
 }
 
@@ -51,7 +53,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     _pDevice = pDevice->retain();
     _pCommandQueue = _pDevice->newCommandQueue();    
     SDL_Metal_GetDrawableSize(pWindow, &_width, &_height);
-    draw = std::make_unique<MetalDraw>(_width, _height, imageLoader);
+    draw = std::make_unique<MetalDraw>(_width, _height);
     
     auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, _width, _height, false);
     textureDesc->setUsage(MTL::TextureUsageRenderTarget);
@@ -68,6 +70,8 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     buildShaders();
     buildDepthStencilState();
     drawInit();
+    TextureCache::getInstance().init(_pDevice);
+    
     pPool->release();
 }
 
@@ -196,13 +200,13 @@ model_s* MetalRenderer::RegisterModel(char* name) {
             dsprite_t *sprout = (dsprite_t *) model->extradata;
             
             for (int i = 0; i < sprout->numframes; i++) {
-                model->skins[i] = imageLoader.FindImage(sprout->frames[i].name, it_sprite);
+                model->skins[i] = Image::getInstance().FindImage(sprout->frames[i].name, it_sprite);
             }
         } else if (model->type == mod_alias) {
             dmdl_t *pheader = (dmdl_t *) model->extradata;
             
             for (int i = 0; i < pheader->num_skins; i++) {
-                model->skins[i] = imageLoader.FindImage((char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
+                model->skins[i] = Image::getInstance().FindImage((char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
             }
             
             model->numframes = pheader->num_frames;
@@ -219,7 +223,7 @@ model_s* MetalRenderer::RegisterModel(char* name) {
 }
 
 image_s* MetalRenderer::RegisterSkin(char* name) {
-    return imageLoader.FindImage(name, it_skin);
+    return Image::getInstance().FindImage(name, it_skin);
 }
 
 void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
@@ -246,8 +250,10 @@ void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
 }
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-    ImageSize imageSize = loadTexture(pic).first;
-    drawPicCmds.push_back(draw->createDrawTextureCmdData(pic, x, y, imageSize.width * factor, imageSize.height * factor));
+//    ImageSize imageSize = loadTexture(pic).first;
+//    drawPicCmds.push_back(draw->createDrawTextureCmdData(pic, x, y, imageSize.width * factor, imageSize.height * factor));
+        
+    renderables.push_back(std::make_shared<Pic>(pic, x, y, factor, _p2dPSO));
 }
 
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {
@@ -289,7 +295,6 @@ void MetalRenderer::BeginFrame(float camera_separation) {}
 
 void MetalRenderer::EndFrame() {
     encodeMetalCommands();
-    
     _frame = (_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 
@@ -875,7 +880,7 @@ std::array<Vertex, 3> MetalRenderer::getPolyVertices(std::string textureName, gl
 }
 
 void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
-    for (auto it = imageLoader.GetLoadedImages().begin(); it != imageLoader.GetLoadedImages().end(); it++) {
+    for (auto it = Image::getInstance().GetLoadedImages().begin(); it != Image::getInstance().GetLoadedImages().end(); it++) {
 
         msurface_t* s = it->second->texturechain;
         
@@ -1218,7 +1223,7 @@ void MetalRenderer::drawParticles() {
     for (i = 0, p = mtl_newrefdef.particles; i < mtl_newrefdef.num_particles; i++, p++) {
         vector_float3 pOrigin = {p->origin[0], p->origin[1], p->origin[2]};
         vector_float3 offset = viewOrigin - pOrigin;
-        auto c = imageLoader.GetPalleteColor(p->color, p->alpha);
+        auto c = Image::getInstance().GetPalleteColor(p->color, p->alpha);
         vector_float4 color = {c[0], c[1], c[2], c[3]};
         float distance = simd_length(offset);
         Particle particle{
@@ -1383,6 +1388,13 @@ void MetalRenderer::encodeMetalCommands() {
 
     encodePolyCommands(pEnc);
     encodeAliasModPolyCommands(pEnc);
+    
+    for (auto r: renderables) {
+        r->render(pEnc, {static_cast<unsigned int>(_width), static_cast<unsigned int>(_height)});
+    }
+    
+    renderables.clear();
+
     encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
     encodeParticlesCommands(pEnc);
     

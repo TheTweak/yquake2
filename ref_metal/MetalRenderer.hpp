@@ -20,6 +20,7 @@
 #include "model/Model.hpp"
 #include "image/Image.hpp"
 #include "legacy/LegacyLight.hpp"
+#include "render/Renderable.hpp"
 
 typedef float vec4_t[4];
 
@@ -46,7 +47,6 @@ private:
     int _viewCluster2;
     
     Model modelLoader;
-    Image imageLoader;
     std::shared_ptr<mtl_model_t> worldModel;
     refdef_t mtl_newrefdef;
     float vBlend[4]; /* final blending color */
@@ -64,6 +64,8 @@ private:
     int _frame = 0;
     int _frameCount = 0;
     int _visFrameCount = 0; /* bumped when going to a new PVS */
+    
+    std::vector<std::shared_ptr<Renderable>> renderables;
     
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawPicCommandData> drawSpriteCmds;

@@ -21,8 +21,6 @@
 #define BLOCK_HEIGHT 512
 
 class Model {
-    Image& imageLoader;
-    
     std::unordered_map<std::string, std::shared_ptr<mtl_model_t>> models;
     std::shared_ptr<mtl_model_t> loadMD2(std::string name, void *buffer, int modfilelen);
     std::shared_ptr<mtl_model_t> loadSP2(std::string name, void *buffer, int modfilelen);
@@ -33,9 +31,8 @@ class Model {
     YQ2_ALIGNAS_TYPE(int) byte mod_novis[MAX_MAP_LEAFS / 8];
 public:
     std::optional<std::shared_ptr<mtl_model_t>> getModel(std::string name, std::optional<std::shared_ptr<mtl_model_t>> parent, bool crash);
-    const byte* clusterPVS(int cluster, const mtl_model_t* model);
-    
-    Model(Image& il);
+    const byte* clusterPVS(int cluster, const mtl_model_t* model);    
+    Model();
 };
 
 #endif /* Model_hpp */
