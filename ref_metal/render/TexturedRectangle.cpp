@@ -5,16 +5,16 @@
 //  Created by SOROKIN EVGENY on 21.12.2022.
 //
 
-#include "Texture2D.hpp"
+#include "TexturedRectangle.hpp"
 #include "../texture/TextureCache.hpp"
 
-Texture2D::Texture2D(std::string pic, int x, int y, float scale, MTL::RenderPipelineState *pipelineState): pic(pic), x(x), y(y), scale(scale), pipelineState(pipelineState) {}
+TexturedRectangle::TexturedRectangle(std::string pic, int x, int y, float scale, MTL::RenderPipelineState *pipelineState): pic(pic), x(x), y(y), scale(scale), pipelineState(pipelineState) {}
 
-std::optional<MTL::DepthStencilState*> Texture2D::getDepthStencilState() {
+std::optional<MTL::DepthStencilState*> TexturedRectangle::getDepthStencilState() {
     return std::nullopt;
 }
 
-void Texture2D::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
+void TexturedRectangle::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
     encoder->setRenderPipelineState(pipelineState);
     auto vertices = createQuad(viewportSize);
     if (!vertices) {

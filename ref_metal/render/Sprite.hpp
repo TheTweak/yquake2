@@ -9,11 +9,11 @@
 #include <string>
 #include <array>
 
-#include "Texture2D.hpp"
+#include "TexturedRectangle.hpp"
 #include "../utils/SharedTypes.h"
 
-class Pic : public Texture2D {
-    using Texture2D::Texture2D;
+class Sprite : public TexturedRectangle {
+    using TexturedRectangle::TexturedRectangle;
     
     std::optional<Quad> createQuad(vector_uint2 viewportSize) override;
 };

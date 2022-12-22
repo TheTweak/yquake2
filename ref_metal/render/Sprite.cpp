@@ -5,10 +5,10 @@
 //  Created by SOROKIN EVGENY on 20.12.2022.
 //
 
-#include "Pic.hpp"
+#include "Sprite.hpp"
 #include "../texture/TextureCache.hpp"
 
-std::optional<Quad> Pic::createQuad(vector_uint2 viewportSize) {
+std::optional<Quad> Sprite::createQuad(vector_uint2 viewportSize) {
     ImageSize imageSize = TextureCache::getInstance().getImageSize(pic);
     float halfWidth = imageSize.width * scale / 2.0f;
     float halfHeight = imageSize.height * scale / 2.0f;

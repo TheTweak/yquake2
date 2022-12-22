@@ -28,7 +28,7 @@
 #include "legacy/ConsoleVars.h"
 #include "utils/Constants.h"
 #include "legacy/State.h"
-#include "render/Pic.hpp"
+#include "render/Sprite.hpp"
 #include "texture/TextureCache.hpp"
 
 #pragma mark - Utils
@@ -257,7 +257,7 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
 //    ImageSize imageSize = loadTexture(pic).first;
 //    drawPicCmds.push_back(draw->createDrawTextureCmdData(pic, x, y, imageSize.width * factor, imageSize.height * factor));
         
-    renderables.push_back(std::make_shared<Pic>(pic, x, y, factor, _p2dPSO));
+    renderables.push_back(std::make_shared<Sprite>(pic, x, y, factor, _p2dPSO));
 }
 
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {
