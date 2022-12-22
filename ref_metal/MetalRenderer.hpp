@@ -22,7 +22,7 @@
 #include "image/Image.hpp"
 #include "legacy/LegacyLight.hpp"
 #include "render/Renderable.hpp"
-#include "render/Hud.hpp"
+#include "render/ConChars.hpp"
 
 typedef float vec4_t[4];
 
@@ -78,7 +78,7 @@ private:
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unordered_set<std::string> generatedMipMaps;
     std::unique_ptr<MetalDraw> draw;
-    std::unique_ptr<Hud> hud;
+    std::unique_ptr<ConChars> conChars;
     dispatch_semaphore_t _semaphore;
     simd_float4x4 projectionMatrix;
     simd_float4x4 modelViewMatrix;

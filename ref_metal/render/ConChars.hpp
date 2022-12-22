@@ -14,19 +14,19 @@
 #include "Renderable.hpp"
 #include "../utils/SharedTypes.h"
 
-struct HudChar {
+struct ConChar {
     int num, x, y;
     float scale;    
     std::optional<Quad> createQuad(vector_uint2 viewportSize);
 };
 
-class Hud : public Renderable {
+class ConChars : public Renderable {
     static MTL::DepthStencilState *noDepthTest;
-    std::vector<HudChar> chars;
+    std::vector<ConChar> chars;
     MTL::RenderPipelineState *pipelineState;
 public:
-    Hud(MTL::RenderPipelineState *pipelineState);
-    void drawChar(HudChar c);
+    ConChars(MTL::RenderPipelineState *pipelineState);
+    void drawChar(ConChar c);
     void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
 };
 

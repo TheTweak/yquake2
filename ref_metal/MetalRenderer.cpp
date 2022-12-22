@@ -70,7 +70,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     buildDepthStencilState();
     drawInit();
     TextureCache::getInstance().init(_pDevice);
-    hud = std::make_unique<Hud>(_p2dPSO);
+    conChars = std::make_unique<ConChars>(_p2dPSO);
     
     pPool->release();
 }
@@ -265,7 +265,7 @@ void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {
 }
 
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
-    hud->drawChar({num, x, y, scale});
+    conChars->drawChar({num, x, y, scale});
 }
 
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {
@@ -1401,7 +1401,7 @@ void MetalRenderer::encodeMetalCommands() {
     encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
     encodeParticlesCommands(pEnc);
 
-    hud->render(pEnc, viewportSize);
+    conChars->render(pEnc, viewportSize);
     
 //    pEnc->setDepthStencilState(_pNoDepthTest);
 //    encode2DCommands(pEnc, _p2dPSO, drawPicCmds);

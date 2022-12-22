@@ -5,13 +5,13 @@
 //  Created by SOROKIN EVGENY on 22.12.2022.
 //
 
-#include "Hud.hpp"
+#include "ConChars.hpp"
 #include "../MetalRenderer.hpp"
 #include "../texture/TextureCache.hpp"
 
-MTL::DepthStencilState* Hud::noDepthTest = NULL;
+MTL::DepthStencilState* ConChars::noDepthTest = NULL;
 
-std::optional<Quad> HudChar::createQuad(vector_uint2 viewportSize) {
+std::optional<Quad> ConChar::createQuad(vector_uint2 viewportSize) {
     int row, col;
     float frow, fcol, size, scaledSize;
     num &= 255;
@@ -57,7 +57,7 @@ std::optional<Quad> HudChar::createQuad(vector_uint2 viewportSize) {
     return vertices;
 }
 
-Hud::Hud(MTL::RenderPipelineState *pipelineState): pipelineState(pipelineState) {
+ConChars::ConChars(MTL::RenderPipelineState *pipelineState): pipelineState(pipelineState) {
     if (!noDepthTest) {
         MTL::DepthStencilDescriptor* pDesc = MTL::DepthStencilDescriptor::alloc()->init();
         pDesc = MTL::DepthStencilDescriptor::alloc()->init();
@@ -67,11 +67,11 @@ Hud::Hud(MTL::RenderPipelineState *pipelineState): pipelineState(pipelineState) 
     }
 }
 
-void Hud::drawChar(HudChar c) {
+void ConChars::drawChar(ConChar c) {
     chars.push_back(c);
 }
 
-void Hud::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
+void ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
     std::vector<TexVertex> vertices;
     for (auto &c: chars) {
         if (auto qopt = c.createQuad(viewportSize); qopt) {
