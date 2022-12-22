@@ -7,16 +7,13 @@
 
 #include <stdio.h>
 #include <string>
+#include <array>
 
-#include "Renderable.hpp"
+#include "Texture2D.hpp"
 #include "../utils/SharedTypes.h"
 
-class Pic: public Renderable {
-    std::string pic;
-    int x, y;
-    float scale;
-    MTL::RenderPipelineState *pipelineState;
-public:
-    Pic(std::string pic, int x, int y, float scale, MTL::RenderPipelineState *pipelineState);
-    void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize);
+class Pic : public Texture2D {
+    using Texture2D::Texture2D;
+    
+    std::optional<Quad> createQuad(vector_uint2 viewportSize) override;
 };

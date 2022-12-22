@@ -14,6 +14,7 @@
 #include <memory>
 #include <string_view>
 #include <unordered_set>
+#include <SDL2/SDL.h>
 
 #include "utils/Utils.hpp"
 #include "MetalDraw.hpp"
@@ -121,6 +122,7 @@ private:
     
 public:
     static MetalRenderer& getInstance();
+    MTL::Device* getDevice();
     void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer, MTL::Resource* pLayer);
     bool Init();
     void Shutdown();

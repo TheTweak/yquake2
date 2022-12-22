@@ -17,7 +17,6 @@
 #include <MetalKit/MetalKit.hpp>
 #include <simd/simd.h>
 #include <SDL2/SDL_video.h>
-#include <SDL2/SDL.h>
 #include <cmath>
 
 #include "../src/client/vid/header/ref.h"
@@ -30,6 +29,7 @@
 #include "utils/Constants.h"
 #include "legacy/State.h"
 #include "render/Pic.hpp"
+#include "render/Char.hpp"
 #include "texture/TextureCache.hpp"
 
 #pragma mark - Utils
@@ -78,6 +78,10 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
 void MetalRenderer::drawInit() {
     /* load console characters */
     loadTexture("conchars");
+}
+
+MTL::Device* MetalRenderer::getDevice() {
+    return _pDevice;
 }
 
 void MetalRenderer::buildDepthStencilState() {
@@ -261,9 +265,10 @@ void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {
 }
 
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
-    if (auto cmd = draw->drawCharScaled(x, y, num, scale); cmd != std::nullopt) {
-        drawPicCmds.push_back(cmd.value());
-    }
+//    if (auto cmd = draw->drawCharScaled(x, y, num, scale); cmd != std::nullopt) {
+//        drawPicCmds.push_back(cmd.value());
+//    }
+    renderables.push_back(std::make_shared<Char>(num, x, y, scale, _p2dPSO));
 }
 
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {
