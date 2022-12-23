@@ -10,11 +10,10 @@
 
 std::optional<Quad> Sprite::createQuad(vector_uint2 viewportSize) {
     ImageSize imageSize = TextureCache::getInstance().getImageSize(pic);
-    float halfWidth = imageSize.width * scale / 2.0f;
-    float halfHeight = imageSize.height * scale / 2.0f;
+    float halfWidth = w == 0 ? imageSize.width * scale / 2.0f : w / 2.0f;
+    float halfHeight = h == 0 ? imageSize.height * scale / 2.0f : h / 2.0f;
     float offsetX = x + halfWidth - viewportSize[0] / 2.0;
     float offsetY = viewportSize[1] / 2.0 - (y + halfHeight);
-    const float sl = 0.0f, tl = 0.0f, sh = 1.0f, th = 1.0f;
     
     std::array<TexVertex, 6> vertices;
     //                          Pixel positions               Texture coordinates

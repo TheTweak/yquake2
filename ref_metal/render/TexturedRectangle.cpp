@@ -10,6 +10,10 @@
 
 TexturedRectangle::TexturedRectangle(std::string pic, int x, int y, float scale, MTL::RenderPipelineState *pipelineState): pic(pic), x(x), y(y), scale(scale), pipelineState(pipelineState) {}
 
+TexturedRectangle::TexturedRectangle(std::string pic, int x, int y, int w, int h, MTL::RenderPipelineState *pipelineState): pic(pic), x(x), y(y), w(w), h(h), pipelineState(pipelineState) {}
+
+TexturedRectangle::TexturedRectangle(std::string pic, int x, int y, int w, int h, float sl, float tl, float sh, float th, MTL::RenderPipelineState *pipelineState): pic(pic), x(x), y(y), w(w), h(h), sl(sl), tl(tl), sh(sh), th(th), pipelineState(pipelineState) {}
+
 std::optional<MTL::DepthStencilState*> TexturedRectangle::getDepthStencilState() {
     return std::nullopt;
 }

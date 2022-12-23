@@ -260,16 +260,18 @@ void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
     renderables.push_back(std::make_shared<Sprite>(pic, x, y, factor, _p2dPSO));
 }
 
-void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* name) {
-    drawPicCmds.push_back(draw->createDrawTextureCmdData(name, x, y, w, h));
+void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* pic) {
+//    drawPicCmds.push_back(draw->createDrawTextureCmdData(name, x, y, w, h));
+    renderables.push_back(std::make_shared<Sprite>(pic, x, y, w, h, _p2dPSO));
 }
 
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
     conChars->drawChar({num, x, y, scale});
 }
 
-void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* name) {
-    drawPicCmds.push_back(draw->createDrawTextureCmdData(name, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f));    
+void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* pic) {
+//    drawPicCmds.push_back(draw->createDrawTextureCmdData(name, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f));
+    renderables.push_back(std::make_shared<Sprite>(pic, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f, _p2dPSO));
 }
 
 void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {
