@@ -9,9 +9,15 @@
 #include "../texture/TextureCache.hpp"
 
 std::optional<Quad> Sprite::createQuad(vector_uint2 viewportSize) {
-    ImageSize imageSize = TextureCache::getInstance().getImageSize(pic);
-    float halfWidth = w == 0 ? imageSize.width * scale / 2.0f : w / 2.0f;
-    float halfHeight = h == 0 ? imageSize.height * scale / 2.0f : h / 2.0f;
+    float halfWidth, halfHeight;
+    if (w == 0 && h == 0) {
+        ImageSize imageSize = TextureCache::getInstance().getImageSize(pic);
+        halfWidth = imageSize.width * scale / 2.0f;
+        halfHeight = imageSize.height * scale / 2.0f;
+    } else {
+        halfWidth = w / 2.0f;
+        halfHeight = h / 2.0f;
+    }
     float offsetX = x + halfWidth - viewportSize[0] / 2.0;
     float offsetY = viewportSize[1] / 2.0 - (y + halfHeight);
     

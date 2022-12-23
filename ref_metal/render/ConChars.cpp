@@ -9,8 +9,6 @@
 #include "../MetalRenderer.hpp"
 #include "../texture/TextureCache.hpp"
 
-MTL::DepthStencilState* ConChars::noDepthTest = NULL;
-
 std::optional<Quad> ConChar::createQuad(vector_uint2 viewportSize) {
     int row, col;
     float frow, fcol, size, scaledSize;
@@ -57,15 +55,7 @@ std::optional<Quad> ConChar::createQuad(vector_uint2 viewportSize) {
     return vertices;
 }
 
-ConChars::ConChars(MTL::RenderPipelineState *pipelineState): pipelineState(pipelineState) {
-    if (!noDepthTest) {
-        MTL::DepthStencilDescriptor* pDesc = MTL::DepthStencilDescriptor::alloc()->init();
-        pDesc = MTL::DepthStencilDescriptor::alloc()->init();
-        pDesc->setDepthWriteEnabled(false);
-        noDepthTest = MetalRenderer::getInstance().getDevice()->newDepthStencilState(pDesc);
-        pDesc->release();
-    }
-}
+ConChars::ConChars(MTL::RenderPipelineState *pipelineState): pipelineState(pipelineState) {}
 
 void ConChars::drawChar(ConChar c) {
     chars.push_back(c);
@@ -86,7 +76,6 @@ void ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportS
     }
     
     encoder->setRenderPipelineState(pipelineState);
-    encoder->setDepthStencilState(noDepthTest);
     
     MTL::Buffer *buffer = MetalRenderer::getInstance().getDevice()->newBuffer(vertices.size()*sizeof(TexVertex), MTL::ResourceStorageModeManaged);
     assert(buffer);

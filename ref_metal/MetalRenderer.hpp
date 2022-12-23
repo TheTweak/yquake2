@@ -68,6 +68,7 @@ private:
     int _visFrameCount = 0; /* bumped when going to a new PVS */
     
     std::vector<std::shared_ptr<Renderable>> renderables;
+    std::vector<std::shared_ptr<Renderable>> renderablesGUI;
     
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawPicCommandData> drawSpriteCmds;
@@ -124,6 +125,8 @@ private:
     
 public:
     static MetalRenderer& getInstance();
+    int getScreenWidth();
+    int getScreenHeight();
     MTL::Device* getDevice();
     void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer, MTL::Resource* pLayer);
     bool Init();

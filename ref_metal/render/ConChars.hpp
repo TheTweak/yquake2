@@ -21,7 +21,6 @@ struct ConChar {
 };
 
 class ConChars : public Renderable {
-    static MTL::DepthStencilState *noDepthTest;
     std::vector<ConChar> chars;
     MTL::RenderPipelineState *pipelineState;
 public:

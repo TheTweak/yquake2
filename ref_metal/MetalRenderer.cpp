@@ -254,15 +254,11 @@ void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
 }
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-//    ImageSize imageSize = loadTexture(pic).first;
-//    drawPicCmds.push_back(draw->createDrawTextureCmdData(pic, x, y, imageSize.width * factor, imageSize.height * factor));
-        
-    renderables.push_back(std::make_shared<Sprite>(pic, x, y, factor, _p2dPSO));
+    renderablesGUI.push_back(std::make_shared<Sprite>(pic, x, y, factor, _p2dPSO));
 }
 
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* pic) {
-//    drawPicCmds.push_back(draw->createDrawTextureCmdData(name, x, y, w, h));
-    renderables.push_back(std::make_shared<Sprite>(pic, x, y, w, h, _p2dPSO));
+    renderablesGUI.push_back(std::make_shared<Sprite>(pic, x, y, w, h, _p2dPSO));
 }
 
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
@@ -270,25 +266,16 @@ void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
 }
 
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* pic) {
-//    drawPicCmds.push_back(draw->createDrawTextureCmdData(name, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f));
-    renderables.push_back(std::make_shared<Sprite>(pic, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f, _p2dPSO));
+    renderablesGUI.push_back(std::make_shared<Sprite>(pic, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f, _p2dPSO));
 }
 
 void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {
-    std::ostringstream os;
-    os << FILL_TEXTURE << c;
-    auto k = os.str();
-    if (auto cachedImageDataIt = _textureMap.find(k); cachedImageDataIt == _textureMap.end()) {
-        _textureMap[k] = {{w, h}, draw->createdColoredTexture({(float)c, (float)c, (float)c, 0.5f}, _pDevice)};
-    }
-    drawPicCmds.push_back(draw->createDrawTextureCmdData(k, 0, 0, w, h));
+    float fc = (float) c;
+    renderablesGUI.push_back(std::make_shared<Sprite>(vector_float4{fc, fc, fc, 0.5f}, x, y, w, h, _p2dPSO));
 }
 
-void MetalRenderer::DrawFadeScreen() {
-    if (auto cachedImageDataIt = _textureMap.find(FADE_SCREEN_TEXTURE); cachedImageDataIt == _textureMap.end()) {
-        _textureMap[FADE_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({0.0f, 0.0f, 0.0f, 128.0f}, _pDevice)};
-    }
-    drawPicCmds.push_back(draw->createDrawTextureCmdData(FADE_SCREEN_TEXTURE, 0, 0, _width, _height));
+void MetalRenderer::DrawFadeScreen() {    
+    renderablesGUI.push_back(std::make_shared<Sprite>(vector_float4{0.0f, 0.0f, 0.0f, 128.0f}, 0, 0, _width, _height, _p2dPSO));
 }
 
 void MetalRenderer::DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {}
@@ -304,6 +291,14 @@ void MetalRenderer::EndFrame() {
 
 bool MetalRenderer::EndWorldRenderpass() {
     return true;
+}
+
+int MetalRenderer::getScreenWidth() {
+    return _width;
+}
+
+int MetalRenderer::getScreenHeight() {
+    return _height;
 }
 
 #pragma mark - Private_Methods
@@ -1403,9 +1398,14 @@ void MetalRenderer::encodeMetalCommands() {
     encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
     encodeParticlesCommands(pEnc);
 
+    // render GUI with disabled depth test
+    pEnc->setDepthStencilState(_pNoDepthTest);
+    for (auto r: renderablesGUI) {
+        r->render(pEnc, viewportSize);
+    }
+    renderablesGUI.clear();
     conChars->render(pEnc, viewportSize);
     
-//    pEnc->setDepthStencilState(_pNoDepthTest);
 //    encode2DCommands(pEnc, _p2dPSO, drawPicCmds);
     
     pEnc->endEncoding();

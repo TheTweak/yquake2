@@ -22,7 +22,8 @@ class TextureCache {
     MTL::Texture* createTexture(int width, int height, byte* data);
 public:
     static TextureCache& getInstance();
-    MTL::Texture* getTexture(std::string);
+    MTL::Texture* getTexture(std::string);    
+    MTL::Texture* getFillColorTexture(vector_float4 bgra);
     ImageSize getImageSize(std::string);
     void init(MTL::Device*);
 };

@@ -23,6 +23,7 @@ protected:
     float tl = 0.0f;
     float sh = 1.0f;
     float th = 1.0f;
+    vector_float4 bgra;
     float scale;
     MTL::RenderPipelineState *pipelineState;
     virtual std::optional<Quad> createQuad(vector_uint2 viewportSize) = 0;
@@ -30,6 +31,7 @@ protected:
 public:
     TexturedRectangle(std::string pic, int x, int y, float scale, MTL::RenderPipelineState *pipelineState);
     TexturedRectangle(std::string pic, int x, int y, int w, int h, MTL::RenderPipelineState *pipelineState);
+    TexturedRectangle(vector_float4 bgra, int x, int y, int w, int h, MTL::RenderPipelineState *pipelineState);
     TexturedRectangle(std::string pic, int x, int y, int w, int h, float sl, float tl, float sh, float th, MTL::RenderPipelineState *pipelineState);
     void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize);
 };
