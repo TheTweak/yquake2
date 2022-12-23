@@ -19,6 +19,7 @@ class Image {
 public:
     static Image& getInstance();
     image_s* FindImage(char* name, imagetype_t type);
+    image_s* FindImage(char* name);
     std::array<float, 4> GetPalleteColor(int, float);
     std::optional<image_s*> LoadM8(char *origname, imagetype_t type);
     std::optional<image_s*> LoadWal(char *origname, imagetype_t type);

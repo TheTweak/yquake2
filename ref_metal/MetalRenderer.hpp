@@ -87,9 +87,7 @@ private:
     
     MetalRenderer();
     void buildShaders();
-    void buildDepthStencilState();
-    void drawInit();
-    std::pair<ImageSize, MTL::Texture*> loadTexture(std::string pic);
+    void buildDepthStencilState();    
     void encodeMetalCommands();
     void encode2DCommands(MTL::RenderCommandEncoder*, MTL::RenderPipelineState*, std::vector<DrawPicCommandData>&);
     void encodeParticlesCommands(MTL::RenderCommandEncoder*);

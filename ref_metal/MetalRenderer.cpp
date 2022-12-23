@@ -67,17 +67,11 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, _width, _height);
     
     buildShaders();
-    buildDepthStencilState();
-    drawInit();
+    buildDepthStencilState();    
     TextureCache::getInstance().init(_pDevice);
     conChars = std::make_unique<ConChars>(_p2dPSO);
     
     pPool->release();
-}
-
-void MetalRenderer::drawInit() {
-    /* load console characters */
-    loadTexture("conchars");
 }
 
 MTL::Device* MetalRenderer::getDevice() {
@@ -246,11 +240,19 @@ void MetalRenderer::RenderFrame(refdef_t* fd) {
 }
 
 image_s* MetalRenderer::DrawFindPic(char* name) {
-    return draw->drawFindPic(name);
+    return Image::getInstance().FindImage(name);
 }
 
 void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
-    draw->drawGetPicSize(w, h, name);
+    image_s* image = DrawFindPic(name);
+    
+    if (!image) {
+        *w = *h = -1;
+        return;
+    }
+    
+    *w = image->width;
+    *h = image->height;
 }
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
@@ -274,7 +276,7 @@ void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {
     renderablesGUI.push_back(std::make_shared<Sprite>(vector_float4{fc, fc, fc, 0.5f}, x, y, w, h, _p2dPSO));
 }
 
-void MetalRenderer::DrawFadeScreen() {    
+void MetalRenderer::DrawFadeScreen() {
     renderablesGUI.push_back(std::make_shared<Sprite>(vector_float4{0.0f, 0.0f, 0.0f, 128.0f}, 0, 0, _width, _height, _p2dPSO));
 }
 
@@ -334,19 +336,8 @@ MTL::RenderPassDescriptor* MetalRenderer::createRenderPassDescriptor() {
     return pRpd;
 }
 
-std::pair<ImageSize, MTL::Texture*> MetalRenderer::loadTexture(std::string pic) {
-    if (auto cachedImageDataIt = _textureMap.find(pic); cachedImageDataIt != _textureMap.end()) {
-        return cachedImageDataIt->second;
-    }
-    _textureMap[pic] = draw->loadTexture(pic, _pDevice);
-    return _textureMap[pic];
-}
-
 void MetalRenderer::flashScreen() {
-    if (auto cachedImageDataIt = _textureMap.find(FLASH_SCREEN_TEXTURE); cachedImageDataIt == _textureMap.end()) {
-        _textureMap[FLASH_SCREEN_TEXTURE] = {{_width, _height}, draw->createdColoredTexture({0.0f, 0.0f, 0.0f, 64.0f}, _pDevice)};
-    }
-    drawPicCmds.push_back(draw->createDrawTextureCmdData(FLASH_SCREEN_TEXTURE, 0, 0, _width, _height));
+    renderablesGUI.push_back(std::make_shared<Sprite>(vector_float4{0.0f, 0.0f, 0.0f, 64.0f}, 0, 0, _width, _height, _p2dPSO));
 }
 
 void MetalRenderer::renderView() {

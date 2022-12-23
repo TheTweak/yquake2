@@ -345,6 +345,23 @@ const std::map<std::string, std::shared_ptr<image_s>>& Image::GetLoadedImages() 
     return _imageCache;
 }
 
+image_s* Image::FindImage(char* name) {
+    image_s* image;
+    char fullname[MAX_QPATH];
+    
+    if ((name[0] != '/') && (name[0] != '\\'))
+    {
+        Com_sprintf(fullname, sizeof(fullname), "pics/%s.pcx", name);
+        image = FindImage(fullname, it_pic);
+    }
+    else
+    {
+        image = FindImage(name + 1, it_pic);
+    }
+    
+    return image;
+}
+
 image_s* Image::FindImage(char* name, imagetype_t type) {
     if (auto it = _imageCache.find(name); it != end(_imageCache)) {
         return it->second.get();
