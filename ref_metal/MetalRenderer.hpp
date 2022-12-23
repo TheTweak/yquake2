@@ -23,6 +23,7 @@
 #include "legacy/LegacyLight.hpp"
 #include "render/Renderable.hpp"
 #include "render/ConChars.hpp"
+#include "render/Particles.hpp"
 
 typedef float vec4_t[4];
 
@@ -80,6 +81,7 @@ private:
     std::unordered_set<std::string> generatedMipMaps;
     std::unique_ptr<MetalDraw> draw;
     std::unique_ptr<ConChars> conChars;
+    std::unique_ptr<Particles> particles;
     dispatch_semaphore_t _semaphore;
     simd_float4x4 projectionMatrix;
     simd_float4x4 modelViewMatrix;
@@ -89,8 +91,7 @@ private:
     void buildShaders();
     void buildDepthStencilState();    
     void encodeMetalCommands();
-    void encode2DCommands(MTL::RenderCommandEncoder*, MTL::RenderPipelineState*, std::vector<DrawPicCommandData>&);
-    void encodeParticlesCommands(MTL::RenderCommandEncoder*);
+    void encode2DCommands(MTL::RenderCommandEncoder*, MTL::RenderPipelineState*, std::vector<DrawPicCommandData>&);    
     void encodePolyCommands(MTL::RenderCommandEncoder*);
     void encodeAliasModPolyCommands(MTL::RenderCommandEncoder*);
     void flashScreen();
@@ -125,6 +126,7 @@ public:
     static MetalRenderer& getInstance();
     int getScreenWidth();
     int getScreenHeight();
+    simd_float4x4 getMvpMatrix();
     MTL::Device* getDevice();
     void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer, MTL::Resource* pLayer);
     bool Init();

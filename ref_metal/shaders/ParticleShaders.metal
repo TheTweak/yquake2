@@ -21,11 +21,11 @@ vertex ParticleRasteriserData
 particleVertexShader(uint vertexID [[ vertex_id ]],
                      constant Particle *particleArray [[ buffer(ParticleInputIndexVertices) ]],
                      constant float4x4 *mvpMatrix [[ buffer(ParticleInputIndexMVPMatrix) ]],
-                     constant float4x4 *identityMatrix [[ buffer(ParticleInputIndexIdentityM) ]])
+                     constant float4x4 *transModelMatrix [[ buffer(ParticleInputIndexTransModelMatrix) ]])
 {
     ParticleRasteriserData out;
     Particle p = particleArray[vertexID];
-    out.position = *mvpMatrix * *identityMatrix * float4(p.position, 1.0);
+    out.position = *mvpMatrix * *transModelMatrix * float4(p.position, 1.0);
     out.color = p.color;
     out.pointSize = (p.size / p.dist) * 5;
     return out;

@@ -18,16 +18,16 @@ enum TexVertexInputIndex {
 };
 
 enum ParticleInputIndex {
-    ParticleInputIndexVertices     = 0,
-    ParticleInputIndexMVPMatrix    = 1,
-    ParticleInputIndexIdentityM    = 2,
+    ParticleInputIndexVertices         = 0,
+    ParticleInputIndexMVPMatrix        = 1,
+    ParticleInputIndexTransModelMatrix = 2,
 };
 
 enum VertexInputIndex {
-    VertexInputIndexVertices  = 0,
-    VertexInputIndexMVPMatrix = 1,
+    VertexInputIndexVertices         = 0,
+    VertexInputIndexMVPMatrix        = 1,
     VertexInputIndexTransModelMatrix = 2,
-    VertexInputIndexAlpha     = 3
+    VertexInputIndexAlpha            = 3
 };
 
 // Texture index values shared between shader and C code to ensure Metal shader buffer inputs match

@@ -67,9 +67,10 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, _width, _height);
     
     buildShaders();
-    buildDepthStencilState();    
+    buildDepthStencilState();
     TextureCache::getInstance().init(_pDevice);
     conChars = std::make_unique<ConChars>(_p2dPSO);
+    particles = std::make_unique<Particles>(_pParticlePSO);
     
     pPool->release();
 }
@@ -301,6 +302,10 @@ int MetalRenderer::getScreenWidth() {
 
 int MetalRenderer::getScreenHeight() {
     return _height;
+}
+
+simd_float4x4 MetalRenderer::getMvpMatrix() {
+    return mvpMatrix;
 }
 
 #pragma mark - Private_Methods
@@ -1222,7 +1227,7 @@ void MetalRenderer::drawParticles() {
             pointSize,
             distance
         };
-        drawPartCmds.push_back({particle});
+        particles->addParticle(particle);
     }
 }
 
@@ -1294,27 +1299,6 @@ void MetalRenderer::encode2DCommands(MTL::RenderCommandEncoder* pEnc, MTL::Rende
     cmds.clear();
 }
 
-void MetalRenderer::encodeParticlesCommands(MTL::RenderCommandEncoder* pEnc) {
-    if (drawPartCmds.empty()) {
-        return;
-    }
-    
-    pEnc->setRenderPipelineState(_pParticlePSO);
-    std::vector<Particle> particles;
-    for (int i = 0; i < drawPartCmds.size(); i++) {
-        particles.push_back(drawPartCmds.at(i).particle);
-    }
-    auto pBuffer = _pDevice->newBuffer(particles.size()*sizeof(Particle), MTL::ResourceStorageModeManaged);
-    assert(pBuffer);
-    std::memcpy(pBuffer->contents(), particles.data(), particles.size()*sizeof(Particle));
-    pEnc->setVertexBuffer(pBuffer, 0, ParticleInputIndex::ParticleInputIndexVertices);
-    pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), ParticleInputIndex::ParticleInputIndexMVPMatrix);
-    pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), ParticleInputIndex::ParticleInputIndexIdentityM);
-    pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypePoint, NS::UInteger(0), NS::UInteger(particles.size()));
-    drawPartCmds.clear();
-    pBuffer->release();
-}
-
 void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) {
     if (drawAliasModPolyCmds.empty()) {
         return;
@@ -1382,12 +1366,11 @@ void MetalRenderer::encodeMetalCommands() {
     vector_uint2 viewportSize = {static_cast<unsigned int>(_width), static_cast<unsigned int>(_height)};
     for (auto r: renderables) {
         r->render(pEnc, viewportSize);
-    }
-    
+    }    
     renderables.clear();
 
     encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
-    encodeParticlesCommands(pEnc);
+    particles->render(pEnc, viewportSize);
 
     // render GUI with disabled depth test
     pEnc->setDepthStencilState(_pNoDepthTest);
