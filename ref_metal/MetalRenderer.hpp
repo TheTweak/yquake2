@@ -86,9 +86,7 @@ private:
     void buildShaders();
     void buildDepthStencilState();    
     void encodeMetalCommands();
-    void encode2DCommands(MTL::RenderCommandEncoder*, MTL::RenderPipelineState*, std::vector<DrawPicCommandData>&);    
-    void encodePolyCommands(MTL::RenderCommandEncoder*);
-    void encodeAliasModPolyCommands(MTL::RenderCommandEncoder*);
+    void encodePolyCommands(MTL::RenderCommandEncoder*);    
     void flashScreen();
     void renderView();
     void setupFrame();

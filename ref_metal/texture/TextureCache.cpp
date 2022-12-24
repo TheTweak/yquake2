@@ -63,13 +63,11 @@ MTL::Texture* TextureCache::getFillColorTexture(vector_float4 bgra) {
     
     byte *image = createFillColor(bgra, screenWidth, screenHeight);
     
-    data[k] = {ImageSize{screenWidth, screenHeight}, createTexture(screenWidth, screenHeight, image)};
+    data[k] = {ImageSize{screenWidth, screenHeight}, createTexture(screenWidth, screenHeight, image, k, 0)};
     return data[k].second;
 }
 
 std::pair<ImageSize, MTL::Texture*> TextureCache::getFromCache(std::string pic) {
-    assert(device != NULL);
-    
     if (auto it = data.find(pic); it != data.end()) {
         return it->second;
     }
@@ -82,12 +80,16 @@ std::pair<ImageSize, MTL::Texture*> TextureCache::getFromCache(std::string pic) 
         throw std::logic_error(ss.str());
     }
     
-    data[pic] = {ImageSize{image->width, image->height}, createTexture(image->width, image->height, image->data)};
+    int mipmapLevelCount = std::log2(image->width);
+    
+    data[pic] = {ImageSize{image->width, image->height}, createTexture(image->width, image->height, image->data, pic, mipmapLevelCount)};
     
     return data[pic];
 }
 
-MTL::Texture* TextureCache::createTexture(int width, int height, byte* data) {
+MTL::Texture* TextureCache::createTexture(int width, int height, byte* data, std::string name, int mipmapLevelCount) {
+    assert(device != NULL);
+    
     MTL::TextureDescriptor* pTextureDescriptor = MTL::TextureDescriptor::alloc()->init();
     pTextureDescriptor->setPixelFormat(PIXEL_FORMAT);
     pTextureDescriptor->setWidth(width);
@@ -95,7 +97,9 @@ MTL::Texture* TextureCache::createTexture(int width, int height, byte* data) {
     pTextureDescriptor->setStorageMode( MTL::StorageModeShared );
     pTextureDescriptor->setUsage(MTL::ResourceUsageSample | MTL::ResourceUsageRead);
     pTextureDescriptor->setTextureType(MTL::TextureType2D);
-    pTextureDescriptor->setMipmapLevelCount(4);
+    if (mipmapLevelCount > 0) {
+        pTextureDescriptor->setMipmapLevelCount(mipmapLevelCount);
+    }
     
     MTL::Texture* pFragmentTexture = device->newTexture(pTextureDescriptor);
     MTL::Region region = {
@@ -103,6 +107,15 @@ MTL::Texture* TextureCache::createTexture(int width, int height, byte* data) {
         ((uint) width), ((uint) height), 1
     };
     pFragmentTexture->replaceRegion(region, 0, data, width*4);
+    pFragmentTexture->setLabel(NS::String::string(name.data(), NS::StringEncoding::UTF8StringEncoding));
     
     return pFragmentTexture;
+}
+
+void TextureCache::addTextureForSkin(image_s *skin) {
+    if (auto it = data.find(skin->path); it != data.end()) {
+        return;
+    }
+    
+    data[skin->path] = {ImageSize{skin->width, skin->height}, createTexture(skin->width, skin->height, skin->data, skin->path, 0)};
 }

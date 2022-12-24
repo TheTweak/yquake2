@@ -19,11 +19,12 @@ class TextureCache {
     
     TextureCache();
     std::pair<ImageSize, MTL::Texture*> getFromCache(std::string);
-    MTL::Texture* createTexture(int width, int height, byte* data);
+    MTL::Texture* createTexture(int width, int height, byte* data, std::string name, int mipmapLevelCount);
 public:
     static TextureCache& getInstance();
     MTL::Texture* getTexture(std::string);    
     MTL::Texture* getFillColorTexture(vector_float4 bgra);
     ImageSize getImageSize(std::string);
     void init(MTL::Device*);
+    void addTextureForSkin(image_s *skin);
 };

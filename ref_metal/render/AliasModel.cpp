@@ -9,11 +9,18 @@
 #include "../MetalRenderer.hpp"
 #include "../texture/TextureCache.hpp"
 
-AliasModel::AliasModel(std::string textureName, std::vector<Vertex> vertices, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState): textureName(textureName),
-vertices(vertices), translation(translation), alpha(alpha), pipelineState(pipelineState) {}
+AliasModel::AliasModel(std::string textureName, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState): textureName(textureName), translation(translation), alpha(alpha), pipelineState(pipelineState) {}
+
+void AliasModel::addVertex(Vertex v) {
+    vertices.push_back(v);
+}
 
 void AliasModel::setIsTriangle(bool isTriangle) {
-    this->isTriangle = isTriangle;
+    this->triangle = isTriangle;
+}
+
+bool AliasModel::isTriangle() {
+    return triangle;
 }
 
 void AliasModel::setClamp(bool clamp) {
@@ -35,6 +42,7 @@ void AliasModel::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewpor
         inputMvp = &mvp.value();
     }
     
+    encoder->setRenderPipelineState(pipelineState);
     auto vertexBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeShared);
     assert(vertexBuffer);
     std::memcpy(vertexBuffer->contents(), vertices.data(), vertices.size()*sizeof(Vertex));
@@ -44,7 +52,7 @@ void AliasModel::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewpor
     encoder->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
     encoder->setFragmentTexture(TextureCache::getInstance().getTexture(textureName), TextureIndex::TextureIndexBaseColor);
     encoder->setDepthClipMode(clamp ? MTL::DepthClipModeClamp : MTL::DepthClipModeClip);
-    encoder->drawPrimitives(isTriangle ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeLineStrip, NS::UInteger(0), NS::UInteger(vertices.size()));
+    encoder->drawPrimitives(triangle ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeLineStrip, NS::UInteger(0), NS::UInteger(vertices.size()));
     encoder->setDepthClipMode(MTL::DepthClipModeClip);
     
     vertexBuffer->release();

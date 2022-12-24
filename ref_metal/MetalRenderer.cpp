@@ -31,6 +31,7 @@
 #include "render/Sprite.hpp"
 #include "texture/TextureCache.hpp"
 #include "model/Model.hpp"
+#include "render/AliasModel.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -521,17 +522,13 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         
         int count;
         int index_xyz;
-        if (auto tit = _textureMap.find(skin->path); tit == _textureMap.end()) {
-            _textureMap[skin->path] = {ImageSize{skin->width, skin->height},
-                draw->createTexture(skin->width, skin->height, _pDevice, skin->data)};            
-            _textureMap[skin->path].second->setLabel(NS::String::string(skin->path.data(), NS::StringEncoding::UTF8StringEncoding));
+
+        TextureCache::getInstance().addTextureForSkin(skin);
+        AliasModel *aliasModel = new AliasModel(skin->path, transModelMat, alpha, _pVertexPSO);
+        aliasModel->setClamp(entity->flags & RF_WEAPONMODEL);
+        if (projMatOpt) {
+            aliasModel->setMVP(projMatOpt.value());
         }
-        DrawAliasPolyCommandData dp;
-        dp.textureName = skin->path;
-        dp.projMat = projMatOpt;
-        dp.alpha = alpha;
-        dp.transModelMat = transModelMat;
-        dp.clamp = entity->flags & RF_WEAPONMODEL;
 
         while (1) {
 
@@ -543,9 +540,9 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
             
             if (count < 0) {
                 count = -count;
-                dp.triangle = true;
+                aliasModel->setIsTriangle(true);
             } else {
-                dp.triangle = false;
+                aliasModel->setIsTriangle(false);
             }
             
             std::vector<Vertex> vertices;
@@ -567,31 +564,32 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                     vertices.push_back(v);
                 }
             }
-            if (dp.triangle) {
+            
+            if (aliasModel->isTriangle()) {
                 for (int i = 1; i < count-1; i++) {
-                    dp.vertices.push_back(vertices.at(0));
-                    dp.vertices.push_back(vertices.at(i));
-                    dp.vertices.push_back(vertices.at(i+1));
+                    aliasModel->addVertex(vertices.at(0));
+                    aliasModel->addVertex(vertices.at(i));
+                    aliasModel->addVertex(vertices.at(i+1));
                 }
             } else {
                 int i;
                 for (i = 1; i < count - 2; i += 2) {
-                    dp.vertices.push_back(vertices.at(i-1));
-                    dp.vertices.push_back(vertices.at(i));
-                    dp.vertices.push_back(vertices.at(i+1));
+                    aliasModel->addVertex(vertices.at(i-1));
+                    aliasModel->addVertex(vertices.at(i));
+                    aliasModel->addVertex(vertices.at(i+1));
                     
-                    dp.vertices.push_back(vertices.at(i));
-                    dp.vertices.push_back(vertices.at(i+2));
-                    dp.vertices.push_back(vertices.at(i+1));
+                    aliasModel->addVertex(vertices.at(i));
+                    aliasModel->addVertex(vertices.at(i+2));
+                    aliasModel->addVertex(vertices.at(i+1));
                 }
                 if (i < count - 1) {
-                    dp.vertices.push_back(vertices.at(i-1));
-                    dp.vertices.push_back(vertices.at(i));
-                    dp.vertices.push_back(vertices.at(i+1));
+                    aliasModel->addVertex(vertices.at(i-1));
+                    aliasModel->addVertex(vertices.at(i));
+                    aliasModel->addVertex(vertices.at(i+1));
                 }
             }
         }
-        drawAliasModPolyCmds.push_back(dp);
+        renderables.push_back(std::shared_ptr<AliasModel>(aliasModel));
     }
 }
 
@@ -1244,68 +1242,6 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
     drawPolyCmds.clear();
 }
 
-void MetalRenderer::encode2DCommands(MTL::RenderCommandEncoder* pEnc, MTL::RenderPipelineState* pPs, std::vector<DrawPicCommandData>& cmds) {
-    if (cmds.empty()) {
-        return;
-    }
-    
-    pEnc->setRenderPipelineState(pPs);
-    vector_uint2 viewPortSize;
-    viewPortSize.x = _width;
-    viewPortSize.y = _height;
-    for (auto& drawPicCmd: cmds) {
-        pEnc->setVertexBytes(&drawPicCmd.textureVertex, sizeof(drawPicCmd.textureVertex), TexVertexInputIndex::TexVertexInputIndexVertices);
-        pEnc->setVertexBytes(&viewPortSize, sizeof(viewPortSize), TexVertexInputIndex::TexVertexInputIndexViewportSize);
-        pEnc->setFragmentTexture(_textureMap[drawPicCmd.pic].second, TextureIndex::TextureIndexBaseColor);
-        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
-    }
-    cmds.clear();
-}
-
-void MetalRenderer::encodeAliasModPolyCommands(MTL::RenderCommandEncoder* pEnc) {
-    if (drawAliasModPolyCmds.empty()) {
-        return;
-    }
-    
-    std::vector<MTL::Buffer*> buffers;
-    for (auto& cmd: drawAliasModPolyCmds) {
-        if (cmd.vertices.empty()) {
-            continue;
-        }
-        
-        simd_float4x4* mvp;
-        if (cmd.projMat) {
-            mvp = &cmd.projMat.value();
-        } else {
-            mvp = &mvpMatrix;
-        }
-        
-        auto pBuffer = _pDevice->newBuffer(cmd.vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeShared);
-        assert(pBuffer);
-        buffers.push_back(pBuffer);
-        std::memcpy(pBuffer->contents(), cmd.vertices.data(), cmd.vertices.size()*sizeof(Vertex));
-        pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
-        pEnc->setVertexBytes(mvp, sizeof(*mvp), VertexInputIndex::VertexInputIndexMVPMatrix);
-        pEnc->setVertexBytes(&cmd.transModelMat, sizeof(cmd.transModelMat), VertexInputIndex::VertexInputIndexTransModelMatrix);
-        pEnc->setVertexBytes(&cmd.alpha, sizeof(cmd.alpha), VertexInputIndex::VertexInputIndexAlpha);
-        
-        auto texture = _textureMap.at(std::string(cmd.textureName.data(), cmd.textureName.size())).second;
-        pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
-        if (cmd.clamp) {
-            pEnc->setDepthClipMode(MTL::DepthClipModeClamp);
-        } else {
-            pEnc->setDepthClipMode(MTL::DepthClipModeClip);
-        }
-        pEnc->drawPrimitives(cmd.triangle ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeLineStrip, NS::UInteger(0), NS::UInteger(cmd.vertices.size()));
-    }
-    pEnc->setDepthClipMode(MTL::DepthClipModeClip);
-    drawAliasModPolyCmds.clear();
-    
-    for (auto pBuffer: buffers) {
-        pBuffer->release();
-    }
-}
-
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -1324,7 +1260,6 @@ void MetalRenderer::encodeMetalCommands() {
     pEnc->setCullMode(MTL::CullModeBack);
 
     encodePolyCommands(pEnc);
-    encodeAliasModPolyCommands(pEnc);
     
     vector_uint2 viewportSize = {static_cast<unsigned int>(_width), static_cast<unsigned int>(_height)};
     for (auto r: renderables) {
@@ -1332,7 +1267,7 @@ void MetalRenderer::encodeMetalCommands() {
     }    
     renderables.clear();
 
-    encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
+//    encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
     particles->render(pEnc, viewportSize);
 
     // render GUI with disabled depth test
@@ -1342,9 +1277,7 @@ void MetalRenderer::encodeMetalCommands() {
     }
     renderablesGUI.clear();
     conChars->render(pEnc, viewportSize);
-    
-//    encode2DCommands(pEnc, _p2dPSO, drawPicCmds);
-    
+        
     pEnc->endEncoding();
 
     auto blitCmdEnc = pCmd->blitCommandEncoder();

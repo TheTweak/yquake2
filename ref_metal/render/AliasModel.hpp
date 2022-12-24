@@ -21,15 +21,17 @@ class AliasModel: public Renderable {
     std::optional<simd_float4x4> mvp;
     simd_float4x4 translation;
     float alpha;
-    bool isTriangle = false;
+    bool triangle = false;
     bool clamp = false;
     
     MTL::RenderPipelineState *pipelineState;
 public:
-    AliasModel(std::string textureName, std::vector<Vertex> vertices, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState);
+    AliasModel(std::string textureName, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState);
     void setIsTriangle(bool isTriangle);
+    bool isTriangle();
     void setClamp(bool clamp);
     void setMVP(simd_float4x4 mvp);
+    void addVertex(Vertex v);
     void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
 };
 
