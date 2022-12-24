@@ -12,7 +12,6 @@
 #include <optional>
 
 #include "Renderable.hpp"
-#include "../utils/SharedTypes.h"
 
 class TexturedRectangle : public Renderable {
 protected:

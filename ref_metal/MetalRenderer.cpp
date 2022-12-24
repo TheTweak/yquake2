@@ -30,6 +30,7 @@
 #include "legacy/State.h"
 #include "render/Sprite.hpp"
 #include "texture/TextureCache.hpp"
+#include "model/Model.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -184,7 +185,7 @@ void MetalRenderer::BeginRegistration(char* map) {
     ss << "maps/" << map << ".bsp";
     std::string mapName = ss.str();
     
-    if (auto m = modelLoader.getModel(mapName, std::nullopt, true); m != std::nullopt) {
+    if (auto m = Model::getInstance().getModel(mapName, std::nullopt, true); m != std::nullopt) {
         worldModel = m.value();
     }
     
@@ -192,33 +193,7 @@ void MetalRenderer::BeginRegistration(char* map) {
 }
 
 model_s* MetalRenderer::RegisterModel(char* name) {
-    auto modelOpt = modelLoader.getModel(name, worldModel, false);
-    if (modelOpt) {
-        auto model = *modelOpt;
-        if (model->type == mod_sprite) {
-            dsprite_t *sprout = (dsprite_t *) model->extradata;
-            
-            for (int i = 0; i < sprout->numframes; i++) {
-                model->skins[i] = Image::getInstance().FindImage(sprout->frames[i].name, it_sprite);
-            }
-        } else if (model->type == mod_alias) {
-            dmdl_t *pheader = (dmdl_t *) model->extradata;
-            
-            for (int i = 0; i < pheader->num_skins; i++) {
-                model->skins[i] = Image::getInstance().FindImage((char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
-            }
-            
-            model->numframes = pheader->num_frames;
-        } else if (model->type == mod_brush) {
-            for (int i = 0; i < model->numtexinfo; i++) {
-//                not applicable to metal renderer
-//                model->texinfo[i].image->registration_sequence = registration_sequence;
-            }
-        }
-        
-        return model.get();
-    }
-    return nullptr;
+    return Model::getInstance().registerModel(name, worldModel);
 }
 
 image_s* MetalRenderer::RegisterSkin(char* name) {
@@ -1032,14 +1007,14 @@ void MetalRenderer::markLeaves() {
         return;
     }
     
-    const byte* vis = modelLoader.clusterPVS(_viewCluster, worldModel.get());
+    const byte* vis = Model::getInstance().clusterPVS(_viewCluster, worldModel.get());
         
     if (_viewCluster2 != _viewCluster) {
         YQ2_ALIGNAS_TYPE(int) byte fatvis[MAX_MAP_LEAFS / 8];
         
         memcpy(fatvis, vis, (worldModel->numleafs + 7) / 8);
         
-        vis = modelLoader.clusterPVS(_viewCluster2, worldModel.get());
+        vis = Model::getInstance().clusterPVS(_viewCluster2, worldModel.get());
         
         int c = (worldModel->numleafs + 31) / 32;
         for (int i = 0; i < c; i++) {

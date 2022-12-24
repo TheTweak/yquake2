@@ -16,12 +16,47 @@ Model::Model() {
     memset(mod_novis, 0xff, sizeof(mod_novis));
 }
 
+Model& Model::getInstance() {
+    static Model instance;
+    return instance;
+}
+
 const byte* Model::clusterPVS(int cluster, const mtl_model_t* model) {
     if (cluster == -1 || !model->vis) {
         return mod_novis;
     }
     
     return Mod_DecompressVis((byte *)model->vis + model->vis->bitofs[cluster][DVIS_PVS], (model->vis->numclusters + 7) >> 3);
+}
+
+model_s* Model::registerModel(char *name, std::shared_ptr<mtl_model_t> worldModel) {
+    auto modelOpt = getModel(name, worldModel, false);
+    if (modelOpt) {
+        auto model = *modelOpt;
+        if (model->type == mod_sprite) {
+            dsprite_t *sprout = (dsprite_t *) model->extradata;
+            
+            for (int i = 0; i < sprout->numframes; i++) {
+                model->skins[i] = Image::getInstance().FindImage(sprout->frames[i].name, it_sprite);
+            }
+        } else if (model->type == mod_alias) {
+            dmdl_t *pheader = (dmdl_t *) model->extradata;
+            
+            for (int i = 0; i < pheader->num_skins; i++) {
+                model->skins[i] = Image::getInstance().FindImage((char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
+            }
+            
+            model->numframes = pheader->num_frames;
+        } else if (model->type == mod_brush) {
+            for (int i = 0; i < model->numtexinfo; i++) {
+                //                not applicable to metal renderer
+                //                model->texinfo[i].image->registration_sequence = registration_sequence;
+            }
+        }
+        
+        return model.get();
+    }
+    return nullptr;
 }
 
 std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, std::optional<std::shared_ptr<mtl_model_t>> parent, bool crash) {

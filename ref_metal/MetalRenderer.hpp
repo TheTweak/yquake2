@@ -4,8 +4,6 @@
 //
 //  Created by SOROKIN EVGENY on 13.09.2022.
 //
-#pragma once
-
 #ifndef MetalRenderer_hpp
 #define MetalRenderer_hpp
 
@@ -18,8 +16,6 @@
 
 #include "utils/Utils.hpp"
 #include "MetalDraw.hpp"
-#include "model/Model.hpp"
-#include "image/Image.hpp"
 #include "legacy/LegacyLight.hpp"
 #include "render/Renderable.hpp"
 #include "render/ConChars.hpp"
@@ -48,8 +44,7 @@ private:
     int _oldViewCluster2;
     int _viewCluster;
     int _viewCluster2;
-    
-    Model modelLoader;
+        
     std::shared_ptr<mtl_model_t> worldModel;
     refdef_t mtl_newrefdef;
     float vBlend[4]; /* final blending color */
@@ -127,7 +122,8 @@ public:
     int getScreenWidth();
     int getScreenHeight();
     simd_float4x4 getMvpMatrix();
-    MTL::Device* getDevice();
+    MTL::Device* getDevice();    
+    
     void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer, MTL::Resource* pLayer);
     bool Init();
     void Shutdown();

@@ -10,7 +10,6 @@
 #include <array>
 
 #include "TexturedRectangle.hpp"
-#include "../utils/SharedTypes.h"
 
 class Sprite : public TexturedRectangle {
     using TexturedRectangle::TexturedRectangle;
