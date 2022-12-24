@@ -17,7 +17,7 @@ float Utils::toRadians(float deg) {
     return deg * (pi / 180.0f);
 }
 
-bool DrawPolyCommandKey::operator==(const DrawPolyCommandKey& other) const {
+bool TexNameTransMatKey::operator==(const TexNameTransMatKey& other) const {
     if (textureName != other.textureName) {
         return false;
     }

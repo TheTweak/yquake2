@@ -31,7 +31,7 @@
 #include "render/Sprite.hpp"
 #include "texture/TextureCache.hpp"
 #include "model/Model.hpp"
-#include "render/AliasModel.hpp"
+#include "render/Polygon.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -524,7 +524,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         int index_xyz;
 
         TextureCache::getInstance().addTextureForSkin(skin);
-        AliasModel *aliasModel = new AliasModel(skin->path, transModelMat, alpha, _pVertexPSO);
+        Polygon *aliasModel = new Polygon(skin->path, transModelMat, alpha, _pVertexPSO);
         aliasModel->setClamp(entity->flags & RF_WEAPONMODEL);
         if (projMatOpt) {
             aliasModel->setMVP(projMatOpt.value());
@@ -589,7 +589,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                 }
             }
         }
-        renderables.push_back(std::shared_ptr<AliasModel>(aliasModel));
+        renderables.push_back(std::shared_ptr<Polygon>(aliasModel));
     }
 }
 
@@ -642,7 +642,7 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
         cplane_t *pplane = psurf->plane;
         
         float dot = DotProduct(modelOrigin, pplane->normal) - pplane->dist;
-        
+                        
         /* draw the polygon */
         if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
             (!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON))) {
@@ -657,16 +657,16 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
                 
                 if (!p || !p->numverts) continue;
                 
+                TexNameTransMatKey key{image->path, transModelMat};
+                
+                texturePolys[key].alpha = 1.0f;
+                texturePolys[key].textureName = image->path;
+                texturePolys[key].transModelMat = transModelMat;
                 for (int i = 2; i < p->numverts; i++) {
-                    DrawPolyCommandData dp;
-                    dp.alpha = 1.0f;
-                    dp.textureName = image->path;
-                    dp.transModelMat = transModelMat;
-                    auto vertexArray = getPolyVertices(dp.textureName, p, i, image);
+                    auto vertexArray = getPolyVertices(image->path, p, i, image);
                     for (int j = 0; j < vertexArray.size(); j++) {
-                        dp.vertices.push_back(vertexArray[j]);
+                        texturePolys[key].vertices.push_back(vertexArray[j]);
                     }
-                    drawPolyCmds.push_back(dp);
                 }
             }
         }
@@ -844,20 +844,21 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
             continue;
         }
         
+        TexNameTransMatKey key{it->first, matrix_identity_float4x4};
+        texturePolys[key].alpha = 1.0f;
+        texturePolys[key].textureName = it->first;
+        
         for (; s; s = s->texturechain) {
             glpoly_t *p = s->polys;
             
             if (!p || !p->numverts) continue;
             
             for (int i = 2; i < p->numverts; i++) {
-                DrawPolyCommandData dp;
-                dp.alpha = 1.0f;
-                dp.textureName = it->first;
-                auto vertexArray = getPolyVertices(dp.textureName, p, i, it->second.get());
+                auto vertexArray = getPolyVertices(it->first, p, i, it->second.get());
+                auto &vertices = texturePolys[key].vertices;
                 for (int j = 0; j < vertexArray.size(); j++) {
-                    dp.vertices.push_back(vertexArray[j]);
+                    vertices.push_back(vertexArray[j]);
                 }
-                drawPolyCmds.push_back(dp);
             }
         }
         
@@ -1193,27 +1194,11 @@ void MetalRenderer::drawParticles() {
 }
 
 void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
-    if (drawPolyCmds.empty()) {
+    if (texturePolys.empty()) {
         return;
     }
-    pEnc->setRenderPipelineState(_pVertexPSO);
     
-    std::unordered_map<DrawPolyCommandKey, DrawPolyCommandData, DrawPolyCommandKeyHash> texturePolys;
-    // group polygons by texture and translation matrix
-    for (auto& cmd: drawPolyCmds) {
-        DrawPolyCommandKey key;
-        key.textureName = cmd.textureName;
-        if (cmd.transModelMat) {
-            key.transModelMat = cmd.transModelMat.value();
-        } else {
-            key.transModelMat = matrix_identity_float4x4;
-        }
-        for (auto& v: cmd.vertices) {
-            texturePolys[key].vertices.push_back(v);
-        }
-        texturePolys[key].alpha = cmd.alpha;
-        texturePolys[key].transModelMat = cmd.transModelMat;
-    }
+    pEnc->setRenderPipelineState(_pVertexPSO);
     std::vector<MTL::Buffer*> buffers;
     for (auto it = texturePolys.begin(); it != texturePolys.end(); it++) {
         auto pBuffer = _pDevice->newBuffer(it->second.vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeManaged);
@@ -1235,11 +1220,11 @@ void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
         
         pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(it->second.vertices.size()));
     }
-    
+
     for (auto pBuffer: buffers) {
         pBuffer->release();
     }
-    drawPolyCmds.clear();
+    texturePolys.clear();
 }
 
 void MetalRenderer::encodeMetalCommands() {

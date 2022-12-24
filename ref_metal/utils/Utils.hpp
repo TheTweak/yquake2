@@ -51,15 +51,15 @@ struct DrawPolyCommandData {
     float alpha;
 };
 
-struct DrawPolyCommandKey {
+struct TexNameTransMatKey {
     std::string textureName;
     simd_float4x4 transModelMat;
     
-    bool operator==(const DrawPolyCommandKey& other) const;
+    bool operator==(const TexNameTransMatKey& other) const;
 };
 
-struct DrawPolyCommandKeyHash {
-    size_t operator()(const DrawPolyCommandKey& key) const {
+struct TexNameTransMatKeyHash {
+    size_t operator()(const TexNameTransMatKey& key) const {
         size_t result = std::hash<std::string>()(key.textureName);
         
         auto floatHasher = std::hash<float>();

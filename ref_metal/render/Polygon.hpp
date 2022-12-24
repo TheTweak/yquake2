@@ -15,7 +15,7 @@
 
 #include "Renderable.hpp"
 
-class AliasModel: public Renderable {
+class Polygon: public Renderable {
     std::string textureName;
     std::vector<Vertex> vertices;
     std::optional<simd_float4x4> mvp;
@@ -26,7 +26,7 @@ class AliasModel: public Renderable {
     
     MTL::RenderPipelineState *pipelineState;
 public:
-    AliasModel(std::string textureName, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState);
+    Polygon(std::string textureName, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState);
     void setIsTriangle(bool isTriangle);
     bool isTriangle();
     void setClamp(bool clamp);

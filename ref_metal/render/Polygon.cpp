@@ -5,33 +5,33 @@
 //  Created by SOROKIN EVGENY on 24.12.2022.
 //
 
-#include "AliasModel.hpp"
+#include "Polygon.hpp"
 #include "../MetalRenderer.hpp"
 #include "../texture/TextureCache.hpp"
 
-AliasModel::AliasModel(std::string textureName, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState): textureName(textureName), translation(translation), alpha(alpha), pipelineState(pipelineState) {}
+Polygon::Polygon(std::string textureName, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState): textureName(textureName), translation(translation), alpha(alpha), pipelineState(pipelineState) {}
 
-void AliasModel::addVertex(Vertex v) {
+void Polygon::addVertex(Vertex v) {
     vertices.push_back(v);
 }
 
-void AliasModel::setIsTriangle(bool isTriangle) {
+void Polygon::setIsTriangle(bool isTriangle) {
     this->triangle = isTriangle;
 }
 
-bool AliasModel::isTriangle() {
+bool Polygon::isTriangle() {
     return triangle;
 }
 
-void AliasModel::setClamp(bool clamp) {
+void Polygon::setClamp(bool clamp) {
     this->clamp = clamp;
 }
 
-void AliasModel::setMVP(simd_float4x4 mvp) {
+void Polygon::setMVP(simd_float4x4 mvp) {
     this->mvp = mvp;
 }
 
-void AliasModel::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
+void Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
     if (vertices.empty()) {
         return;
     }

@@ -72,6 +72,8 @@ private:
     std::vector<DrawPolyCommandData> drawPolyCmds;
     std::vector<DrawAliasPolyCommandData> drawAliasModPolyCmds;
     
+    std::unordered_map<TexNameTransMatKey, DrawPolyCommandData, TexNameTransMatKeyHash> texturePolys;
+    
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unordered_set<std::string> generatedMipMaps;
     std::unique_ptr<MetalDraw> draw;
