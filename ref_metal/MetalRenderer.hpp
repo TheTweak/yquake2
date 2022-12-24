@@ -95,9 +95,7 @@ private:
     void setupFrustum();
     void markLeaves();
     void recursiveWorldNode(entity_t*, mnode_t*);
-    
-    simd_float4x4 rotateForEntity(entity_t*);
-    
+            
     void drawWorld();
     void drawEntities();
     void drawEntity(entity_t*);

@@ -28,7 +28,7 @@ image_s* TextureAnimation(entity_t *currententity, mtexinfo_t *tex);
 simd_float4x4 gluPerspective(float fovy, float aspect, float zNear, float zFar);
 void LerpVerts(bool powerUpEffect, int nverts, dtrivertx_t *v, dtrivertx_t *ov, dtrivertx_t *verts, float *lerp, float move[3], float frontv[3], float backv[3]);
 simd_float4x4 rotateAroundAxisZYX(float aroundZdeg, float aroundYdeg, float aroundXdeg);
-
+simd_float4x4 rotateForEntity(entity_t* entity);
 };
 
 struct ImageSize {

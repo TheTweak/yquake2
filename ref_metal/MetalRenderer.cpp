@@ -351,18 +351,6 @@ void MetalRenderer::drawWorld() {
     drawTextureChains(&ent);
 }
 
-simd_float4x4 MetalRenderer::rotateForEntity(entity_t* entity) {
-    // angles: pitch (around y), yaw (around z), roll (around x)
-    // rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
-    simd_float4x4 transMat = Utils::rotateAroundAxisZYX(entity->angles[1], -entity->angles[0], -entity->angles[2]);
-    
-    for (int i = 0; i < 3; i++) {
-        transMat.columns[3][i] = entity->origin[i];
-    }
-    
-    return simd_mul(matrix_identity_float4x4, transMat);
-}
-
 void MetalRenderer::drawAliasModel(entity_t* entity) {
     vec3_t bbox[8];
     if (!(entity->flags & RF_WEAPONMODEL) && Utils::CullAliasModel(bbox, entity, frustum)) {
@@ -447,7 +435,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         projMatOpt = simd_mul(projMat, modelViewMatrix);
     }
     entity->angles[PITCH] = -entity->angles[PITCH];
-    simd_float4x4 transModelMat = rotateForEntity(entity);
+    simd_float4x4 transModelMat = Utils::rotateForEntity(entity);
     entity->angles[PITCH] = -entity->angles[PITCH];
     
     image_s *skin;
@@ -646,7 +634,7 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
     }
     entity->angles[0] = -entity->angles[0];
     entity->angles[2] = -entity->angles[2];
-    simd_float4x4 transModelMat = rotateForEntity(entity);
+    simd_float4x4 transModelMat = Utils::rotateForEntity(entity);
     entity->angles[0] = -entity->angles[0];
     entity->angles[2] = -entity->angles[2];
     

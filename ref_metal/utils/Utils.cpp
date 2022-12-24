@@ -307,3 +307,15 @@ simd_float4x4 Utils::rotateAroundAxisZYX(float aroundZdeg, float aroundYdeg, flo
     
     return result;
 }
+
+simd_float4x4 Utils::rotateForEntity(entity_t* entity) {
+    // angles: pitch (around y), yaw (around z), roll (around x)
+    // rot matrices to be multiplied in order Z, Y, X (yaw, pitch, roll)
+    simd_float4x4 transMat = rotateAroundAxisZYX(entity->angles[1], -entity->angles[0], -entity->angles[2]);
+    
+    for (int i = 0; i < 3; i++) {
+        transMat.columns[3][i] = entity->origin[i];
+    }
+    
+    return simd_mul(matrix_identity_float4x4, transMat);
+}
