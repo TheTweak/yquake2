@@ -1,12 +1,12 @@
 //
-//  AliasModel.hpp
+//  Polygon.hpp
 //  ref_metal
 //
 //  Created by SOROKIN EVGENY on 24.12.2022.
 //
 
-#ifndef AliasModel_hpp
-#define AliasModel_hpp
+#ifndef Polygon_hpp
+#define Polygon_hpp
 
 #include <string>
 #include <vector>
@@ -36,4 +36,4 @@ public:
     void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
 };
 
-#endif /* AliasModel_hpp */
+#endif /* Polygon_hpp */

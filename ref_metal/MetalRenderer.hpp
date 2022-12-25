@@ -17,6 +17,7 @@
 #include "utils/Utils.hpp"
 #include "MetalDraw.hpp"
 #include "legacy/LegacyLight.hpp"
+#include "legacy/AliasModel.hpp"
 #include "render/Renderable.hpp"
 #include "render/ConChars.hpp"
 #include "render/Particles.hpp"
@@ -79,6 +80,9 @@ private:
     simd_float4x4 modelViewMatrix;
     simd_float4x4 mvpMatrix;
     
+    LegacyLight legacyLight;
+    AliasModel aliasModel;
+    
     MetalRenderer();
     void buildShaders();
     void buildDepthStencilState();    
@@ -107,9 +111,7 @@ private:
     void renderEntities(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderSprites(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void generateMipmaps(MTL::BlitCommandEncoder *enc);
-    
-    LegacyLight legacyLight;
-    
+            
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn, bool blendingEnabled);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();
