@@ -21,11 +21,12 @@ class Polygon: public Renderable {
     std::optional<simd_float4x4> mvp;
     simd_float4x4 translation;
     float alpha;
-    bool triangle = false;
+    bool triangle = true;
     bool clamp = false;
     
     MTL::RenderPipelineState *pipelineState;
 public:
+    Polygon() = default;
     Polygon(std::string textureName, simd_float4x4 translation, float alpha, MTL::RenderPipelineState *pipelineState);
     void setIsTriangle(bool isTriangle);
     bool isTriangle();

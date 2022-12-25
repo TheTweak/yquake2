@@ -523,7 +523,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
         int count;
         int index_xyz;
 
-        TextureCache::getInstance().addTextureForSkin(skin);
+        TextureCache::getInstance().addTextureForImage(skin);
         Polygon *aliasModel = new Polygon(skin->path, transModelMat, alpha, _pVertexPSO);
         aliasModel->setClamp(entity->flags & RF_WEAPONMODEL);
         if (projMatOpt) {
@@ -658,14 +658,12 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
                 if (!p || !p->numverts) continue;
                 
                 TexNameTransMatKey key{image->path, transModelMat};
+                texturePolys.insert({key, Polygon{image->path, transModelMat, 1.0f, _pVertexPSO}});
                 
-                texturePolys[key].alpha = 1.0f;
-                texturePolys[key].textureName = image->path;
-                texturePolys[key].transModelMat = transModelMat;
                 for (int i = 2; i < p->numverts; i++) {
                     auto vertexArray = getPolyVertices(image->path, p, i, image);
                     for (int j = 0; j < vertexArray.size(); j++) {
-                        texturePolys[key].vertices.push_back(vertexArray[j]);
+                        texturePolys[key].addVertex(vertexArray[j]);
                     }
                 }
             }
@@ -808,11 +806,7 @@ void MetalRenderer::drawNullModel(entity_t *entity) {
 }
 
 std::array<Vertex, 3> MetalRenderer::getPolyVertices(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image) {
-    if (auto tit = _textureMap.find(textureName); tit == _textureMap.end()) {
-        _textureMap[textureName] = {ImageSize{image->width, image->height},
-            draw->createTexture(image->width, image->height, _pDevice, image->data)};
-        _textureMap[textureName].second->setLabel(NS::String::string(textureName.data(), NS::StringEncoding::UTF8StringEncoding));
-    }
+    TextureCache::getInstance().addTextureForImage(image);
     std::array<Vertex, 3> vertices;
     {
         auto v = poly->vertices[0];
@@ -845,8 +839,7 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
         }
         
         TexNameTransMatKey key{it->first, matrix_identity_float4x4};
-        texturePolys[key].alpha = 1.0f;
-        texturePolys[key].textureName = it->first;
+        texturePolys.insert({key, Polygon{it->first, matrix_identity_float4x4, 1.0f, _pVertexPSO}});
         
         for (; s; s = s->texturechain) {
             glpoly_t *p = s->polys;
@@ -855,9 +848,8 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
             
             for (int i = 2; i < p->numverts; i++) {
                 auto vertexArray = getPolyVertices(it->first, p, i, it->second.get());
-                auto &vertices = texturePolys[key].vertices;
                 for (int j = 0; j < vertexArray.size(); j++) {
-                    vertices.push_back(vertexArray[j]);
+                    texturePolys[key].addVertex(vertexArray[j]);
                 }
             }
         }
@@ -1193,40 +1185,6 @@ void MetalRenderer::drawParticles() {
     }
 }
 
-void MetalRenderer::encodePolyCommands(MTL::RenderCommandEncoder* pEnc) {
-    if (texturePolys.empty()) {
-        return;
-    }
-    
-    pEnc->setRenderPipelineState(_pVertexPSO);
-    std::vector<MTL::Buffer*> buffers;
-    for (auto it = texturePolys.begin(); it != texturePolys.end(); it++) {
-        auto pBuffer = _pDevice->newBuffer(it->second.vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeManaged);
-        assert(pBuffer);
-        buffers.push_back(pBuffer);
-        std::memcpy(pBuffer->contents(), it->second.vertices.data(), it->second.vertices.size()*sizeof(Vertex));
-        pEnc->setVertexBuffer(pBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
-        
-        if (it->second.transModelMat) {
-            pEnc->setVertexBytes(&it->second.transModelMat.value(), sizeof(it->second.transModelMat.value()), VertexInputIndex::VertexInputIndexTransModelMatrix);
-        } else {
-            pEnc->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), VertexInputIndex::VertexInputIndexTransModelMatrix);
-        }
-        pEnc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
-        pEnc->setVertexBytes(&it->second.alpha, sizeof(it->second.alpha), VertexInputIndex::VertexInputIndexAlpha);
-        
-        auto texture = _textureMap.at(it->first.textureName).second;
-        pEnc->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
-        
-        pEnc->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(it->second.vertices.size()));
-    }
-
-    for (auto pBuffer: buffers) {
-        pBuffer->release();
-    }
-    texturePolys.clear();
-}
-
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -1243,10 +1201,13 @@ void MetalRenderer::encodeMetalCommands() {
     
     pEnc->setDepthStencilState(_pDepthStencilState);
     pEnc->setCullMode(MTL::CullModeBack);
-
-    encodePolyCommands(pEnc);
     
     vector_uint2 viewportSize = {static_cast<unsigned int>(_width), static_cast<unsigned int>(_height)};
+    for (auto it = texturePolys.begin(); it != texturePolys.end(); it++) {
+        it->second.render(pEnc, viewportSize);
+    }
+    texturePolys.clear();
+        
     for (auto r: renderables) {
         r->render(pEnc, viewportSize);
     }    
@@ -1267,9 +1228,11 @@ void MetalRenderer::encodeMetalCommands() {
 
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     
-    for (auto it = _textureMap.begin(); it != _textureMap.end(); it++) {
+    for (auto it = TextureCache::getInstance().getData().begin(); it != TextureCache::getInstance().getData().end(); it++) {
         if (it->second.second != NULL && generatedMipMaps.find(it->first) == generatedMipMaps.end()) {
-            blitCmdEnc->generateMipmaps(it->second.second);
+            if (it->second.second->mipmapLevelCount() > 1) {
+                blitCmdEnc->generateMipmaps(it->second.second);
+            }
             generatedMipMaps.insert(it->first);            
         }
     }

@@ -20,6 +20,7 @@
 #include "render/Renderable.hpp"
 #include "render/ConChars.hpp"
 #include "render/Particles.hpp"
+#include "render/Polygon.hpp"
 
 typedef float vec4_t[4];
 
@@ -72,7 +73,7 @@ private:
     std::vector<DrawPolyCommandData> drawPolyCmds;
     std::vector<DrawAliasPolyCommandData> drawAliasModPolyCmds;
     
-    std::unordered_map<TexNameTransMatKey, DrawPolyCommandData, TexNameTransMatKeyHash> texturePolys;
+    std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> texturePolys;
     
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unordered_set<std::string> generatedMipMaps;
@@ -87,8 +88,7 @@ private:
     MetalRenderer();
     void buildShaders();
     void buildDepthStencilState();    
-    void encodeMetalCommands();
-    void encodePolyCommands(MTL::RenderCommandEncoder*);    
+    void encodeMetalCommands();        
     void flashScreen();
     void renderView();
     void setupFrame();
