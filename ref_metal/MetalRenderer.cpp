@@ -711,13 +711,7 @@ void MetalRenderer::drawSpriteModel(entity_t* e, model_s* currentmodel) {
     DrawPicCommandData dp;
     image_s *image = currentmodel->skins[e->frame];
     dp.pic = image->path;
-    
-    if (auto tit = _textureMap.find(dp.pic); tit == _textureMap.end()) {
-        _textureMap[dp.pic] = {ImageSize{image->width, image->height},
-            draw->createTexture(image->width, image->height, _pDevice, image->data)};
-        _textureMap[dp.pic].second->setLabel(NS::String::string(dp.pic.data(), NS::StringEncoding::UTF8StringEncoding));
-    }
-    
+        
     dp.textureVertex[0] = {
         {verts[0].pos[0], verts[0].pos[1]},
         {verts[0].texCoord[0], verts[0].texCoord[1]}

@@ -66,16 +66,10 @@ private:
     
     std::vector<std::shared_ptr<Renderable>> entities;
     std::vector<std::shared_ptr<Renderable>> gui;
-    
-    std::vector<DrawPicCommandData> drawPicCmds;
+        
     std::vector<DrawPicCommandData> drawSpriteCmds;
-    std::vector<DrawParticleCommandData> drawPartCmds;
-    std::vector<DrawPolyCommandData> drawPolyCmds;
-    std::vector<DrawAliasPolyCommandData> drawAliasModPolyCmds;
-    
+                
     std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> worldPolygonsByTexture;
-    
-    std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unordered_set<std::string> generatedMipMaps;
     std::unique_ptr<MetalDraw> draw;
     std::unique_ptr<ConChars> conChars;
