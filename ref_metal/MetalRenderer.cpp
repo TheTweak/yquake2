@@ -707,38 +707,37 @@ void MetalRenderer::drawSpriteModel(entity_t* e, model_s* currentmodel) {
 
     VectorMA( e->origin, -frame->origin_y, up, verts[3].pos );
     VectorMA( verts[3].pos, frame->width - frame->origin_x, right, verts[3].pos );
-    
-    DrawPicCommandData dp;
+                
     image_s *image = currentmodel->skins[e->frame];
-    dp.pic = image->path;
-        
-    dp.textureVertex[0] = {
+    Quad q;
+    q[0] = {
         {verts[0].pos[0], verts[0].pos[1]},
         {verts[0].texCoord[0], verts[0].texCoord[1]}
     };
-    dp.textureVertex[1] = {
+    q[1] = {
         {verts[1].pos[0], verts[1].pos[1]},
         {verts[1].texCoord[0], verts[1].texCoord[1]}
     };
-    dp.textureVertex[2] = {
+    q[2] = {
         {verts[2].pos[0], verts[2].pos[1]},
         {verts[2].texCoord[0], verts[2].texCoord[1]}
     };
     
-    dp.textureVertex[3] = {
+    q[3] = {
         {verts[0].pos[0], verts[0].pos[1]},
         {verts[0].texCoord[0], verts[0].texCoord[1]}
     };
-    dp.textureVertex[4] = {
+    q[4] = {
         {verts[3].pos[0], verts[3].pos[1]},
         {verts[3].texCoord[0], verts[3].texCoord[1]}
     };
-    dp.textureVertex[5] = {
+    q[5] = {
         {verts[2].pos[0], verts[2].pos[1]},
         {verts[2].texCoord[0], verts[2].texCoord[1]}
     };
-    
-    drawSpriteCmds.push_back(std::move(dp));
+    Sprite sprite{image->path, _p2dPSO};
+    sprite.setQuad(q);
+    sprites.push_back(std::move(sprite));
 }
 
 void MetalRenderer::drawEntity(entity_t* currentEntity) {
@@ -1212,6 +1211,13 @@ void MetalRenderer::generateMipmaps(MTL::BlitCommandEncoder *enc) {
     }
 }
 
+void MetalRenderer::renderSprites(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+    for (auto &s: sprites) {
+        s.render(enc, viewportSize);
+    }
+    sprites.clear();
+}
+
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -1232,6 +1238,7 @@ void MetalRenderer::encodeMetalCommands() {
     renderWorld(pEnc, viewportSize);
     renderEntities(pEnc, viewportSize);
     particles->render(pEnc, viewportSize);
+    renderSprites(pEnc, viewportSize);
     // render GUI with disabled depth test
     pEnc->setDepthStencilState(_pNoDepthTest);
     renderGUI(pEnc, viewportSize);

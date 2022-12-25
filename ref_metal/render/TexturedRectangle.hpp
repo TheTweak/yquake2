@@ -27,7 +27,7 @@ protected:
     MTL::RenderPipelineState *pipelineState;
     virtual std::optional<Quad> createQuad(vector_uint2 viewportSize) = 0;
     virtual std::optional<MTL::DepthStencilState*> getDepthStencilState();
-public:
+public:    
     TexturedRectangle(std::string pic, int x, int y, float scale, MTL::RenderPipelineState *pipelineState);
     TexturedRectangle(std::string pic, int x, int y, int w, int h, MTL::RenderPipelineState *pipelineState);
     TexturedRectangle(vector_float4 bgra, int x, int y, int w, int h, MTL::RenderPipelineState *pipelineState);

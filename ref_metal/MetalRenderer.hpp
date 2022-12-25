@@ -21,6 +21,7 @@
 #include "render/ConChars.hpp"
 #include "render/Particles.hpp"
 #include "render/Polygon.hpp"
+#include "render/Sprite.hpp"
 
 typedef float vec4_t[4];
 
@@ -66,8 +67,7 @@ private:
     
     std::vector<std::shared_ptr<Renderable>> entities;
     std::vector<std::shared_ptr<Renderable>> gui;
-        
-    std::vector<DrawPicCommandData> drawSpriteCmds;
+    std::vector<Sprite> sprites;
                 
     std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> worldPolygonsByTexture;
     std::unordered_set<std::string> generatedMipMaps;
@@ -105,6 +105,7 @@ private:
     void renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderEntities(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
+    void renderSprites(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void generateMipmaps(MTL::BlitCommandEncoder *enc);
     
     LegacyLight legacyLight;

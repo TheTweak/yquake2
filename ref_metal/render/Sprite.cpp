@@ -8,7 +8,17 @@
 #include "Sprite.hpp"
 #include "../texture/TextureCache.hpp"
 
+Sprite::Sprite(std::string pic, MTL::RenderPipelineState *pipelineState): TexturedRectangle(pic, 0, 0, 0, pipelineState) {}
+
+void Sprite::setQuad(Quad q) {
+    this->quad = q;
+}
+
 std::optional<Quad> Sprite::createQuad(vector_uint2 viewportSize) {
+    if (quad) {
+        return quad;
+    }
+    
     float halfWidth, halfHeight;
     if (w == 0 && h == 0) {
         ImageSize imageSize = TextureCache::getInstance().getImageSize(pic);
