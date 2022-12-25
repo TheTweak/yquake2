@@ -64,8 +64,8 @@ private:
     int _frameCount = 0;
     int _visFrameCount = 0; /* bumped when going to a new PVS */
     
-    std::vector<std::shared_ptr<Renderable>> renderables;
-    std::vector<std::shared_ptr<Renderable>> renderablesGUI;
+    std::vector<std::shared_ptr<Renderable>> entities;
+    std::vector<std::shared_ptr<Renderable>> gui;
     
     std::vector<DrawPicCommandData> drawPicCmds;
     std::vector<DrawPicCommandData> drawSpriteCmds;
@@ -73,7 +73,7 @@ private:
     std::vector<DrawPolyCommandData> drawPolyCmds;
     std::vector<DrawAliasPolyCommandData> drawAliasModPolyCmds;
     
-    std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> texturePolys;
+    std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> worldPolygonsByTexture;
     
     std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>> _textureMap;
     std::unordered_set<std::string> generatedMipMaps;
@@ -107,6 +107,11 @@ private:
     void drawAliasModel(entity_t*);
     void drawBrushModel(entity_t*, model_s*);
     void drawSpriteModel(entity_t*, model_s*);
+    
+    void renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
+    void renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
+    void renderEntities(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
+    void generateMipmaps(MTL::BlitCommandEncoder *enc);
     
     LegacyLight legacyLight;
     

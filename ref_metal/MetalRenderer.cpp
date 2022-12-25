@@ -233,11 +233,11 @@ void MetalRenderer::DrawGetPicSize(int *w, int *h, char *name) {
 }
 
 void MetalRenderer::DrawPicScaled(int x, int y, char* pic, float factor) {
-    renderablesGUI.push_back(std::make_shared<Sprite>(pic, x, y, factor, _p2dPSO));
+    gui.push_back(std::make_shared<Sprite>(pic, x, y, factor, _p2dPSO));
 }
 
 void MetalRenderer::DrawStretchPic(int x, int y, int w, int h, char* pic) {
-    renderablesGUI.push_back(std::make_shared<Sprite>(pic, x, y, w, h, _p2dPSO));
+    gui.push_back(std::make_shared<Sprite>(pic, x, y, w, h, _p2dPSO));
 }
 
 void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
@@ -245,16 +245,16 @@ void MetalRenderer::DrawCharScaled(int x, int y, int num, float scale) {
 }
 
 void MetalRenderer::DrawTileClear(int x, int y, int w, int h, char* pic) {
-    renderablesGUI.push_back(std::make_shared<Sprite>(pic, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f, _p2dPSO));
+    gui.push_back(std::make_shared<Sprite>(pic, x, y, w, h, x/64.0f, y/64.0f, (x + w)/64.0f, (y + h)/64.0f, _p2dPSO));
 }
 
 void MetalRenderer::DrawFill(int x, int y, int w, int h, int c) {
     float fc = (float) c;
-    renderablesGUI.push_back(std::make_shared<Sprite>(vector_float4{fc, fc, fc, 0.5f}, x, y, w, h, _p2dPSO));
+    gui.push_back(std::make_shared<Sprite>(vector_float4{fc, fc, fc, 0.5f}, x, y, w, h, _p2dPSO));
 }
 
 void MetalRenderer::DrawFadeScreen() {
-    renderablesGUI.push_back(std::make_shared<Sprite>(vector_float4{0.0f, 0.0f, 0.0f, 128.0f}, 0, 0, _width, _height, _p2dPSO));
+    gui.push_back(std::make_shared<Sprite>(vector_float4{0.0f, 0.0f, 0.0f, 128.0f}, 0, 0, _width, _height, _p2dPSO));
 }
 
 void MetalRenderer::DrawStretchRaw(int x, int y, int w, int h, int cols, int rows, byte* data) {}
@@ -318,7 +318,7 @@ MTL::RenderPassDescriptor* MetalRenderer::createRenderPassDescriptor() {
 }
 
 void MetalRenderer::flashScreen() {
-    renderablesGUI.push_back(std::make_shared<Sprite>(vector_float4{0.0f, 0.0f, 0.0f, 64.0f}, 0, 0, _width, _height, _p2dPSO));
+    gui.push_back(std::make_shared<Sprite>(vector_float4{0.0f, 0.0f, 0.0f, 64.0f}, 0, 0, _width, _height, _p2dPSO));
 }
 
 void MetalRenderer::renderView() {
@@ -589,7 +589,7 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
                 }
             }
         }
-        renderables.push_back(std::shared_ptr<Polygon>(aliasModel));
+        entities.push_back(std::shared_ptr<Polygon>(aliasModel));
     }
 }
 
@@ -658,12 +658,12 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
                 if (!p || !p->numverts) continue;
                 
                 TexNameTransMatKey key{image->path, transModelMat};
-                texturePolys.insert({key, Polygon{image->path, transModelMat, 1.0f, _pVertexPSO}});
+                worldPolygonsByTexture.insert({key, Polygon{image->path, transModelMat, 1.0f, _pVertexPSO}});
                 
                 for (int i = 2; i < p->numverts; i++) {
                     auto vertexArray = getPolyVertices(image->path, p, i, image);
                     for (int j = 0; j < vertexArray.size(); j++) {
-                        texturePolys[key].addVertex(vertexArray[j]);
+                        worldPolygonsByTexture[key].addVertex(vertexArray[j]);
                     }
                 }
             }
@@ -839,7 +839,7 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
         }
         
         TexNameTransMatKey key{it->first, matrix_identity_float4x4};
-        texturePolys.insert({key, Polygon{it->first, matrix_identity_float4x4, 1.0f, _pVertexPSO}});
+        worldPolygonsByTexture.insert({key, Polygon{it->first, matrix_identity_float4x4, 1.0f, _pVertexPSO}});
         
         for (; s; s = s->texturechain) {
             glpoly_t *p = s->polys;
@@ -849,7 +849,7 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
             for (int i = 2; i < p->numverts; i++) {
                 auto vertexArray = getPolyVertices(it->first, p, i, it->second.get());
                 for (int j = 0; j < vertexArray.size(); j++) {
-                    texturePolys[key].addVertex(vertexArray[j]);
+                    worldPolygonsByTexture[key].addVertex(vertexArray[j]);
                 }
             }
         }
@@ -1185,6 +1185,39 @@ void MetalRenderer::drawParticles() {
     }
 }
 
+void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+    for (auto it = worldPolygonsByTexture.begin(); it != worldPolygonsByTexture.end(); it++) {
+        it->second.render(enc, viewportSize);
+    }
+    worldPolygonsByTexture.clear();
+}
+
+void MetalRenderer::renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+    for (auto g: gui) {
+        g->render(enc, viewportSize);
+    }
+    gui.clear();
+    conChars->render(enc, viewportSize);
+}
+
+void MetalRenderer::renderEntities(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+    for (auto e: entities) {
+        e->render(enc, viewportSize);
+    }
+    entities.clear();
+}
+
+void MetalRenderer::generateMipmaps(MTL::BlitCommandEncoder *enc) {
+    for (auto it = TextureCache::getInstance().getData().begin(); it != TextureCache::getInstance().getData().end(); it++) {
+        if (it->second.second != NULL && generatedMipMaps.find(it->first) == generatedMipMaps.end()) {
+            if (it->second.second->mipmapLevelCount() > 1) {
+                enc->generateMipmaps(it->second.second);
+            }
+            generatedMipMaps.insert(it->first);
+        }
+    }
+}
+
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -1201,42 +1234,17 @@ void MetalRenderer::encodeMetalCommands() {
     
     pEnc->setDepthStencilState(_pDepthStencilState);
     pEnc->setCullMode(MTL::CullModeBack);
-    
     vector_uint2 viewportSize = {static_cast<unsigned int>(_width), static_cast<unsigned int>(_height)};
-    for (auto it = texturePolys.begin(); it != texturePolys.end(); it++) {
-        it->second.render(pEnc, viewportSize);
-    }
-    texturePolys.clear();
-        
-    for (auto r: renderables) {
-        r->render(pEnc, viewportSize);
-    }    
-    renderables.clear();
-
-//    encode2DCommands(pEnc, _pVertexPSO, drawSpriteCmds);
+    renderWorld(pEnc, viewportSize);
+    renderEntities(pEnc, viewportSize);
     particles->render(pEnc, viewportSize);
-
     // render GUI with disabled depth test
     pEnc->setDepthStencilState(_pNoDepthTest);
-    for (auto r: renderablesGUI) {
-        r->render(pEnc, viewportSize);
-    }
-    renderablesGUI.clear();
-    conChars->render(pEnc, viewportSize);
-        
+    renderGUI(pEnc, viewportSize);
     pEnc->endEncoding();
 
     auto blitCmdEnc = pCmd->blitCommandEncoder();
-    
-    for (auto it = TextureCache::getInstance().getData().begin(); it != TextureCache::getInstance().getData().end(); it++) {
-        if (it->second.second != NULL && generatedMipMaps.find(it->first) == generatedMipMaps.end()) {
-            if (it->second.second->mipmapLevelCount() > 1) {
-                blitCmdEnc->generateMipmaps(it->second.second);
-            }
-            generatedMipMaps.insert(it->first);            
-        }
-    }
-
+    generateMipmaps(blitCmdEnc);
     blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
     blitCmdEnc->endEncoding();
     pCmd->commit();
