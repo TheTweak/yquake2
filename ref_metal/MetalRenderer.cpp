@@ -32,6 +32,7 @@
 #include "texture/TextureCache.hpp"
 #include "model/Model.hpp"
 #include "render/Polygon.hpp"
+#include "utils/PolygonUtils.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -653,6 +654,7 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
                 // check in GL3_DrawGLFlowingPoly
             } else {
                 image_s* image = Utils::TextureAnimation(entity, psurf->texinfo);
+                TextureCache::getInstance().addTextureForImage(image);
                 glpoly_t *p = psurf->polys;
                 
                 if (!p || !p->numverts) continue;
@@ -661,7 +663,7 @@ void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
                 worldPolygonsByTexture.insert({key, Polygon{image->path, transModelMat, 1.0f, _pVertexPSO}});
                 
                 for (int i = 2; i < p->numverts; i++) {
-                    auto vertexArray = getPolyVertices(image->path, p, i, image);
+                    auto vertexArray = PolygonUtils::cutTriangle(p, i);
                     for (int j = 0; j < vertexArray.size(); j++) {
                         worldPolygonsByTexture[key].addVertex(vertexArray[j]);
                     }
@@ -798,33 +800,11 @@ void MetalRenderer::drawNullModel(entity_t *entity) {
     
 }
 
-std::array<Vertex, 3> MetalRenderer::getPolyVertices(std::string textureName, glpoly_t* poly, int vertexIndex, image_s* image) {
-    TextureCache::getInstance().addTextureForImage(image);
-    std::array<Vertex, 3> vertices;
-    {
-        auto v = poly->vertices[0];
-        vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
-        vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
-        vertices[0] = {vertex, texCoord};
-    }
-    {
-        auto v = poly->vertices[vertexIndex-1];
-        vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
-        vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
-        vertices[1] = {vertex, texCoord};
-    }
-    {
-        auto v = poly->vertices[vertexIndex];
-        vector_float3 vertex = {v.pos[0], v.pos[1], v.pos[2]};
-        vector_float2 texCoord = {v.texCoord[0], v.texCoord[1]};
-        vertices[2] = {vertex, texCoord};
-    }
-    return vertices;
-}
-
 void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
     for (auto it = Image::getInstance().GetLoadedImages().begin(); it != Image::getInstance().GetLoadedImages().end(); it++) {
 
+        TextureCache::getInstance().addTextureForImage(it->second.get());
+        
         msurface_t* s = it->second->texturechain;
         
         if (!s) {
@@ -840,7 +820,7 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
             if (!p || !p->numverts) continue;
             
             for (int i = 2; i < p->numverts; i++) {
-                auto vertexArray = getPolyVertices(it->first, p, i, it->second.get());
+                auto vertexArray = PolygonUtils::cutTriangle(p, i);
                 for (int j = 0; j < vertexArray.size(); j++) {
                     worldPolygonsByTexture[key].addVertex(vertexArray[j]);
                 }
