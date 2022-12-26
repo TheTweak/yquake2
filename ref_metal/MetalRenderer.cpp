@@ -34,6 +34,7 @@
 #include "render/Polygon.hpp"
 #include "utils/PolygonUtils.hpp"
 #include "legacy/BrushModel.hpp"
+#include "legacy/SpriteModel.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -354,103 +355,31 @@ void MetalRenderer::drawWorld() {
     drawTextureChains(&ent);
 }
 
-void MetalRenderer::drawAliasModel(entity_t* entity) {
-    Polygon *polygon = aliasModel.createPolygon(entity, frustum, legacyLight, mtl_newrefdef, worldModel, modelViewMatrix, _pVertexPSO);
-    if (polygon) {
-        entities.push_back(std::shared_ptr<Polygon>(polygon));
-    }
-}
-
-void MetalRenderer::drawSpriteModel(entity_t* e, model_s* currentmodel) {
-    dsprite_t* psprite = (dsprite_t *) currentmodel->extradata;
-    
-    e->frame %= psprite->numframes;
-    dsprframe_t* frame = &psprite->frames[e->frame];
-    
-    float* up = vup;
-    float* right = vright;
-    
-    float alpha = 1.0f;
-    if (e->flags & RF_TRANSLUCENT) {
-        alpha = e->alpha;
-    }
-    
-    mtl_3D_vtx_t verts[4];
-    
-    verts[0].texCoord[0] = 0;
-    verts[0].texCoord[1] = 1;
-    verts[1].texCoord[0] = 0;
-    verts[1].texCoord[1] = 0;
-    verts[2].texCoord[0] = 1;
-    verts[2].texCoord[1] = 0;
-    verts[3].texCoord[0] = 1;
-    verts[3].texCoord[1] = 1;
-
-    VectorMA( e->origin, -frame->origin_y, up, verts[0].pos );
-    VectorMA( verts[0].pos, -frame->origin_x, right, verts[0].pos );
-
-    VectorMA( e->origin, frame->height - frame->origin_y, up, verts[1].pos );
-    VectorMA( verts[1].pos, -frame->origin_x, right, verts[1].pos );
-
-    VectorMA( e->origin, frame->height - frame->origin_y, up, verts[2].pos );
-    VectorMA( verts[2].pos, frame->width - frame->origin_x, right, verts[2].pos );
-
-    VectorMA( e->origin, -frame->origin_y, up, verts[3].pos );
-    VectorMA( verts[3].pos, frame->width - frame->origin_x, right, verts[3].pos );
-                
-    image_s *image = currentmodel->skins[e->frame];
-    Quad q;
-    q[0] = {
-        {verts[0].pos[0], verts[0].pos[1]},
-        {verts[0].texCoord[0], verts[0].texCoord[1]}
-    };
-    q[1] = {
-        {verts[1].pos[0], verts[1].pos[1]},
-        {verts[1].texCoord[0], verts[1].texCoord[1]}
-    };
-    q[2] = {
-        {verts[2].pos[0], verts[2].pos[1]},
-        {verts[2].texCoord[0], verts[2].texCoord[1]}
-    };
-    
-    q[3] = {
-        {verts[0].pos[0], verts[0].pos[1]},
-        {verts[0].texCoord[0], verts[0].texCoord[1]}
-    };
-    q[4] = {
-        {verts[3].pos[0], verts[3].pos[1]},
-        {verts[3].texCoord[0], verts[3].texCoord[1]}
-    };
-    q[5] = {
-        {verts[2].pos[0], verts[2].pos[1]},
-        {verts[2].texCoord[0], verts[2].texCoord[1]}
-    };
-    Sprite sprite{image->path, _p2dPSO};
-    sprite.setQuad(q);
-    sprites.push_back(std::move(sprite));
-}
-
 void MetalRenderer::drawEntity(entity_t* currentEntity) {
     if (currentEntity->flags & RF_BEAM) {
         drawBeam(currentEntity);
     } else {
         model_s *currentModel = currentEntity->model;
-        
+        Polygon *polygon;
         if (!currentModel) {
             drawNullModel(currentEntity);
         } else {
             switch (currentModel->type) {
                case mod_alias:
-                   drawAliasModel(currentEntity);
-                   break;
+                    polygon = aliasModel.createPolygon(currentEntity, frustum, legacyLight, mtl_newrefdef, worldModel, modelViewMatrix, _pVertexPSO);
+                    if (polygon) {
+                        entities.push_back(std::shared_ptr<Polygon>(polygon));
+                    }
+                    break;
                case mod_brush:
                     BrushModel::createPolygons(currentEntity, currentModel, frustum, mtl_newrefdef, modelOrigin, worldPolygonsByTexture, _pVertexPSO);
                     break;
                case mod_sprite:
-                   drawSpriteModel(currentEntity, currentModel);
+                    sprites.push_back(SpriteModel::createSprite(currentEntity, currentModel, vup, vright, _p2dPSO));
+                    break;
                default:
-                   GAME_API.Sys_Error(ERR_DROP, "Bad modeltype");
-                   break;
+                    GAME_API.Sys_Error(ERR_DROP, "Bad modeltype");
+                    break;
             }
         }
     }

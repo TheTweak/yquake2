@@ -101,9 +101,7 @@ private:
     void drawTextureChains(entity_t*);
     void drawBeam(entity_t*);
     void drawNullModel(entity_t*);
-    void drawParticles();
-    void drawAliasModel(entity_t*);    
-    void drawSpriteModel(entity_t*, model_s*);
+    void drawParticles();    
     
     void renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
