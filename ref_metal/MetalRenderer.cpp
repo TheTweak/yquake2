@@ -33,6 +33,7 @@
 #include "model/Model.hpp"
 #include "render/Polygon.hpp"
 #include "utils/PolygonUtils.hpp"
+#include "legacy/BrushModel.hpp"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -360,85 +361,6 @@ void MetalRenderer::drawAliasModel(entity_t* entity) {
     }
 }
 
-void MetalRenderer::drawBrushModel(entity_t* entity, model_s* model) {
-    if (model->nummodelsurfaces == 0) {
-        return;
-    }
-    
-    bool rotated;
-    vec3_t mins, maxs;
-    
-    if (entity->angles[0] || entity->angles[1] || entity->angles[2]) {
-        rotated = true;
-        
-        for (int i = 0; i < 3; i++) {
-            mins[i] = entity->origin[i] - model->radius;
-            maxs[i] = entity->origin[i] + model->radius;
-        }
-    } else {
-        rotated = false;
-        VectorAdd(entity->origin, model->mins, mins);
-        VectorAdd(entity->origin, model->maxs, maxs);
-    }
-    
-    if (Utils::CullBox(mins, maxs, frustum)) {
-        return;
-    }
-    
-    VectorSubtract(mtl_newrefdef.vieworg, entity->origin, modelOrigin);
-    
-    if (rotated) {
-        vec3_t temp;
-        vec3_t forward, right, up;
-
-        VectorCopy(modelOrigin, temp);
-        AngleVectors(entity->angles, forward, right, up);
-        modelOrigin[0] = DotProduct(temp, forward);
-        modelOrigin[1] = -DotProduct(temp, right);
-        modelOrigin[2] = DotProduct(temp, up);
-    }
-    entity->angles[0] = -entity->angles[0];
-    entity->angles[2] = -entity->angles[2];
-    simd_float4x4 transModelMat = Utils::rotateForEntity(entity);
-    entity->angles[0] = -entity->angles[0];
-    entity->angles[2] = -entity->angles[2];
-    
-    msurface_t *psurf = &model->surfaces[model->firstmodelsurface];
-    
-    for (int i = 0; i < model->nummodelsurfaces; i++, psurf++) {
-        cplane_t *pplane = psurf->plane;
-        
-        float dot = DotProduct(modelOrigin, pplane->normal) - pplane->dist;
-                        
-        /* draw the polygon */
-        if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
-            (!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON))) {
-            if (psurf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66)) {
-                /* add to the translucent chain */
-                // todo
-//            } else if(!(psurf->flags & SURF_DRAWTURB)) {
-                // check in GL3_DrawGLFlowingPoly
-            } else {
-                image_s* image = Utils::TextureAnimation(entity, psurf->texinfo);
-                TextureCache::getInstance().addTextureForImage(image);
-                glpoly_t *p = psurf->polys;
-                
-                if (!p || !p->numverts) continue;
-                
-                TexNameTransMatKey key{image->path, transModelMat};
-                worldPolygonsByTexture.insert({key, Polygon{image->path, transModelMat, 1.0f, _pVertexPSO}});
-                
-                for (int i = 2; i < p->numverts; i++) {
-                    auto vertexArray = PolygonUtils::cutTriangle(p, i);
-                    for (int j = 0; j < vertexArray.size(); j++) {
-                        worldPolygonsByTexture[key].addVertex(vertexArray[j]);
-                    }
-                }
-            }
-        }
-    }
-}
-
 void MetalRenderer::drawSpriteModel(entity_t* e, model_s* currentmodel) {
     dsprite_t* psprite = (dsprite_t *) currentmodel->extradata;
     
@@ -522,8 +444,8 @@ void MetalRenderer::drawEntity(entity_t* currentEntity) {
                    drawAliasModel(currentEntity);
                    break;
                case mod_brush:
-                   drawBrushModel(currentEntity, currentModel);
-                   break;
+                    BrushModel::createPolygons(currentEntity, currentModel, frustum, mtl_newrefdef, modelOrigin, worldPolygonsByTexture, _pVertexPSO);
+                    break;
                case mod_sprite:
                    drawSpriteModel(currentEntity, currentModel);
                default:

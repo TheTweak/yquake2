@@ -102,8 +102,7 @@ private:
     void drawBeam(entity_t*);
     void drawNullModel(entity_t*);
     void drawParticles();
-    void drawAliasModel(entity_t*);
-    void drawBrushModel(entity_t*, model_s*);
+    void drawAliasModel(entity_t*);    
     void drawSpriteModel(entity_t*, model_s*);
     
     void renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);

@@ -32,7 +32,7 @@ ImageSize TextureCache::getImageSize(std::string pic) {
 }
 
 byte *createFillColor(vector_float4 bgra, int screenWidth, int screenHeight) {
-    size_t size = 4 * max(screenWidth, 1) * max(screenHeight, 1);
+    size_t size = 4 * std::max(screenWidth, 1) * std::max(screenHeight, 1);
     auto data = static_cast<byte*>(malloc(size));
     assert(data);
     for (int x = 0; x < screenWidth; x++) {

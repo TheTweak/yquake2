@@ -63,7 +63,7 @@ std::pair<ImageSize, MTL::Texture*> MetalDraw::loadTexture(std::string pic, MTL:
 }
 
 MTL::Texture* MetalDraw::createdColoredTexture(vector_float4 colorBGRA, MTL::Device* pDevice) {
-    size_t size = 4 * max(screenWidth, 1) * max(screenHeight, 1);
+    size_t size = 4 * std::max(screenWidth, 1) * std::max(screenHeight, 1);
     auto data = static_cast<byte*>(malloc(size));
     for (int x = 0; x < screenWidth; x++) {
         for (int y = 0; y < screenHeight; y++) {

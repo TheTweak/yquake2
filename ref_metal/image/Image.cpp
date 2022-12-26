@@ -216,7 +216,7 @@ image_s* LoadPic(char* name, byte* pic, int width,
         result->width = realWidth;
         result->height = realHeight;
     }
-    size_t size = 4 * max(width, 1) * max(height, 1);
+    size_t size = 4 * std::max(width, 1) * std::max(height, 1);
     result->data = static_cast<byte*>(malloc(size));
     if (type != it_pic && type != it_skin) {
         ApplyPalette(result->data, pic, width, height);
