@@ -56,8 +56,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     _pMetalLayer = pLayer;
     _pDevice = pDevice->retain();
     _pCommandQueue = _pDevice->newCommandQueue();    
-    SDL_Metal_GetDrawableSize(pWindow, &_width, &_height);
-    draw = std::make_unique<MetalDraw>(_width, _height);
+    SDL_Metal_GetDrawableSize(pWindow, &_width, &_height);    
     
     auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, _width, _height, false);
     textureDesc->setUsage(MTL::TextureUsageRenderTarget);

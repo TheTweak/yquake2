@@ -15,7 +15,6 @@
 #include <SDL2/SDL.h>
 
 #include "utils/Utils.hpp"
-#include "MetalDraw.hpp"
 #include "legacy/LegacyLight.hpp"
 #include "legacy/AliasModel.hpp"
 #include "render/Renderable.hpp"
@@ -71,8 +70,7 @@ private:
     std::vector<Sprite> sprites;
                 
     std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> worldPolygonsByTexture;
-    std::unordered_set<std::string> generatedMipMaps;
-    std::unique_ptr<MetalDraw> draw;
+    std::unordered_set<std::string> generatedMipMaps;    
     std::unique_ptr<ConChars> conChars;
     std::unique_ptr<Particles> particles;
     dispatch_semaphore_t _semaphore;
@@ -101,7 +99,7 @@ private:
     void drawTextureChains(entity_t*);
     void drawBeam(entity_t*);
     void drawNullModel(entity_t*);
-    void drawParticles();    
+    void drawParticles();
     
     void renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
