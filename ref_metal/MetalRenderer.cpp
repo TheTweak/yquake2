@@ -546,25 +546,6 @@ void MetalRenderer::setupFrame() {
     }
 }
 
-static int
-SignbitsForPlane(cplane_t *out)
-{
-    int bits, j;
-
-    /* for fast box on planeside test */
-    bits = 0;
-
-    for (j = 0; j < 3; j++)
-    {
-        if (out->normal[j] < 0)
-        {
-            bits |= 1 << j;
-        }
-    }
-
-    return bits;
-}
-
 void MetalRenderer::setupFrustum() {
     /* rotate VPN right by FOV_X/2 degrees */
     RotatePointAroundVector(frustum[0].normal, vup, vpn, -(90 - mtl_newrefdef.fov_x / 2));
@@ -578,7 +559,7 @@ void MetalRenderer::setupFrustum() {
     for (int i = 0; i < 4; i++) {
         frustum[i].type = PLANE_ANYZ;
         frustum[i].dist = DotProduct(origin, frustum[i].normal);
-        frustum[i].signbits = SignbitsForPlane(&frustum[i]);
+        frustum[i].signbits = Utils::SignbitsForPlane(&frustum[i]);
     }
 }
 

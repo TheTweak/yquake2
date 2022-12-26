@@ -319,3 +319,20 @@ simd_float4x4 Utils::rotateForEntity(entity_t* entity) {
     
     return simd_mul(matrix_identity_float4x4, transMat);
 }
+
+int Utils::SignbitsForPlane(cplane_t *out) {
+    int bits, j;
+    
+    /* for fast box on planeside test */
+    bits = 0;
+    
+    for (j = 0; j < 3; j++)
+    {
+        if (out->normal[j] < 0)
+        {
+            bits |= 1 << j;
+        }
+    }
+    
+    return bits;
+}
