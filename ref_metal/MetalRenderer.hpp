@@ -17,6 +17,7 @@
 #include "utils/Utils.hpp"
 #include "legacy/LegacyLight.hpp"
 #include "legacy/AliasModel.hpp"
+#include "legacy/BinarySpacePart.hpp"
 #include "render/Renderable.hpp"
 #include "render/ConChars.hpp"
 #include "render/Particles.hpp"
@@ -80,6 +81,7 @@ private:
     
     LegacyLight legacyLight;
     AliasModel aliasModel;
+    BinarySpacePart bsp;
     
     MetalRenderer();
     void buildShaders();
@@ -89,8 +91,6 @@ private:
     void renderView();
     void setupFrame();
     void setupFrustum();
-    void markLeaves();
-    void recursiveWorldNode(entity_t*, mnode_t*);
             
     void drawWorld();
     void drawEntities();
