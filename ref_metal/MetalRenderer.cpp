@@ -353,7 +353,7 @@ void MetalRenderer::drawWorld() {
     memset(&ent, 0, sizeof(ent));
     ent.frame = (int)(mtl_newrefdef.time * 2);
     
-    bsp.recursiveWorldNode(&ent, worldModel->nodes, frustum, mtl_newrefdef, _frameCount, modelOrigin, alphaSurfaces, worldModel);
+    bsp.recursiveWorldNode(&ent, worldModel->nodes, frustum, mtl_newrefdef, _frameCount, modelOrigin, alphaSurfaces, worldModel, skyBox.value(), origin);
     drawTextureChains(&ent);
     // draw skybox
 }

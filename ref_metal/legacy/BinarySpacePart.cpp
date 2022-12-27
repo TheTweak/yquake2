@@ -84,7 +84,8 @@ void BinarySpacePart::markLeaves(int *_oldViewCluster, int *_oldViewCluster2, in
 
 void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node, cplane_t frustum[4],
                                          refdef_t mtl_newrefdef, int _frameCount, vec3_t modelOrigin,
-                                         msurface_t* alphaSurfaces, std::shared_ptr<mtl_model_t> worldModel) {
+                                         msurface_t* alphaSurfaces, std::shared_ptr<mtl_model_t> worldModel,
+                                         SkyBox &skyBox, vec3_t origin) {
     if (node->contents == CONTENTS_SOLID ||
         node->visframe != _visFrameCount ||
         Utils::CullBox(node->minmaxs, node->minmaxs+3, frustum)) {
@@ -149,7 +150,7 @@ void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node,
     
     /* recurse down the children, front side first */
     recursiveWorldNode(currentEntity, node->children[side], frustum, mtl_newrefdef, _frameCount, modelOrigin,
-                       alphaSurfaces, worldModel);
+                       alphaSurfaces, worldModel, skyBox, origin);
     
     int c;
     msurface_t *surf;
@@ -167,7 +168,7 @@ void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node,
         
         if (surf->texinfo->flags & SURF_SKY) {
             /* just adds to visible sky bounds */
-            //GL3_AddSkySurface(surf);
+            skyBox.addSkySurface(surf, origin);
         } else if (surf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66)) {
             /* add to the translucent chain */
             surf->texturechain = alphaSurfaces;
@@ -183,5 +184,5 @@ void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node,
     
     /* recurse down the back side */
     recursiveWorldNode(currentEntity, node->children[!side], frustum, mtl_newrefdef, _frameCount, modelOrigin,
-                       alphaSurfaces, worldModel);
+                       alphaSurfaces, worldModel, skyBox, origin);
 }

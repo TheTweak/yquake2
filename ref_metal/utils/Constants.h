@@ -15,5 +15,7 @@
 #define FLASH_SCREEN_TEXTURE "_FLASH_SCREEN"
 #define FILL_TEXTURE "_FILL_SCREEN_"
 #define BACKFACE_EPSILON 0.01
+#define MAX_CLIP_VERTS 64
+#define ON_EPSILON 0.1 /* point on plane side epsilon */
 
 #endif /* Constants_h */

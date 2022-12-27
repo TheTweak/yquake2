@@ -12,7 +12,7 @@
 #include <array>
 
 #include "Renderable.hpp"
-#include "../../src/client/vid/header/ref.h"
+#include "../model/model.h"
 
 class SkyBox: public Renderable {
     float rotate;
@@ -21,6 +21,7 @@ class SkyBox: public Renderable {
 public:
     const std::string name;
     SkyBox(std::string name, float rotate, vec3_t axis);
+    void addSkySurface(msurface_t *fa, vec3_t origin);
     void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
 };
 
