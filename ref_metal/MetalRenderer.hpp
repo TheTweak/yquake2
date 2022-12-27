@@ -13,6 +13,7 @@
 #include <string_view>
 #include <unordered_set>
 #include <SDL2/SDL.h>
+#include <optional>
 
 #include "utils/Utils.hpp"
 #include "legacy/LegacyLight.hpp"
@@ -23,6 +24,7 @@
 #include "render/Particles.hpp"
 #include "render/Polygon.hpp"
 #include "render/Sprite.hpp"
+#include "render/SkyBox.hpp"
 
 typedef float vec4_t[4];
 
@@ -69,6 +71,7 @@ private:
     std::vector<std::shared_ptr<Renderable>> entities;
     std::vector<std::shared_ptr<Renderable>> gui;
     std::vector<Sprite> sprites;
+    std::optional<SkyBox> skyBox;
                 
     std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> worldPolygonsByTexture;
     std::unordered_set<std::string> generatedMipMaps;    

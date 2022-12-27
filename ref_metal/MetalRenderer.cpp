@@ -150,7 +150,6 @@ void MetalRenderer::buildShaders() {
             __builtin_printf("%s", pError->localizedDescription()->utf8String());
             assert(false);
         }
-        
         pVertexFn->release();
         pFragFn->release();
         pDesc->release();
@@ -203,7 +202,11 @@ image_s* MetalRenderer::RegisterSkin(char* name) {
     return Image::getInstance().FindImage(name, it_skin);
 }
 
-void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {}
+void MetalRenderer::SetSky(char* name, float rotate, vec3_t axis) {
+    if (!skyBox || skyBox->name != name) {
+        skyBox.emplace(name, rotate, axis);
+    }
+}
 
 void MetalRenderer::EndRegistration() {}
 
@@ -352,6 +355,7 @@ void MetalRenderer::drawWorld() {
     
     bsp.recursiveWorldNode(&ent, worldModel->nodes, frustum, mtl_newrefdef, _frameCount, modelOrigin, alphaSurfaces, worldModel);
     drawTextureChains(&ent);
+    // draw skybox
 }
 
 void MetalRenderer::drawEntity(entity_t* currentEntity) {

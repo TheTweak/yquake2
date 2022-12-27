@@ -112,14 +112,14 @@ MTL::Texture* TextureCache::createTexture(int width, int height, byte* data, std
     return pFragmentTexture;
 }
 
-void TextureCache::addTextureForImage(image_s *skin) {
-    if (auto it = data.find(skin->path); it != data.end()) {
+void TextureCache::addTextureForImage(image_s *image) {
+    if (auto it = data.find(image->path); it != data.end()) {
         return;
     }
     
-    int mipmapLevelCount = std::log2(skin->width);
+    int mipmapLevelCount = std::log2(image->width);
     
-    data[skin->path] = {ImageSize{skin->width, skin->height}, createTexture(skin->width, skin->height, skin->data, skin->path, mipmapLevelCount)};
+    data[image->path] = {ImageSize{image->width, image->height}, createTexture(image->width, image->height, image->data, image->path, mipmapLevelCount)};
 }
 
 const std::unordered_map<std::string, std::pair<ImageSize, MTL::Texture*>>& TextureCache::getData() const {
