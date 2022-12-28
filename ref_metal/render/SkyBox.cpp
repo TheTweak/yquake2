@@ -11,6 +11,8 @@
 #include "../texture/TextureCache.hpp"
 #include "../image/Image.hpp"
 #include "../utils/Constants.h"
+#include "../utils/Utils.hpp"
+#include "../legacy/ConsoleVars.h"
 
 static const char* suf[6] = {"rt", "bk", "lf", "ft", "up", "dn"};
 static const float skyMin = 1.0 / 512;
@@ -35,6 +37,16 @@ static int vec_to_st[6][3] = {
     {-2, 1, -3}
 };
 static float skymins[2][6], skymaxs[2][6];
+static int st_to_vec[6][3] = {
+    {3, -1, 2},
+    {-3, 1, 2},
+    
+    {1, 3, 2},
+    {-1, -3, 2},
+    
+    {-2, -1, 3}, /* 0 degrees yaw, look straight up */
+    {2, -1, -3} /* look straight down */
+};
 
 SkyBox::SkyBox(std::string name, float rotate, vec3_t skyAxis): rotate(rotate), name(name) {
     VectorCopy(skyAxis, axis);
@@ -59,8 +71,123 @@ SkyBox::SkyBox(std::string name, float rotate, vec3_t skyAxis): rotate(rotate), 
     }
 }
 
-void SkyBox::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
+static void MakeSkyVec(float s, float t, int axis, TexVertex* vert)
+{
+    vec3_t v, b;
+    int j, k;
     
+    float dist = (cvar::r_farsee->value == 0) ? 2300.0f : 4096.0f;
+    
+    b[0] = s * dist;
+    b[1] = t * dist;
+    b[2] = dist;
+    
+    for (j = 0; j < 3; j++)
+    {
+        k = st_to_vec[axis][j];
+        
+        if (k < 0)
+        {
+            v[j] = -b[-k - 1];
+        }
+        else
+        {
+            v[j] = b[k - 1];
+        }
+    }
+    
+    /* avoid bilerp seam */
+    s = (s + 1) * 0.5;
+    t = (t + 1) * 0.5;
+    
+    if (s < skyMin)
+    {
+        s = skyMin;
+    }
+    else if (s > skyMax)
+    {
+        s = skyMax;
+    }
+    
+    if (t < skyMin)
+    {
+        t = skyMin;
+    }
+    else if (t > skyMax)
+    {
+        t = skyMax;
+    }
+    
+    t = 1.0 - t;
+    
+    VectorCopy(v, vert->position);
+    
+    vert->texCoordinate[0] = s;
+    vert->texCoordinate[1] = t;
+}
+
+void SkyBox::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize, vec3_t origin, refdef_t mtl_newrefdef, simd_float4x4 mvpMatrix, MTL::RenderPipelineState *pipelineState) {
+    if (rotate) {   /* check for no sky at all */
+        int i;
+        for (i = 0; i < 6; i++) {
+            if ((skymins[0][i] < skymaxs[0][i]) && (skymins[1][i] < skymaxs[1][i])) {
+                break;
+            }
+        }
+        
+        if (i == 6) {
+            return; /* nothing visible */
+        }
+    }
+    
+    simd_float4x4 transMatrix = matrix_identity_float4x4;
+    transMatrix.columns[3][0] = origin[0];
+    transMatrix.columns[3][1] = origin[1];
+    transMatrix.columns[3][2] = origin[2];
+    
+    simd_float4x4 modMVmat = simd_mul(matrix_identity_float4x4, transMatrix);
+    if (rotate != 0.0f) {
+        simd_float3 rotAxis = simd_make_float3(axis[0], axis[1], axis[2]);
+        modMVmat = simd_mul(modMVmat, Utils::rotate(mtl_newrefdef.time * rotate, rotAxis));
+    }
+    
+    std::array<TexVertex, 4> vertices;
+    encoder->setRenderPipelineState(pipelineState);
+    
+    for (int i = 0; i < 6; i++) {
+        if (rotate != 0.0f) {
+            skymins[0][i] = -1;
+            skymins[1][i] = -1;
+            skymaxs[0][i] = 1;
+            skymaxs[1][i] = 1;
+        }
+        
+        if ((skymins[0][i] >= skymaxs[0][i]) || (skymins[1][i] >= skymaxs[1][i])) {
+            continue;
+        }
+        
+        auto texture = TextureCache::getInstance().getTexture(textureNames[skytexorder[i]]);
+        
+        MakeSkyVec( skymins [ 0 ] [ i ], skymins [ 1 ] [ i ], i, &vertices[0] );
+        MakeSkyVec( skymins [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i, &vertices[1] );
+        MakeSkyVec( skymaxs [ 0 ] [ i ], skymaxs [ 1 ] [ i ], i, &vertices[2] );
+        MakeSkyVec( skymaxs [ 0 ] [ i ], skymins [ 1 ] [ i ], i, &vertices[3] );
+                
+        // convert from 4 vertices (used as triangle fan primitive type in GL renderer)
+        // to 6 vertices for Metal
+        std::array<TexVertex, 6> triangles;
+        triangles[0] = vertices[0];
+        triangles[1] = vertices[1];
+        triangles[2] = vertices[2];
+        triangles[3] = vertices[0];
+        triangles[4] = vertices[2];
+        triangles[5] = vertices[3];
+        
+        encoder->setVertexBytes(&triangles, sizeof(triangles), TexVertexInputIndex::TexVertexInputIndexVertices);
+        encoder->setVertexBytes(&viewportSize, sizeof(viewportSize), TexVertexInputIndex::TexVertexInputIndexViewportSize);
+        encoder->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
+        encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
+    }
 }
 
 static void DrawSkyPolygon(int nump, vec3_t vecs) {
@@ -296,5 +423,13 @@ void SkyBox::addSkySurface(msurface_t *fa, vec3_t origin) {
         }
         
         ClipSkyPolygon(p->numverts, verts[0], 0);
+    }
+}
+
+void SkyBox::clearSkyBox() {
+    for (int i = 0; i < 6; i++)
+    {
+        skymins[0][i] = skymins[1][i] = 9999;
+        skymaxs[0][i] = skymaxs[1][i] = -9999;
     }
 }

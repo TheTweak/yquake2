@@ -336,3 +336,26 @@ int Utils::SignbitsForPlane(cplane_t *out) {
     
     return bits;
 }
+
+simd_float4x4 Utils::rotate(float angle, simd_float3 axis) {
+    simd_float4x4 result = simd_diagonal_matrix(simd_make_float4(1.0f, 1.0f, 1.0f, 1.0f));
+    axis = simd_normalize(axis);
+    
+    float sinTheta = std::sinf(toRadians(angle));
+    float cosTheta = std::cosf(toRadians(angle));
+    float cosValue = 1.0f - cosTheta;
+    
+    result.columns[0][0] = (axis[0] * axis[0] * cosValue) + cosTheta;
+    result.columns[0][1] = (axis[0] * axis[1] * cosValue) + (axis[2] * sinTheta);
+    result.columns[0][2] = (axis[0] * axis[2] * cosValue) - (axis[1] * sinTheta);
+    
+    result.columns[1][0] = (axis[1] * axis[0] * cosValue) - (axis[2] * sinTheta);
+    result.columns[1][1] = (axis[1] * axis[1] * cosValue) + cosTheta;
+    result.columns[1][2] = (axis[1] * axis[2] * cosValue) + (axis[0] * sinTheta);
+    
+    result.columns[2][0] = (axis[2] * axis[0] * cosValue) + (axis[1] * sinTheta);
+    result.columns[2][1] = (axis[2] * axis[1] * cosValue) - (axis[0] * sinTheta);
+    result.columns[2][2] = (axis[2] * axis[2] * cosValue) + cosTheta;
+    
+    return result;
+}
