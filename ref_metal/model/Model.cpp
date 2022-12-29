@@ -29,39 +29,38 @@ const byte* Model::clusterPVS(int cluster, const mtl_model_t* model) {
     return Mod_DecompressVis((byte *)model->vis + model->vis->bitofs[cluster][DVIS_PVS], (model->vis->numclusters + 7) >> 3);
 }
 
-model_s* Model::registerModel(char *name, std::shared_ptr<mtl_model_t> worldModel) {
+model_s* Model::registerModel(char *name, mtl_model_t *worldModel) {
     auto modelOpt = getModel(name, worldModel, false);
     if (modelOpt) {
-        auto model = *modelOpt;
-        if (model->type == mod_sprite) {
-            dsprite_t *sprout = (dsprite_t *) model->extradata;
+        if (modelOpt->type == mod_sprite) {
+            dsprite_t *sprout = (dsprite_t *) modelOpt->extradata;
             
             for (int i = 0; i < sprout->numframes; i++) {
-                model->skins[i] = Image::getInstance().FindImage(sprout->frames[i].name, it_sprite);
+                modelOpt->skins[i] = Image::getInstance().FindImage(sprout->frames[i].name, it_sprite);
             }
-        } else if (model->type == mod_alias) {
-            dmdl_t *pheader = (dmdl_t *) model->extradata;
+        } else if (modelOpt->type == mod_alias) {
+            dmdl_t *pheader = (dmdl_t *) modelOpt->extradata;
             
             for (int i = 0; i < pheader->num_skins; i++) {
-                model->skins[i] = Image::getInstance().FindImage((char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
+                modelOpt->skins[i] = Image::getInstance().FindImage((char *) pheader + pheader->ofs_skins + i * MAX_SKINNAME, it_skin);
             }
             
-            model->numframes = pheader->num_frames;
-        } else if (model->type == mod_brush) {
-            for (int i = 0; i < model->numtexinfo; i++) {
+            modelOpt->numframes = pheader->num_frames;
+        } else if (modelOpt->type == mod_brush) {
+            for (int i = 0; i < modelOpt->numtexinfo; i++) {
                 //                not applicable to metal renderer
                 //                model->texinfo[i].image->registration_sequence = registration_sequence;
             }
         }
         
-        return model.get();
+        return modelOpt;
     }
-    return nullptr;
+    return NULL;
 }
 
-std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, std::optional<std::shared_ptr<mtl_model_t>> parent, bool crash) {
+mtl_model_t* Model::getModel(std::string name, mtl_model_t *parent, bool crash) {
     if (name.at(0) == '*' && parent) {
-        std::string parentName = parent.value()->name;
+        std::string parentName = parent->name;
         std::stringstream ss;
         ss << parentName << '_' << name;
         std::string fullName = ss.str();
@@ -71,14 +70,13 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
         
         int i = (int) strtol(name.data() + 1, (char **) NULL, 10);
         
-        if (i < 1 || i >= parent.value()->numsubmodels) {
+        if (i < 1 || i >= parent->numsubmodels) {
             GAME_API.Sys_Error(ERR_DROP, "%s: bad inline model number", __func__);
         }
         
-        mtl_model_t* m = &parent.value()->submodels[i];
-        auto result = std::shared_ptr<mtl_model_t>(m);
-        models[fullName] = result;
-        return result;
+        mtl_model_t* m = &parent->submodels[i];
+        models[fullName] = m;
+        return m;
     }
     
     if (auto it = models.find(name); it != models.end()) {
@@ -92,11 +90,11 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
             GAME_API.Sys_Error(ERR_DROP, "%s: %s not found", __func__, name.data());
         }
         
-        return std::nullopt;
+        return NULL;
     }
     
     /* call the apropriate loader */
-    std::shared_ptr<mtl_model_t> result;
+    mtl_model_t *result;
     
     switch (LittleLong(*(unsigned *)buf)) {
         case IDALIASHEADER:
@@ -123,7 +121,7 @@ std::optional<std::shared_ptr<mtl_model_t>> Model::getModel(std::string name, st
     return result;
 }
 
-std::shared_ptr<mtl_model_t> Model::loadMD2(std::string name, void *buffer, int modfilelen) {
+mtl_model_t* Model::loadMD2(std::string name, void *buffer, int modfilelen) {
     int i, j;
     dmdl_t *pinmodel, *pheader;
     dstvert_t *pinst, *poutst;
@@ -146,7 +144,7 @@ std::shared_ptr<mtl_model_t> Model::loadMD2(std::string name, void *buffer, int 
         GAME_API.Sys_Error (ERR_DROP, "model %s file size(%d) too small, should be %d", name.data(), modfilelen, ofs_end);
     }
     
-    auto mod = std::make_shared<mtl_model_t>();
+    mtl_model_t *mod = static_cast<mtl_model_t*>(std::malloc(sizeof(mtl_model_t)));
     strcpy(mod->name, name.data());
     
     mod->extradata = Hunk_Begin(modfilelen);
@@ -266,12 +264,12 @@ std::shared_ptr<mtl_model_t> Model::loadMD2(std::string name, void *buffer, int 
     return mod;
 }
 
-std::shared_ptr<mtl_model_t> Model::loadSP2(std::string name, void *buffer, int modfilelen) {
+mtl_model_t* Model::loadSP2(std::string name, void *buffer, int modfilelen) {
     dsprite_t *sprin, *sprout;
     int i;
 
     sprin = (dsprite_t *)buffer;
-    std::shared_ptr<mtl_model_t> mod = std::make_shared<mtl_model_t>();
+    mtl_model_t *mod = static_cast<mtl_model_t*>(std::malloc(sizeof(mtl_model_t)));
     strcpy(mod->name, name.data());
     
     mod->extradata = Hunk_Begin(modfilelen);
@@ -1295,7 +1293,7 @@ Mod_LoadSubmodels(mtl_model_t *loadmodel, byte *mod_base, lump_t *l)
     }
 }
 
-std::shared_ptr<mtl_model_t> Model::loadBrushModel(std::string name, void *buffer, int modfilelen) {
+mtl_model_t* Model::loadBrushModel(std::string name, void *buffer, int modfilelen) {
     int i;
     dheader_t *header;
     byte *mod_base;
@@ -1335,24 +1333,24 @@ std::shared_ptr<mtl_model_t> Model::loadBrushModel(std::string name, void *buffe
     hunkSize += calcLumpHunkSize(&header->lumps[LUMP_NODES], sizeof(dnode_t), sizeof(mnode_t));
     hunkSize += calcLumpHunkSize(&header->lumps[LUMP_MODELS], sizeof(dmodel_t), sizeof(mmodel_t));
 
-    auto mod = std::make_shared<mtl_model_t>();
+    mtl_model_t *mod = static_cast<mtl_model_t*>(std::malloc(sizeof(mtl_model_t)));
     mod->extradata = Hunk_Begin(hunkSize);
     mod->type = mod_brush;
     strcpy(mod->name, name.data());
 
     /* load into heap */
-    Mod_LoadVertexes(mod.get(), mod_base, &header->lumps[LUMP_VERTEXES]);
-    Mod_LoadEdges(mod.get(), mod_base, &header->lumps[LUMP_EDGES]);
-    Mod_LoadSurfedges(mod.get(), mod_base, &header->lumps[LUMP_SURFEDGES]);
-    Mod_LoadLighting(mod.get(), mod_base, &header->lumps[LUMP_LIGHTING]);
-    Mod_LoadPlanes(mod.get(), mod_base, &header->lumps[LUMP_PLANES]);
-    Mod_LoadTexinfo(mod.get(), mod_base, &header->lumps[LUMP_TEXINFO]);
-    Mod_LoadFaces(mod.get(), mod_base, &header->lumps[LUMP_FACES]);
-    Mod_LoadMarksurfaces(mod.get(), mod_base, &header->lumps[LUMP_LEAFFACES]);
-    Mod_LoadVisibility(mod.get(), mod_base, &header->lumps[LUMP_VISIBILITY]);
-    Mod_LoadLeafs(mod.get(), mod_base, &header->lumps[LUMP_LEAFS]);
-    Mod_LoadNodes(mod.get(), mod_base, &header->lumps[LUMP_NODES]);
-    Mod_LoadSubmodels (mod.get(), mod_base, &header->lumps[LUMP_MODELS]);
+    Mod_LoadVertexes(mod, mod_base, &header->lumps[LUMP_VERTEXES]);
+    Mod_LoadEdges(mod, mod_base, &header->lumps[LUMP_EDGES]);
+    Mod_LoadSurfedges(mod, mod_base, &header->lumps[LUMP_SURFEDGES]);
+    Mod_LoadLighting(mod, mod_base, &header->lumps[LUMP_LIGHTING]);
+    Mod_LoadPlanes(mod, mod_base, &header->lumps[LUMP_PLANES]);
+    Mod_LoadTexinfo(mod, mod_base, &header->lumps[LUMP_TEXINFO]);
+    Mod_LoadFaces(mod, mod_base, &header->lumps[LUMP_FACES]);
+    Mod_LoadMarksurfaces(mod, mod_base, &header->lumps[LUMP_LEAFFACES]);
+    Mod_LoadVisibility(mod, mod_base, &header->lumps[LUMP_VISIBILITY]);
+    Mod_LoadLeafs(mod, mod_base, &header->lumps[LUMP_LEAFS]);
+    Mod_LoadNodes(mod, mod_base, &header->lumps[LUMP_NODES]);
+    Mod_LoadSubmodels (mod, mod_base, &header->lumps[LUMP_MODELS]);
     mod->numframes = 2; /* regular and alternate animation */
     
     return mod;

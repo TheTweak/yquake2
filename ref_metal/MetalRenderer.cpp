@@ -187,15 +187,15 @@ void MetalRenderer::BeginRegistration(char* map) {
     ss << "maps/" << map << ".bsp";
     std::string mapName = ss.str();
     
-    if (auto m = Model::getInstance().getModel(mapName, std::nullopt, true); m != std::nullopt) {
-        worldModel = m.value();
+    if (auto m = Model::getInstance().getModel(mapName, NULL, true); m != NULL) {
+        worldModel = std::shared_ptr<mtl_model_t>(m);
     }
     
     _viewCluster = -1;
 }
 
 model_s* MetalRenderer::RegisterModel(char* name) {
-    return Model::getInstance().registerModel(name, worldModel);
+    return Model::getInstance().registerModel(name, worldModel.get());
 }
 
 image_s* MetalRenderer::RegisterSkin(char* name) {
