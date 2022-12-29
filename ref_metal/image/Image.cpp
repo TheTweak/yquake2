@@ -501,6 +501,12 @@ image_s* Image::FindImage(char* name, imagetype_t type) {
 
         if(LoadSTB(name, ext, &pic, &width, &height))
         {
+            // convert from rgba -> bgra
+            for (int i = 0; i < 4*width*height; i += 4) {
+                byte tmp = pic[i];
+                pic[i] = pic[i+2];
+                pic[i+2] = tmp;
+            }
             image = LoadPic(name, pic, width, height, realwidth, realheight, type, 32);
         } else {
             return NULL;
