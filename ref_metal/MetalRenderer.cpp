@@ -651,6 +651,7 @@ void MetalRenderer::encodeMetalCommands() {
     renderEntities(pEnc, viewportSize);
     particles->render(pEnc, viewportSize);
     renderSprites(pEnc, viewportSize);
+    skyBox->render(pEnc, viewportSize, origin, mtl_newrefdef, mvpMatrix, _pVertexPSO);
     // render GUI with disabled depth test
     pEnc->setDepthStencilState(_pNoDepthTest);
     renderGUI(pEnc, viewportSize);

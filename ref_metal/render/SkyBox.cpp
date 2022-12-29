@@ -71,7 +71,7 @@ SkyBox::SkyBox(std::string name, float rotate, vec3_t skyAxis): rotate(rotate), 
     }
 }
 
-static void MakeSkyVec(float s, float t, int axis, TexVertex* vert)
+static void MakeSkyVec(float s, float t, int axis, Vertex* vert)
 {
     vec3_t v, b;
     int j, k;
@@ -151,9 +151,9 @@ void SkyBox::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSiz
         modMVmat = simd_mul(modMVmat, Utils::rotate(mtl_newrefdef.time * rotate, rotAxis));
     }
     
-    std::array<TexVertex, 4> vertices;
+    std::array<Vertex, 4> vertices;
     encoder->setRenderPipelineState(pipelineState);
-    
+    float alpha = 1.0f;
     for (int i = 0; i < 6; i++) {
         if (rotate != 0.0f) {
             skymins[0][i] = -1;
@@ -175,16 +175,18 @@ void SkyBox::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSiz
                 
         // convert from 4 vertices (used as triangle fan primitive type in GL renderer)
         // to 6 vertices for Metal
-        std::array<TexVertex, 6> triangles;
+        std::array<Vertex, 6> triangles;
         triangles[0] = vertices[0];
         triangles[1] = vertices[1];
         triangles[2] = vertices[2];
         triangles[3] = vertices[0];
         triangles[4] = vertices[2];
         triangles[5] = vertices[3];
-        
-        encoder->setVertexBytes(&triangles, sizeof(triangles), TexVertexInputIndex::TexVertexInputIndexVertices);
-        encoder->setVertexBytes(&viewportSize, sizeof(viewportSize), TexVertexInputIndex::TexVertexInputIndexViewportSize);
+                
+        encoder->setVertexBytes(&modMVmat, sizeof(modMVmat), VertexInputIndex::VertexInputIndexTransModelMatrix);
+        encoder->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
+        encoder->setVertexBytes(triangles.data(), sizeof(Vertex)*triangles.size(), VertexInputIndex::VertexInputIndexVertices);
+        encoder->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
         encoder->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
         encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
     }
