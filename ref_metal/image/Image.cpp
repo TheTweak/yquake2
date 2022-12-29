@@ -218,7 +218,7 @@ image_s* LoadPic(char* name, byte* pic, int width,
     }
     size_t size = 4 * std::max(width, 1) * std::max(height, 1);
     result->data = static_cast<byte*>(malloc(size));
-    if (type != it_pic && type != it_skin) {
+    if (type != it_pic && type != it_skin && type != it_sky) {
         ApplyPalette(result->data, pic, width, height);
     } else {
         memcpy(result->data, pic, size);
