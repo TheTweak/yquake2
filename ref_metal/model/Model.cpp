@@ -1355,3 +1355,11 @@ mtl_model_t* Model::loadBrushModel(std::string name, void *buffer, int modfilele
     
     return mod;
 }
+
+Model::~Model() {
+    for (auto it = models.begin(); it != models.end(); it++) {
+        if (it->second && it->first.find("*") == std::string::npos) {
+            std::free(it->second);
+        }
+    }
+}

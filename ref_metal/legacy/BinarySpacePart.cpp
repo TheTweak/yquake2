@@ -11,7 +11,7 @@
 #include "../model/Model.hpp"
 
 void BinarySpacePart::markLeaves(int *_oldViewCluster, int *_oldViewCluster2, int _viewCluster, int _viewCluster2,
-                                 std::shared_ptr<mtl_model_t> worldModel) {
+                                 mtl_model_t *worldModel) {
     if (*_oldViewCluster == _viewCluster &&
         *_oldViewCluster2 == _viewCluster2 &&
         !cvar::r_novis->value &&
@@ -39,14 +39,14 @@ void BinarySpacePart::markLeaves(int *_oldViewCluster, int *_oldViewCluster2, in
         return;
     }
     
-    const byte* vis = Model::getInstance().clusterPVS(_viewCluster, worldModel.get());
+    const byte* vis = Model::getInstance().clusterPVS(_viewCluster, worldModel);
     
     if (_viewCluster2 != _viewCluster) {
         YQ2_ALIGNAS_TYPE(int) byte fatvis[MAX_MAP_LEAFS / 8];
         
         memcpy(fatvis, vis, (worldModel->numleafs + 7) / 8);
         
-        vis = Model::getInstance().clusterPVS(_viewCluster2, worldModel.get());
+        vis = Model::getInstance().clusterPVS(_viewCluster2, worldModel);
         
         int c = (worldModel->numleafs + 31) / 32;
         for (int i = 0; i < c; i++) {
@@ -84,7 +84,7 @@ void BinarySpacePart::markLeaves(int *_oldViewCluster, int *_oldViewCluster2, in
 
 void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node, cplane_t frustum[4],
                                          refdef_t mtl_newrefdef, int _frameCount, vec3_t modelOrigin,
-                                         msurface_t* alphaSurfaces, std::shared_ptr<mtl_model_t> worldModel,
+                                         msurface_t* alphaSurfaces, mtl_model_t *worldModel,
                                          SkyBox &skyBox, vec3_t origin) {
     if (node->contents == CONTENTS_SOLID ||
         node->visframe != _visFrameCount ||

@@ -188,14 +188,14 @@ void MetalRenderer::BeginRegistration(char* map) {
     std::string mapName = ss.str();
     
     if (auto m = Model::getInstance().getModel(mapName, NULL, true); m != NULL) {
-        worldModel = std::shared_ptr<mtl_model_t>(m);
+        worldModel = m;
     }
     
     _viewCluster = -1;
 }
 
 model_s* MetalRenderer::RegisterModel(char* name) {
-    return Model::getInstance().registerModel(name, worldModel.get());
+    return Model::getInstance().registerModel(name, worldModel);
 }
 
 image_s* MetalRenderer::RegisterSkin(char* name) {
@@ -513,7 +513,7 @@ void MetalRenderer::setupFrame() {
         _oldViewCluster2 = _viewCluster2;
         
         // find where we are in the world map
-        mleaf_t *leaf = BSPUtils::PointInLeaf(origin, worldModel.get());
+        mleaf_t *leaf = BSPUtils::PointInLeaf(origin, worldModel);
         _viewCluster = leaf->cluster;
         _viewCluster2 = _viewCluster;
         
@@ -523,7 +523,7 @@ void MetalRenderer::setupFrame() {
             vec3_t temp;
             VectorCopy(origin, temp);
             temp[2] -= 16;
-            leaf = BSPUtils::PointInLeaf(temp, worldModel.get());
+            leaf = BSPUtils::PointInLeaf(temp, worldModel);
             
             if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != _viewCluster2)) {
                 _viewCluster2 = leaf->cluster;
@@ -534,7 +534,7 @@ void MetalRenderer::setupFrame() {
 
             VectorCopy(origin, temp);
             temp[2] += 16;
-            leaf = BSPUtils::PointInLeaf(temp, worldModel.get());
+            leaf = BSPUtils::PointInLeaf(temp, worldModel);
 
             if (!(leaf->contents & CONTENTS_SOLID) && (leaf->cluster != _viewCluster2)) {
                 _viewCluster2 = leaf->cluster;

@@ -11,7 +11,7 @@
 #include "../texture/TextureCache.hpp"
 
 Polygon* AliasModel::createPolygon(entity_t* entity, cplane_t frustum[4], LegacyLight legacyLight,
-                                   refdef_t mtl_newrefdef, std::shared_ptr<mtl_model_t> worldModel,
+                                   refdef_t mtl_newrefdef, mtl_model_t *worldModel,
                                    simd_float4x4 &modelViewMatrix, MTL::RenderPipelineState *renderPipelineState) {
     vec3_t bbox[8];
     if (!(entity->flags & RF_WEAPONMODEL) && Utils::CullAliasModel(bbox, entity, frustum)) {

@@ -11,7 +11,7 @@
 #include "../../src/common/header/shared.h"
 
 int LegacyLight::recursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end, refdef_t mtl_newrefdef,
-                                     std::shared_ptr<mtl_model_t> worldModel) {
+                                     mtl_model_t *worldModel) {
     float front, back, frac;
     int side;
     cplane_t *plane;
@@ -132,7 +132,7 @@ int LegacyLight::recursiveLightPoint(mnode_t *node, vec3_t start, vec3_t end, re
 }
 
 void LegacyLight::lightPoint(entity_t* currententity, vec3_t p, vec3_t color, refdef_t mtl_newrefdef,
-                             std::shared_ptr<mtl_model_t> worldModel) {
+                             mtl_model_t *worldModel) {
     vec3_t end;
     float r;
     int lnum;
@@ -183,7 +183,7 @@ void LegacyLight::lightPoint(entity_t* currententity, vec3_t p, vec3_t color, re
     VectorScale(color, cvar::r_modulate->value, color);
 }
 
-void LegacyLight::setLightLevel(entity_t* currententity, refdef_t mtl_newrefdef, std::shared_ptr<mtl_model_t> worldModel) {
+void LegacyLight::setLightLevel(entity_t* currententity, refdef_t mtl_newrefdef, mtl_model_t *worldModel) {
     vec3_t shadelight = {0};
     
     if (mtl_newrefdef.rdflags & RDF_NOWORLDMODEL) {

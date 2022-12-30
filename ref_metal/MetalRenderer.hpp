@@ -50,7 +50,7 @@ private:
     int _viewCluster;
     int _viewCluster2;
         
-    std::shared_ptr<mtl_model_t> worldModel;
+    mtl_model_t *worldModel;
     refdef_t mtl_newrefdef;
     float vBlend[4]; /* final blending color */
     msurface_t* alphaSurfaces;
