@@ -34,6 +34,7 @@ enum VertexInputIndex {
 //   Metal API texture set calls
 typedef enum TextureIndex {
     TextureIndexBaseColor = 0,
+    TextureIndexScaleDepth = 1,
 } TextureIndex;
 
 struct TexVertex {

@@ -187,6 +187,8 @@ void SkyBox::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSiz
         encoder->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
         encoder->setVertexBytes(triangles.data(), sizeof(Vertex)*triangles.size(), VertexInputIndex::VertexInputIndexVertices);
         encoder->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
+        bool clamp = false;
+        encoder->setFragmentBytes(&clamp, sizeof(clamp), TextureIndex::TextureIndexScaleDepth);
         encoder->setFragmentTexture(texture, TextureIndex::TextureIndexBaseColor);
         encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
     }

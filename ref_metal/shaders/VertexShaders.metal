@@ -14,6 +14,11 @@ typedef struct {
     float alpha;
 } VertexRasteriserData;
 
+struct FragmentOutput {
+    float4 color [[color(0)]];
+    float depth [[depth(any)]];
+};
+
 vertex VertexRasteriserData
 vertexShader(uint vertexID [[ vertex_id ]],
                      constant Vertex *vertexArray [[ buffer(VertexInputIndexVertices) ]],
@@ -29,8 +34,9 @@ vertexShader(uint vertexID [[ vertex_id ]],
     return out;
 }
 
-fragment float4
+fragment FragmentOutput
 fragFunc(VertexRasteriserData in [[stage_in]],
+         constant bool *scaleDepth [[ buffer(TextureIndexScaleDepth) ]],
          texture2d<half, access::sample> colorTexture [[ texture(TextureIndexBaseColor) ]])
 {
     constexpr sampler textureSampler (mag_filter::linear,
@@ -39,5 +45,12 @@ fragFunc(VertexRasteriserData in [[stage_in]],
                                       mip_filter::linear);
     half4 colorSample = colorTexture.sample(textureSampler, in.textureCoordinate);
     colorSample[3] = in.alpha;
-    return float4(colorSample);
+    FragmentOutput out;
+    out.color = float4(colorSample);
+    if (*scaleDepth) {
+        out.depth = in.position.z * 0.1;
+    } else {
+        out.depth = in.position.z;
+    }
+    return out;
 }
