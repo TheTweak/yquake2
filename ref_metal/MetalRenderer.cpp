@@ -380,7 +380,7 @@ void MetalRenderer::drawWorld() {
     if (skyBox) {
         skyBox->clearSkyBox();
     }
-    bsp.recursiveWorldNode(&ent, worldModel->nodes, frustum, mtl_newrefdef, _frameCount, modelOrigin, alphaSurfaces, worldModel, skyBox.value(), origin);
+    bsp.recursiveWorldNode(&ent, worldModel->nodes, frustum, mtl_newrefdef, _frameCount, modelOrigin, worldModel, skyBox.value(), origin);
     drawTextureChains(&ent);
 }
 

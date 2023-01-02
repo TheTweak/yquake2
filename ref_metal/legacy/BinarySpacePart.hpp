@@ -16,7 +16,7 @@ class BinarySpacePart {
     int _visFrameCount = 0; /* bumped when going to a new PVS */    
 public:
     void recursiveWorldNode(entity_t* currentEntity, mnode_t* node, cplane_t frustum[4], refdef_t mtl_newrefdef,
-                            int _frameCount, vec3_t modelOrigin, msurface_t* alphaSurfaces, mtl_model_t *worldModel,
+                            int _frameCount, vec3_t modelOrigin, mtl_model_t *worldModel,
                             SkyBox &skyBox, vec3_t origin);
     void markLeaves(int *_oldViewCluster, int *_oldViewCluster2, int _viewCluster, int _viewCluster2, mtl_model_t *worldModel);
 };

@@ -9,6 +9,7 @@
 #include "../utils/Utils.hpp"
 #include "../legacy/ConsoleVars.h"
 #include "../model/Model.hpp"
+#include "../MetalRenderer.hpp"
 
 void BinarySpacePart::markLeaves(int *_oldViewCluster, int *_oldViewCluster2, int _viewCluster, int _viewCluster2,
                                  mtl_model_t *worldModel) {
@@ -84,8 +85,7 @@ void BinarySpacePart::markLeaves(int *_oldViewCluster, int *_oldViewCluster2, in
 
 void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node, cplane_t frustum[4],
                                          refdef_t mtl_newrefdef, int _frameCount, vec3_t modelOrigin,
-                                         msurface_t* alphaSurfaces, mtl_model_t *worldModel,
-                                         SkyBox &skyBox, vec3_t origin) {
+                                         mtl_model_t *worldModel, SkyBox &skyBox, vec3_t origin) {
     if (node->contents == CONTENTS_SOLID ||
         node->visframe != _visFrameCount ||
         Utils::CullBox(node->minmaxs, node->minmaxs+3, frustum)) {
@@ -149,8 +149,7 @@ void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node,
     }
     
     /* recurse down the children, front side first */
-    recursiveWorldNode(currentEntity, node->children[side], frustum, mtl_newrefdef, _frameCount, modelOrigin,
-                       alphaSurfaces, worldModel, skyBox, origin);
+    recursiveWorldNode(currentEntity, node->children[side], frustum, mtl_newrefdef, _frameCount, modelOrigin, worldModel, skyBox, origin);
     
     int c;
     msurface_t *surf;
@@ -171,9 +170,9 @@ void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node,
             skyBox.addSkySurface(surf, origin);
         } else if (surf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66)) {
             /* add to the translucent chain */
-            surf->texturechain = alphaSurfaces;
-            alphaSurfaces = surf;
-            alphaSurfaces->texinfo->image = Utils::TextureAnimation(currentEntity, surf->texinfo);
+            surf->texturechain = MetalRenderer::getInstance().getAlphaSurfaces();
+            MetalRenderer::getInstance().setAlphaSurfaces(surf);
+            MetalRenderer::getInstance().getAlphaSurfaces()->texinfo->image = Utils::TextureAnimation(currentEntity, surf->texinfo);
         } else {
             /* the polygon is visible, so add it to the texture sorted chain */
             image = Utils::TextureAnimation(currentEntity, surf->texinfo);
@@ -183,6 +182,5 @@ void BinarySpacePart::recursiveWorldNode(entity_t* currentEntity, mnode_t* node,
     }
     
     /* recurse down the back side */
-    recursiveWorldNode(currentEntity, node->children[!side], frustum, mtl_newrefdef, _frameCount, modelOrigin,
-                       alphaSurfaces, worldModel, skyBox, origin);
+    recursiveWorldNode(currentEntity, node->children[!side], frustum, mtl_newrefdef, _frameCount, modelOrigin, worldModel, skyBox, origin);
 }
