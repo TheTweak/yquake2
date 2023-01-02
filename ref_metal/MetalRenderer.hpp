@@ -34,7 +34,8 @@ private:
     MTL::CommandQueue* _pCommandQueue;
     MTL::RenderPipelineState* _p2dPSO;
     MTL::RenderPipelineState* _pParticlePSO;
-    MTL::RenderPipelineState* _pVertexPSO;    
+    MTL::RenderPipelineState* _pVertexPSO;
+    MTL::RenderPipelineState* _pVertexAlphaBlendingPSO;
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
@@ -53,7 +54,7 @@ private:
     mtl_model_t *worldModel;
     refdef_t mtl_newrefdef;
     float vBlend[4]; /* final blending color */
-    msurface_t* alphaSurfaces;
+    msurface_t *alphaSurfaces;
     
     vec3_t vup;
     vec3_t vpn;
@@ -74,6 +75,7 @@ private:
     std::optional<SkyBox> skyBox;
                 
     std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> worldPolygonsByTexture;
+    std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> transparentWorldPolygonsByTexture;
     std::unordered_set<std::string> generatedMipMaps;    
     std::unique_ptr<ConChars> conChars;
     std::unique_ptr<Particles> particles;
@@ -97,7 +99,7 @@ private:
             
     void drawWorld();
     void drawEntities();
-    void drawEntity(entity_t*);
+    void drawEntity(entity_t*, bool transparent);
     void drawAlphaSurfaces();
     void drawTextureChains(entity_t*);
     void drawBeam(entity_t*);
@@ -119,7 +121,9 @@ public:
     int getScreenWidth();
     int getScreenHeight();
     simd_float4x4 getMvpMatrix();
-    MTL::Device* getDevice();    
+    MTL::Device* getDevice();
+    msurface_t* getAlphaSurfaces();
+    void setAlphaSurfaces(msurface_t*);
     
     void InitMetal(MTL::Device* pDevice, SDL_Window* pWindow, SDL_Renderer* pRenderer, MTL::Resource* pLayer);
     bool Init();

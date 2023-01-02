@@ -107,7 +107,7 @@ void MetalRenderer::buildShaders() {
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader2D", UTF8StringEncoding) );
         
         MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, true);
-        
+        pDesc->setLabel(NS::String::string("gui", UTF8StringEncoding));
         NS::Error* pError = nullptr;
         _p2dPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_p2dPSO) {
@@ -125,7 +125,7 @@ void MetalRenderer::buildShaders() {
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("particleFragFunc", UTF8StringEncoding) );
         
         MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, false);
-        
+        pDesc->setLabel(NS::String::string("particles", UTF8StringEncoding));
         NS::Error* pError = nullptr;
         _pParticlePSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_pParticlePSO) {
@@ -143,7 +143,7 @@ void MetalRenderer::buildShaders() {
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
         
         MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, false);
-        
+        pDesc->setLabel(NS::String::string("vertex", UTF8StringEncoding));
         NS::Error* pError = nullptr;
         _pVertexPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_pVertexPSO) {
@@ -155,6 +155,23 @@ void MetalRenderer::buildShaders() {
         pDesc->release();
     }
 
+    {
+        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragFunc", UTF8StringEncoding) );
+        
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, true);
+        pDesc->setLabel(NS::String::string("vertexAlpha", UTF8StringEncoding));
+        NS::Error* pError = nullptr;
+        _pVertexAlphaBlendingPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
+        if (!_pVertexAlphaBlendingPSO) {
+            __builtin_printf("%s", pError->localizedDescription()->utf8String());
+            assert(false);
+        }
+        pVertexFn->release();
+        pFragFn->release();
+        pDesc->release();
+    }
+    
     pLibrary->release();
     pPool->release();
 }
@@ -289,6 +306,14 @@ simd_float4x4 MetalRenderer::getMvpMatrix() {
     return mvpMatrix;
 }
 
+msurface_t* MetalRenderer::getAlphaSurfaces() {
+    return alphaSurfaces;
+}
+
+void MetalRenderer::setAlphaSurfaces(msurface_t *as) {
+    alphaSurfaces = as;
+}
+
 #pragma mark - Private_Methods
 #pragma region Private_Methods {
 
@@ -335,7 +360,7 @@ void MetalRenderer::renderView() {
     drawWorld();
     drawEntities();
     drawParticles();
-//    drawAlphaSurfaces();
+    drawAlphaSurfaces();
 }
 
 void MetalRenderer::drawWorld() {
@@ -357,10 +382,9 @@ void MetalRenderer::drawWorld() {
     }
     bsp.recursiveWorldNode(&ent, worldModel->nodes, frustum, mtl_newrefdef, _frameCount, modelOrigin, alphaSurfaces, worldModel, skyBox.value(), origin);
     drawTextureChains(&ent);
-    // draw skybox
 }
 
-void MetalRenderer::drawEntity(entity_t* currentEntity) {
+void MetalRenderer::drawEntity(entity_t* currentEntity, bool transparent) {
     if (currentEntity->flags & RF_BEAM) {
         drawBeam(currentEntity);
     } else {
@@ -369,15 +393,16 @@ void MetalRenderer::drawEntity(entity_t* currentEntity) {
         if (!currentModel) {
             drawNullModel(currentEntity);
         } else {
+            MTL::RenderPipelineState *renderPipelineState = transparent ? _pVertexAlphaBlendingPSO : _pVertexPSO;
             switch (currentModel->type) {
                case mod_alias:
-                    polygon = aliasModel.createPolygon(currentEntity, frustum, legacyLight, mtl_newrefdef, worldModel, modelViewMatrix, _pVertexPSO);
+                    polygon = aliasModel.createPolygon(currentEntity, frustum, legacyLight, mtl_newrefdef, worldModel, modelViewMatrix, renderPipelineState);
                     if (polygon) {
                         entities.push_back(std::shared_ptr<Polygon>(polygon));
                     }
                     break;
                case mod_brush:
-                    BrushModel::createPolygons(currentEntity, currentModel, frustum, mtl_newrefdef, modelOrigin, worldPolygonsByTexture, _pVertexPSO);
+                    BrushModel::createPolygons(currentEntity, currentModel, frustum, mtl_newrefdef, modelOrigin, worldPolygonsByTexture, renderPipelineState);
                     break;
                case mod_sprite:
                     sprites.push_back(SpriteModel::createSprite(currentEntity, currentModel, vup, vright, _p2dPSO));
@@ -399,7 +424,7 @@ void MetalRenderer::drawEntities() {
             continue;
         }
         
-        drawEntity(currentEntity);
+        drawEntity(currentEntity, false);
     }
     
     // then draw translucent
@@ -410,7 +435,7 @@ void MetalRenderer::drawEntities() {
             continue;
         }
         
-        drawEntity(currentEntity);
+        drawEntity(currentEntity, true);
     }
 }
 
@@ -454,50 +479,28 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
 }
 
 void MetalRenderer::drawAlphaSurfaces() {
-    /* go back to the world matrix */
-//    gl3state.uni3DData.transModelMat4 = gl3_identityMat4;
-
-    for (msurface_t* s = alphaSurfaces; s != NULL; s = s->texturechain)
-    {
+    for (msurface_t* s = alphaSurfaces; s != NULL; s = s->texturechain) {
         float alpha = 1.0f;
-        if (s->texinfo->flags & SURF_TRANS33)
-        {
+        if (s->texinfo->flags & SURF_TRANS33) {
             alpha = 0.333f;
-        }
-        else if (s->texinfo->flags & SURF_TRANS66)
-        {
+        } else if (s->texinfo->flags & SURF_TRANS66) {
             alpha = 0.666f;
         }
 
-        /*
-        if (s->flags & SURF_DRAWTURB)
-        {
-            for (glpoly_s* bp = s->polys; bp != NULL; bp = bp->next) {
-                for (int i = 2; i < bp->numverts; i++) {
-                    auto textureName = s->texinfo->image->path;
-                    drawPolyCmds.push_back(createDrawPolyCommand(textureName, bp, i, s->texinfo->image, alpha));
+        TexNameTransMatKey key{s->texinfo->image->path, matrix_identity_float4x4};
+        transparentWorldPolygonsByTexture.insert({key, Polygon{key.textureName, matrix_identity_float4x4, alpha, _pVertexAlphaBlendingPSO}});
+        
+        for (glpoly_s* p = s->polys; p != NULL; p = p->next) {
+            
+            if (!p || !p->numverts) continue;
+            
+            for (int i = 2; i < p->numverts; i++) {
+                auto vertexArray = PolygonUtils::cutTriangle(p, i);
+                for (int j = 0; j < vertexArray.size(); j++) {
+                    transparentWorldPolygonsByTexture[key].addVertex(vertexArray[j]);
                 }
             }
         }
-        else if (s->texinfo->flags & SURF_FLOWING)
-        {
-            for (glpoly_s* bp = s->polys; bp != NULL; bp = bp->next) {
-                for (int i = 2; i < bp->numverts; i++) {
-                    auto textureName = s->texinfo->image->path;
-                    drawPolyCmds.push_back(createDrawPolyCommand(textureName, bp, i, s->texinfo->image, alpha));
-                }
-            }
-        }
-        else
-        {
-            for (glpoly_s* bp = s->polys; bp != NULL; bp = bp->next) {
-                for (int i = 2; i < bp->numverts; i++) {
-                    auto textureName = s->texinfo->image->path;
-                    drawPolyCmds.push_back(createDrawPolyCommand(textureName, bp, i, s->texinfo->image, alpha));
-                }
-            }
-        }
-         */
     }
 
     alphaSurfaces = NULL;
@@ -595,6 +598,11 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
         it->second.render(enc, viewportSize);
     }
     worldPolygonsByTexture.clear();
+    
+    for (auto it = transparentWorldPolygonsByTexture.begin(); it != transparentWorldPolygonsByTexture.end(); it++) {
+        it->second.render(enc, viewportSize);
+    }
+    transparentWorldPolygonsByTexture.clear();
 }
 
 void MetalRenderer::renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {

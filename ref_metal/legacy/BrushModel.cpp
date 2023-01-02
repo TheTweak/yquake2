@@ -9,6 +9,7 @@
 #include "../utils/Constants.h"
 #include "../texture/TextureCache.hpp"
 #include "../utils/PolygonUtils.hpp"
+#include "../MetalRenderer.hpp"
 
 void BrushModel::createPolygons(entity_t* entity, model_s* model, cplane_t frustum[4], refdef_t mtl_newrefdef, vec3_t modelOrigin,
                                 std::unordered_map<TexNameTransMatKey, Polygon, TexNameTransMatKeyHash> &worldPolygonsByTexture,
@@ -66,10 +67,8 @@ void BrushModel::createPolygons(entity_t* entity, model_s* model, cplane_t frust
         if (((psurf->flags & SURF_PLANEBACK) && (dot < -BACKFACE_EPSILON)) ||
             (!(psurf->flags & SURF_PLANEBACK) && (dot > BACKFACE_EPSILON))) {
             if (psurf->texinfo->flags & (SURF_TRANS33 | SURF_TRANS66)) {
-                /* add to the translucent chain */
-                // todo
-                //            } else if(!(psurf->flags & SURF_DRAWTURB)) {
-                // check in GL3_DrawGLFlowingPoly
+                psurf->texturechain = MetalRenderer::getInstance().getAlphaSurfaces();
+                MetalRenderer::getInstance().setAlphaSurfaces(psurf);
             } else {
                 image_s* image = Utils::TextureAnimation(entity, psurf->texinfo);
                 TextureCache::getInstance().addTextureForImage(image);
