@@ -53,7 +53,7 @@ void Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSi
     encoder->setFragmentTexture(TextureCache::getInstance().getTexture(textureName), TextureIndex::TextureIndexBaseColor);    
     encoder->setFragmentBytes(&clamp, sizeof(clamp), TextureIndex::TextureIndexScaleDepth);
     encoder->setDepthClipMode(clamp ? MTL::DepthClipModeClamp : MTL::DepthClipModeClip);
-    encoder->drawPrimitives(triangle ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeLineStrip, NS::UInteger(0), NS::UInteger(vertices.size()));
+    encoder->drawPrimitives(triangle ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeTriangleStrip, NS::UInteger(0), NS::UInteger(vertices.size()));
     encoder->setDepthClipMode(MTL::DepthClipModeClip);
     
     vertexBuffer->release();

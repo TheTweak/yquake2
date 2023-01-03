@@ -464,16 +464,19 @@ void MetalRenderer::drawTextureChains(entity_t *currentEntity) {
         for (; s; s = s->texturechain) {
             glpoly_t *p = s->polys;
             
-            if (!p || !p->numverts) continue;
-            
-            for (int i = 2; i < p->numverts; i++) {
-                auto vertexArray = PolygonUtils::cutTriangle(p, i);
-                for (int j = 0; j < vertexArray.size(); j++) {
-                    worldPolygonsByTexture[key].addVertex(vertexArray[j]);
-                }
+            if (!p || !p->numverts) {
+                continue;
             }
+
+            for (glpoly_t *pp = p; pp; pp = pp->next) {
+                for (int i = 2; i < pp->numverts; i++) {
+                    auto vertexArray = PolygonUtils::cutTriangle(pp, i);
+                    for (int j = 0; j < vertexArray.size(); j++) {
+                        worldPolygonsByTexture[key].addVertex(vertexArray[j]);
+                    }
+                }
+            }            
         }
-        
         it->second->texturechain = nullptr;
     }
 }
