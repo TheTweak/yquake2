@@ -609,8 +609,7 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
     }
     transparentWorldPolygonsByTexture.clear();
     
-    for (auto &vb : vertexBuffers) {
-    }
+    rayTracer->rebuildAccelerationStructure(vertexBuffers);
 }
 
 void MetalRenderer::renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {

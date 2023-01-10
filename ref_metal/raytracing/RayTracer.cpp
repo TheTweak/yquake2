@@ -9,17 +9,12 @@
 #include "../MetalRenderer.hpp"
 
 RayTracer::RayTracer() {
-    intersector = MTL::MPSRayIntersector::alloc()->init();
-    primitiveASD = MTL::PrimitiveAccelerationStructureDescriptor::alloc()->init();
-    triangleGeometryASD = MTL::AccelerationStructureTriangleGeometryDescriptor::alloc()->init();
-    auto array = NS::Array::alloc()->array(primitiveASD);
-    primitiveASD->setGeometryDescriptors(array);
+    intersector = MTL::MPSRayIntersector::alloc()->init();    
+    accelStructure = MTL::MPSTriangleAccelerationStructure::alloc()->init();
 }
 
-void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, int triangleCount) {
-    triangleGeometryASD->setVertexBuffer(vertexBuffer);
-    triangleGeometryASD->setTriangleCount(triangleCount);
-    accelStructure = MetalRenderer::getInstance().getDevice()->newAccelerationStructure(primitiveASD);
-    int i = 0;
-    i += 1;
+void RayTracer::rebuildAccelerationStructure(std::vector<VertexBufferInfo> vertexBuffers) {
+    accelStructure->setVertexBuffer(vertexBuffers[0].first);
+    accelStructure->setTriangleCount(vertexBuffers[0].second/3);
+    accelStructure->rebuild();
 }

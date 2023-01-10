@@ -77,5 +77,6 @@
 #include "MTLVertexDescriptor.hpp"
 #include "MTLVisibleFunctionTable.hpp"
 #include "MPSRayIntersector.hpp"
+#include "MPSTriangleAccelerationStructure.hpp"
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------

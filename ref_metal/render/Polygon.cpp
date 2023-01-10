@@ -57,5 +57,5 @@ VertexBufferInfo Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint
     encoder->setDepthClipMode(MTL::DepthClipModeClip);
     
     vertexBuffer->autorelease();
-    return {&vertexBuffer, vertices.size()};
+    return {vertexBuffer, vertices.size()};
 }

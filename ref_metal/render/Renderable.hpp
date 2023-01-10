@@ -15,7 +15,7 @@
 #include "../utils/SharedTypes.h"
 
 using Quad = std::array<TexVertex, 6>;
-using VertexBufferInfo = std::pair<MTL::Buffer**, int>;
+using VertexBufferInfo = std::pair<MTL::Buffer*, int>;
 static VertexBufferInfo emptyVertexBufferInfo = { NULL, 0 };
 
 class Renderable {
