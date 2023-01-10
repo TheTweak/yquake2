@@ -75,6 +75,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     TextureCache::getInstance().init(_pDevice);
     conChars = std::make_unique<ConChars>(_p2dPSO);
     particles = std::make_unique<Particles>(_pParticlePSO);
+    rayTracer = std::make_unique<RayTracer>();
     
     pPool->release();
 }
@@ -597,15 +598,19 @@ void MetalRenderer::drawParticles() {
 }
 
 void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+    std::vector<VertexBufferInfo> vertexBuffers;
     for (auto it = worldPolygonsByTexture.begin(); it != worldPolygonsByTexture.end(); it++) {
-        it->second.render(enc, viewportSize);
+        vertexBuffers.push_back(it->second.render(enc, viewportSize));
     }
     worldPolygonsByTexture.clear();
     
     for (auto it = transparentWorldPolygonsByTexture.begin(); it != transparentWorldPolygonsByTexture.end(); it++) {
-        it->second.render(enc, viewportSize);
+        vertexBuffers.push_back(it->second.render(enc, viewportSize));
     }
     transparentWorldPolygonsByTexture.clear();
+    
+    for (auto &vb : vertexBuffers) {
+    }
 }
 
 void MetalRenderer::renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {

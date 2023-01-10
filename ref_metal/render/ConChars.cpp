@@ -61,7 +61,7 @@ void ConChars::drawChar(ConChar c) {
     chars.push_back(c);
 }
 
-void ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
+VertexBufferInfo ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
     std::vector<TexVertex> vertices;
     for (auto &c: chars) {
         if (auto qopt = c.createQuad(viewportSize); qopt) {
@@ -72,7 +72,7 @@ void ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportS
         }
     }
     if (vertices.empty()) {
-        return;
+        return emptyVertexBufferInfo;
     }
     
     encoder->setRenderPipelineState(pipelineState);
@@ -86,6 +86,8 @@ void ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportS
     encoder->setFragmentTexture(TextureCache::getInstance().getTexture("conchars"), TextureIndex::TextureIndexBaseColor);
     encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(vertices.size()));
     
-    buffer->release();
+    buffer->autorelease();
     chars.clear();
+    
+    return emptyVertexBufferInfo;
 }

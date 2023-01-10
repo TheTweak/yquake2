@@ -31,9 +31,9 @@ void Polygon::setMVP(simd_float4x4 mvp) {
     this->mvp = mvp;
 }
 
-void Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
+VertexBufferInfo Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
     if (vertices.empty()) {
-        return;
+        return emptyVertexBufferInfo;
     }
     
     simd_float4x4 defaultMvp = MetalRenderer::getInstance().getMvpMatrix();
@@ -56,5 +56,6 @@ void Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSi
     encoder->drawPrimitives(triangle ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeTriangleStrip, NS::UInteger(0), NS::UInteger(vertices.size()));
     encoder->setDepthClipMode(MTL::DepthClipModeClip);
     
-    vertexBuffer->release();
+    vertexBuffer->autorelease();
+    return {&vertexBuffer, vertices.size()};
 }

@@ -113,6 +113,7 @@ _MTL_PRIVATE_DEF_CLS(MTLVertexBufferLayoutDescriptor);
 _MTL_PRIVATE_DEF_CLS(MTLVertexBufferLayoutDescriptorArray);
 _MTL_PRIVATE_DEF_CLS(MTLVertexDescriptor);
 _MTL_PRIVATE_DEF_CLS(MTLVisibleFunctionTableDescriptor);
+_MTL_PRIVATE_DEF_CLS(MPSRayIntersector);
 
 }
 
@@ -2043,5 +2044,8 @@ _MTL_PRIVATE_DEF_SEL(writeCompactedAccelerationStructureSize_toBuffer_offset_siz
     "writeCompactedAccelerationStructureSize:toBuffer:offset:sizeDataType:");
 _MTL_PRIVATE_DEF_SEL(writeMask,
     "writeMask");
-
+/*
+_MTL_PRIVATE_DEF_SEL(init,
+    "init");
+ */
 }

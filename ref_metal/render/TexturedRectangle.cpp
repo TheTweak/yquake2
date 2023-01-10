@@ -20,11 +20,11 @@ std::optional<MTL::DepthStencilState*> TexturedRectangle::getDepthStencilState()
     return std::nullopt;
 }
 
-void TexturedRectangle::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
+VertexBufferInfo TexturedRectangle::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
     encoder->setRenderPipelineState(pipelineState);
     auto vertices = createQuad(viewportSize);
     if (!vertices) {
-        return;
+        return emptyVertexBufferInfo;
     }
     if (auto depthStencilState = getDepthStencilState(); depthStencilState) {
         encoder->setDepthStencilState(depthStencilState.value());
@@ -33,4 +33,5 @@ void TexturedRectangle::render(MTL::RenderCommandEncoder* encoder, vector_uint2 
     encoder->setVertexBytes(&viewportSize, sizeof(viewportSize), TexVertexInputIndex::TexVertexInputIndexViewportSize);
     encoder->setFragmentTexture(pic.empty() ? TextureCache::getInstance().getFillColorTexture(bgra) : TextureCache::getInstance().getTexture(pic), TextureIndex::TextureIndexBaseColor);
     encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypeTriangle, NS::UInteger(0), NS::UInteger(6));
+    return emptyVertexBufferInfo;
 }

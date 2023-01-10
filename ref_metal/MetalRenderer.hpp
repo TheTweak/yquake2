@@ -25,6 +25,7 @@
 #include "render/Polygon.hpp"
 #include "render/Sprite.hpp"
 #include "render/SkyBox.hpp"
+#include "raytracing/RayTracer.hpp"
 
 typedef float vec4_t[4];
 
@@ -79,6 +80,7 @@ private:
     std::unordered_set<std::string> generatedMipMaps;    
     std::unique_ptr<ConChars> conChars;
     std::unique_ptr<Particles> particles;
+    std::unique_ptr<RayTracer> rayTracer;
     dispatch_semaphore_t _semaphore;
     simd_float4x4 projectionMatrix;
     simd_float4x4 modelViewMatrix;

@@ -10,9 +10,9 @@
 
 Particles::Particles(MTL::RenderPipelineState *pipelineState): pipelineState(pipelineState) {}
 
-void Particles::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
+VertexBufferInfo Particles::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
     if (particles.empty()) {
-        return;
+        return emptyVertexBufferInfo;
     }
     
     encoder->setRenderPipelineState(pipelineState);
@@ -25,7 +25,8 @@ void Particles::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewport
     encoder->setVertexBytes(&matrix_identity_float4x4, sizeof(matrix_identity_float4x4), ParticleInputIndex::ParticleInputIndexTransModelMatrix);
     encoder->drawPrimitives(MTL::PrimitiveType::PrimitiveTypePoint, NS::UInteger(0), NS::UInteger(particles.size()));
     particles.clear();
-    pBuffer->release();
+    pBuffer->autorelease();
+    return emptyVertexBufferInfo;
 }
 
 void Particles::addParticle(Particle p) {

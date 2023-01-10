@@ -33,7 +33,7 @@ public:
     void setClamp(bool clamp);
     void setMVP(simd_float4x4 mvp);
     void addVertex(Vertex v);
-    void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
+    VertexBufferInfo render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
 };
 
 #endif /* Polygon_hpp */

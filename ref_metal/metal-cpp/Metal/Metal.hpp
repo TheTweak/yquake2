@@ -76,5 +76,6 @@
 #include "MTLTypes.hpp"
 #include "MTLVertexDescriptor.hpp"
 #include "MTLVisibleFunctionTable.hpp"
+#include "MPSRayIntersector.hpp"
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------
