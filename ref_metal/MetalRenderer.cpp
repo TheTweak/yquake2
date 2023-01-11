@@ -104,6 +104,21 @@ void MetalRenderer::buildShaders() {
     MTL::Library* pLibrary = _pDevice->newDefaultLibrary();
 
     {
+        MTL::Function* fn = pLibrary->newFunction(NS::String::string("shadeKernel", UTF8StringEncoding));
+        MTL::ComputePipelineDescriptor *d = MTL::ComputePipelineDescriptor::alloc()->init();
+        d->setThreadGroupSizeIsMultipleOfThreadExecutionWidth(true);
+        d->setComputeFunction(fn);
+        d->setLabel(NS::String::string("rayTracer", UTF8StringEncoding));
+        
+        NS::Error* pError = nullptr;
+        _pRayTracingCPSO = _pDevice->newComputePipelineState(d, MTL::PipelineOptionNone, NULL, &pError);
+        if (!_pRayTracingCPSO) {
+            __builtin_printf("%s", pError->localizedDescription()->utf8String());
+            assert(false);
+        }
+    }
+    
+    {
         MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader2D", UTF8StringEncoding) );
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader2D", UTF8StringEncoding) );
         
