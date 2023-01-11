@@ -115,6 +115,7 @@ _MTL_PRIVATE_DEF_CLS(MTLVertexDescriptor);
 _MTL_PRIVATE_DEF_CLS(MTLVisibleFunctionTableDescriptor);
 _MTL_PRIVATE_DEF_CLS(MPSRayIntersector);
 _MTL_PRIVATE_DEF_CLS(MPSTriangleAccelerationStructure);
+_MTL_PRIVATE_DEF_CLS(MPSAccelerationStructure);
 
 }
 
@@ -2047,4 +2048,6 @@ _MTL_PRIVATE_DEF_SEL(writeMask,
     "writeMask");
 _MTL_PRIVATE_DEF_SEL(rebuild,
     "rebuild");
+_MTL_PRIVATE_DEF_SEL(encodeIntersection_commandBuffer_intersectionType_rayBuffer_rayBufferOffset_intersectionBuffer_intersectionBufferOffset_rayCount_accelerationStructure_,
+    "encodeIntersectionToCommandBuffer:intersectionType:rayBuffer:rayBufferOffset:intersectionBuffer:intersectionBufferOffset:rayCount:accelerationStructure:");
 }

@@ -78,5 +78,6 @@
 #include "MTLVisibleFunctionTable.hpp"
 #include "MPSRayIntersector.hpp"
 #include "MPSTriangleAccelerationStructure.hpp"
+#include "MPSAccelerationStructure.hpp"
 
 //-------------------------------------------------------------------------------------------------------------------------------------------------------------

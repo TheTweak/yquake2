@@ -16,10 +16,14 @@
 
 class RayTracer {
     MTL::MPSRayIntersector *intersector;
-    MTL::MPSTriangleAccelerationStructure *accelStructure;    
+    MTL::MPSTriangleAccelerationStructure *accelStructure;
+    MTL::Buffer *rayBuffer;
+    MTL::Buffer *intersectionBuffer;
+    bool accelStructureIsBuilt;
 public:
     RayTracer();
     void rebuildAccelerationStructure(std::vector<VertexBufferInfo> vertexBuffers);
+    void encode(MTL::CommandBuffer *cmdBuffer);
 };
 
 #endif /* RayTracer_hpp */

@@ -650,6 +650,8 @@ void MetalRenderer::encodeMetalCommands() {
 
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
     
+    rayTracer->encode(pCmd);
+    
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     MetalRenderer* pRenderer = this;
     pCmd->addCompletedHandler([pRenderer](MTL::CommandBuffer* pCommand) {
