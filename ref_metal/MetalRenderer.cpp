@@ -108,7 +108,7 @@ void MetalRenderer::buildShaders() {
         MTL::ComputePipelineDescriptor *d = MTL::ComputePipelineDescriptor::alloc()->init();
         d->setThreadGroupSizeIsMultipleOfThreadExecutionWidth(true);
         d->setComputeFunction(fn);
-        d->setLabel(NS::String::string("rayTracer", UTF8StringEncoding));
+        d->setLabel(NS::String::string("shadeKernel", UTF8StringEncoding));
         
         NS::Error* pError = nullptr;
         _pRayTracingCPSO = _pDevice->newComputePipelineState(d, MTL::PipelineOptionNone, NULL, &pError);
@@ -116,6 +116,9 @@ void MetalRenderer::buildShaders() {
             __builtin_printf("%s", pError->localizedDescription()->utf8String());
             assert(false);
         }
+        
+        fn->release();
+        d->release();
     }
     
     {

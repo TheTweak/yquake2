@@ -19,7 +19,10 @@ class RayTracer {
     MTL::MPSTriangleAccelerationStructure *accelStructure;
     MTL::Buffer *rayBuffer;
     MTL::Buffer *intersectionBuffer;
+    MTL::ComputePipelineState* genRaysPipeline;
     bool accelStructureIsBuilt;
+    
+    void generateRays();
 public:
     RayTracer();
     void rebuildAccelerationStructure(std::vector<VertexBufferInfo> vertexBuffers);

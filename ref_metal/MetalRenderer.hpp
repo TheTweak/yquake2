@@ -37,7 +37,7 @@ private:
     MTL::RenderPipelineState* _pParticlePSO;
     MTL::RenderPipelineState* _pVertexPSO;
     MTL::RenderPipelineState* _pVertexAlphaBlendingPSO;
-    MTL::ComputePipelineState* _pRayTracingCPSO;
+    MTL::ComputePipelineState* _pRayTracingCPSO;    
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
@@ -124,7 +124,7 @@ public:
     int getScreenWidth();
     int getScreenHeight();
     simd_float4x4 getMvpMatrix();
-    MTL::Device* getDevice();
+    MTL::Device* getDevice();    
     msurface_t* getAlphaSurfaces();
     void setAlphaSurfaces(msurface_t*);
     

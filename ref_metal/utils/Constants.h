@@ -18,4 +18,6 @@
 #define MAX_CLIP_VERTS 64
 #define ON_EPSILON 0.1 /* point on plane side epsilon */
 
+#define RAY_MASK_PRIMARY 3
+
 #endif /* Constants_h */
