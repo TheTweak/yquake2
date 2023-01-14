@@ -22,11 +22,11 @@ class RayTracer {
     MTL::ComputePipelineState* genRaysPipeline;
     bool accelStructureIsBuilt;
     
-    void generateRays();
+    void generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
 public:
     RayTracer();
     void rebuildAccelerationStructure(std::vector<VertexBufferInfo> vertexBuffers);
-    void encode(MTL::CommandBuffer *cmdBuffer);
+    void encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms);
 };
 
 #endif /* RayTracer_hpp */

@@ -16,8 +16,17 @@ _MTL_ENUM(NS::UInteger, MPSIntersectionType) {
     Nearest = 1,
 };
 
+_MTL_ENUM(NS::UInteger, MPSRayDataType) {
+    OriginDirection = 0,
+    OriginMaskDirectionMaxDistance = 1,
+    OriginMinDistanceDirectionMaxDistance = 2,
+    PackedOriginDirection = 3
+};
+
 class MPSRayIntersector : public NS::Copying<MPSRayIntersector> {
 public:
+    void setRayDataType(MTL::MPSRayDataType rayDataType);
+    void setRayStride(NS::UInteger rayStride);
     static class MPSRayIntersector* alloc();
     class MPSRayIntersector* init();
     void encodeIntersection(

@@ -668,7 +668,24 @@ void MetalRenderer::encodeMetalCommands() {
 
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
     
-    rayTracer->encode(pCmd);
+    Uniforms uniforms;
+    uniforms.width = _width;
+    uniforms.height = _height;
+    uniforms.frameIndex = _frameCount;
+    uniforms.camera.position[0] = origin[0];
+    uniforms.camera.position[1] = origin[1];
+    uniforms.camera.position[2] = origin[2];
+    uniforms.camera.right[0] = vright[0];
+    uniforms.camera.right[1] = vright[1];
+    uniforms.camera.right[2] = vright[2];
+    uniforms.camera.forward[0] = vpn[0];
+    uniforms.camera.forward[1] = vpn[1];
+    uniforms.camera.forward[2] = vpn[2];
+    uniforms.camera.up[0] = vup[0];
+    uniforms.camera.up[1] = vup[1];
+    uniforms.camera.up[2] = vup[2];
+
+    rayTracer->encode(pCmd, uniforms);
     
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     MetalRenderer* pRenderer = this;

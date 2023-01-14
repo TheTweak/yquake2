@@ -90,7 +90,7 @@ kernel void rayKernel(uint2 tid [[thread_position_in_grid]],
                       constant Uniforms &uniforms,
                       device Ray *rays,
                       texture2d<unsigned int> randomTex,
-                      texture2d<float, access::write> dstTex)
+                      texture2d<half, access::write> dstTex)
 {
     // Since we aligned the thread count to the threadgroup size, the thread index may be out of bounds
     // of the render target size.
@@ -137,7 +137,7 @@ kernel void rayKernel(uint2 tid [[thread_position_in_grid]],
         ray.color = float3(1.0f, 1.0f, 1.0f);
         
         // Clear the destination image to black
-        dstTex.write(float4(0.0f, 0.0f, 0.0f, 0.0f), tid);
+        dstTex.write(half4(0.0f, 0.0f, 0.0f, 0.0f), tid);
     }
 }
 
