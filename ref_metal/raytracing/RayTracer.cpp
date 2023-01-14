@@ -42,9 +42,9 @@ RayTracer::RayTracer() {
     pPool->release();
 }
 
-void RayTracer::rebuildAccelerationStructure(std::vector<VertexBufferInfo> vertexBuffers) {
-    accelStructure->setVertexBuffer(vertexBuffers[0].first);
-    accelStructure->setTriangleCount(vertexBuffers[0].second/3);
+void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount) {
+    accelStructure->setVertexBuffer(vertexBuffer);
+    accelStructure->setTriangleCount(vertexCount/3);
     accelStructure->rebuild();
     accelStructureIsBuilt = true;
 }

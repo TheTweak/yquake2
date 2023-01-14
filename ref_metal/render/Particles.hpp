@@ -18,7 +18,7 @@ class Particles : public Renderable {
 public:
     Particles(MTL::RenderPipelineState *pipelineState);
     void addParticle(Particle p);
-    VertexBufferInfo render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
+    void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
 };
 
 #endif /* RParticle_hpp */

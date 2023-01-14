@@ -61,7 +61,7 @@ void ConChars::drawChar(ConChar c) {
     chars.push_back(c);
 }
 
-VertexBufferInfo ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
+void ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize) {
     std::vector<TexVertex> vertices;
     for (auto &c: chars) {
         if (auto qopt = c.createQuad(viewportSize); qopt) {
@@ -72,7 +72,7 @@ VertexBufferInfo ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uin
         }
     }
     if (vertices.empty()) {
-        return emptyVertexBufferInfo;
+        return;
     }
     
     encoder->setRenderPipelineState(pipelineState);
@@ -88,6 +88,4 @@ VertexBufferInfo ConChars::render(MTL::RenderCommandEncoder *encoder, vector_uin
     
     buffer->autorelease();
     chars.clear();
-    
-    return emptyVertexBufferInfo;
 }

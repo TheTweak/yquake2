@@ -26,7 +26,7 @@ class ConChars : public Renderable {
 public:
     ConChars(MTL::RenderPipelineState *pipelineState);
     void drawChar(ConChar c);
-    VertexBufferInfo render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
+    void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
 };
 
 #endif /* Hud_h */

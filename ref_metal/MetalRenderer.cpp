@@ -616,18 +616,36 @@ void MetalRenderer::drawParticles() {
 }
 
 void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
-    std::vector<VertexBufferInfo> vertexBuffers;
+    size_t vertexCount = 0;
     for (auto it = worldPolygonsByTexture.begin(); it != worldPolygonsByTexture.end(); it++) {
-        vertexBuffers.push_back(it->second.render(enc, viewportSize));
+        vertexCount += it->second.getVertices().size();
     }
-    worldPolygonsByTexture.clear();
-    
     for (auto it = transparentWorldPolygonsByTexture.begin(); it != transparentWorldPolygonsByTexture.end(); it++) {
-        vertexBuffers.push_back(it->second.render(enc, viewportSize));
+        vertexCount += it->second.getVertices().size();
     }
-    transparentWorldPolygonsByTexture.clear();
     
-    rayTracer->rebuildAccelerationStructure(vertexBuffers);
+    if (vertexCount == 0) {
+        return;
+    }
+    
+    MTL::Buffer *vertexBuffer = _pDevice->newBuffer(vertexCount * sizeof(Vertex), MTL::ResourceStorageModeShared);
+
+    size_t vertexBufferOffset = 0;
+    for (auto it = worldPolygonsByTexture.begin(); it != worldPolygonsByTexture.end(); it++) {
+        it->second.render(enc, viewportSize, vertexBuffer, vertexBufferOffset);
+        vertexBufferOffset += it->second.getVertices().size();
+    }
+
+    for (auto it = transparentWorldPolygonsByTexture.begin(); it != transparentWorldPolygonsByTexture.end(); it++) {
+        it->second.render(enc, viewportSize, vertexBuffer, vertexBufferOffset);
+        vertexBufferOffset += it->second.getVertices().size();
+    }
+    
+    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount);
+    
+    vertexBuffer->autorelease();
+    worldPolygonsByTexture.clear();
+    transparentWorldPolygonsByTexture.clear();
 }
 
 void MetalRenderer::renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {

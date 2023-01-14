@@ -25,7 +25,7 @@ class RayTracer {
     void generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
 public:
     RayTracer();
-    void rebuildAccelerationStructure(std::vector<VertexBufferInfo> vertexBuffers);
+    void rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount);
     void encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms);
 };
 

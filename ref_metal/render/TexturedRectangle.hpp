@@ -32,5 +32,5 @@ public:
     TexturedRectangle(std::string pic, int x, int y, int w, int h, MTL::RenderPipelineState *pipelineState);
     TexturedRectangle(vector_float4 bgra, int x, int y, int w, int h, MTL::RenderPipelineState *pipelineState);
     TexturedRectangle(std::string pic, int x, int y, int w, int h, float sl, float tl, float sh, float th, MTL::RenderPipelineState *pipelineState);
-    VertexBufferInfo render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
+    void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
 };

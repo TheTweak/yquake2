@@ -31,9 +31,9 @@ void Polygon::setMVP(simd_float4x4 mvp) {
     this->mvp = mvp;
 }
 
-VertexBufferInfo Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
+void Polygon::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSize, MTL::Buffer *vertexBuffer, size_t vertexBufferOffset) {
     if (vertices.empty()) {
-        return emptyVertexBufferInfo;
+        return;
     }
     
     simd_float4x4 defaultMvp = MetalRenderer::getInstance().getMvpMatrix();
@@ -43,19 +43,32 @@ VertexBufferInfo Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint
     }
     
     encoder->setRenderPipelineState(pipelineState);
-    auto vertexBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(vertices.size()*sizeof(Vertex), MTL::ResourceStorageModeShared);
-    assert(vertexBuffer);
-    std::memcpy(vertexBuffer->contents(), vertices.data(), vertices.size()*sizeof(Vertex));
-    encoder->setVertexBuffer(vertexBuffer, 0, VertexInputIndex::VertexInputIndexVertices);
+    std::memcpy((Vertex *)vertexBuffer->contents() + vertexBufferOffset, vertices.data(), vertices.size() * sizeof(Vertex));
+    encoder->setVertexBuffer(vertexBuffer, vertexBufferOffset * sizeof(Vertex), VertexInputIndex::VertexInputIndexVertices);
     encoder->setVertexBytes(inputMvp, sizeof(*inputMvp), VertexInputIndex::VertexInputIndexMVPMatrix);
     encoder->setVertexBytes(&translation, sizeof(translation), VertexInputIndex::VertexInputIndexTransModelMatrix);
     encoder->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
-    encoder->setFragmentTexture(TextureCache::getInstance().getTexture(textureName), TextureIndex::TextureIndexBaseColor);    
+    encoder->setFragmentTexture(TextureCache::getInstance().getTexture(textureName), TextureIndex::TextureIndexBaseColor);
     encoder->setFragmentBytes(&clamp, sizeof(clamp), TextureIndex::TextureIndexScaleDepth);
     encoder->setDepthClipMode(clamp ? MTL::DepthClipModeClamp : MTL::DepthClipModeClip);
     encoder->drawPrimitives(triangle ? MTL::PrimitiveTypeTriangle : MTL::PrimitiveTypeTriangleStrip, NS::UInteger(0), NS::UInteger(vertices.size()));
     encoder->setDepthClipMode(MTL::DepthClipModeClip);
+}
+
+void Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSize) {
+    if (vertices.empty()) {
+        return;
+    }
     
-    vertexBuffer->autorelease();
-    return {vertexBuffer, vertices.size()};
+    auto vertexBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(vertices.size() * sizeof(Vertex), MTL::ResourceStorageModeShared);
+    assert(vertexBuffer);
+    std::memcpy(vertexBuffer->contents(), vertices.data(), vertices.size() * sizeof(Vertex));
+    
+    render(encoder, viewportSize, vertexBuffer, 0);
+    
+    vertexBuffer->autorelease();    
+}
+
+const std::vector<Vertex>& Polygon::getVertices() const {
+    return vertices;
 }
