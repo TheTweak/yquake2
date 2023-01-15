@@ -224,6 +224,10 @@ Polygon* AliasModel::createPolygon(entity_t* entity, cplane_t frustum[4], Legacy
                 }
             }
             
+            if (vertices.empty()) {
+                continue;
+            }
+            
             if (aliasModel->isTriangle()) {
                 for (int i = 1; i < count-1; i++) {
                     aliasModel->addVertex(vertices.at(0));
