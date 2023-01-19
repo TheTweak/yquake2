@@ -76,4 +76,10 @@ struct Uniforms {
     Camera camera;
     AreaLight light;
 };
+
+struct MPSIntersectionDistancePrimitiveIndexCoordinates {
+    vector_float2 coordinates;
+    float distance;
+    size_t primitiveIndex;
+};
 #endif /* SharedTypes_h */

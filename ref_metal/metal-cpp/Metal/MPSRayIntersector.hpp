@@ -67,3 +67,15 @@ _MTL_INLINE void MTL::MPSRayIntersector::encodeIntersection(
 {
     Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(encodeIntersection_commandBuffer_intersectionType_rayBuffer_rayBufferOffset_intersectionBuffer_intersectionBufferOffset_rayCount_accelerationStructure_), commandBuffer, intersectionType, rayBuffer, rayBufferOffset, intersectionBuffer, intersectionBufferOffset, rayCount, accelerationStructure);
 }
+
+// method: setRayDataType
+_MTL_INLINE void MTL::MPSRayIntersector::setRayDataType(MTL::MPSRayDataType rayDataType)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setRayDataType), rayDataType);
+}
+
+// method: setRayStride
+_MTL_INLINE void MTL::MPSRayIntersector::setRayStride(NS::UInteger rayStride)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setRayStride), rayStride);
+}

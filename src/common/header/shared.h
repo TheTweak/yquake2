@@ -66,10 +66,10 @@ typedef unsigned char byte;
 #define ROLL 2                      /* fall over */
 
 #ifndef min
-#define min(a, b) (((a) < (b)) ? (a) : (b))
+#define minn(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 #ifndef max
-#define max(a, b) (((a) > (b)) ? (a) : (b))
+#define maxx(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
 #define MAX_STRING_CHARS 2048       /* max length of a string passed to Cmd_TokenizeString */

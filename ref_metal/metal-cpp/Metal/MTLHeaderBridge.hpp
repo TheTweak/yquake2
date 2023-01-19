@@ -2050,4 +2050,8 @@ _MTL_PRIVATE_DEF_SEL(rebuild,
     "rebuild");
 _MTL_PRIVATE_DEF_SEL(encodeIntersection_commandBuffer_intersectionType_rayBuffer_rayBufferOffset_intersectionBuffer_intersectionBufferOffset_rayCount_accelerationStructure_,
     "encodeIntersectionToCommandBuffer:intersectionType:rayBuffer:rayBufferOffset:intersectionBuffer:intersectionBufferOffset:rayCount:accelerationStructure:");
+_MTL_PRIVATE_DEF_SEL(setRayDataType,
+    "setRayDataType:");
+_MTL_PRIVATE_DEF_SEL(setRayStride,
+    "setRayStride:");
 }

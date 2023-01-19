@@ -17,12 +17,17 @@
 class RayTracer {
     MTL::MPSRayIntersector *intersector;
     MTL::MPSTriangleAccelerationStructure *accelStructure;
+    
     MTL::Buffer *rayBuffer;
     MTL::Buffer *intersectionBuffer;
+    
     MTL::ComputePipelineState* genRaysPipeline;
+    MTL::ComputePipelineState* shadePipeline;
+    
     bool accelStructureIsBuilt;
     
     void generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
+    void shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
 public:
     RayTracer();
     void rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount);

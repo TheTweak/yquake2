@@ -37,7 +37,7 @@ private:
     MTL::RenderPipelineState* _pParticlePSO;
     MTL::RenderPipelineState* _pVertexPSO;
     MTL::RenderPipelineState* _pVertexAlphaBlendingPSO;
-    MTL::ComputePipelineState* _pRayTracingCPSO;    
+    MTL::RenderPipelineState* _pDebugPSO;
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
@@ -119,6 +119,7 @@ private:
     MTL::RenderPassDescriptor* createRenderPassDescriptor();
     void updateMVPMatrix();
     
+    void renderCameraDirection(MTL::RenderCommandEncoder *enc, const Uniforms &uniforms);
 public:
     static MetalRenderer& getInstance();
     int getScreenWidth();

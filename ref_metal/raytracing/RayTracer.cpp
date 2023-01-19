@@ -9,35 +9,40 @@
 #include "../MetalRenderer.hpp"
 #include "../utils/Constants.h"
 
-static const size_t rayStride = 48;
+MTL::ComputePipelineState *createPipeline(std::string name, MTL::Library *pLibrary) {
+    using NS::StringEncoding::UTF8StringEncoding;
+    
+    MTL::Function* fn = pLibrary->newFunction(NS::String::string(name.data(), UTF8StringEncoding));
+    MTL::ComputePipelineDescriptor *d = MTL::ComputePipelineDescriptor::alloc()->init();
+    d->setThreadGroupSizeIsMultipleOfThreadExecutionWidth(true);
+    d->setComputeFunction(fn);
+    d->setLabel(NS::String::string(name.data(), UTF8StringEncoding));
+    
+    NS::Error* pError = nullptr;
+    auto result = MetalRenderer::getInstance().getDevice()->newComputePipelineState(d, MTL::PipelineOptionNone, NULL, &pError);
+    if (!result) {
+        __builtin_printf("%s", pError->localizedDescription()->utf8String());
+        assert(false);
+    }
+    
+    fn->release();
+    d->release();
+    
+    return result;
+}
 
 RayTracer::RayTracer() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     intersector = MTL::MPSRayIntersector::alloc()->init();
+    intersector->setRayDataType(MTL::MPSRayDataType::OriginMaskDirectionMaxDistance);
+    intersector->setRayStride(RAY_STRIDE);
     accelStructure = MTL::MPSTriangleAccelerationStructure::alloc()->init();
     
-    intersectionBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(32, MTL::ResourceStorageModePrivate);
-    
     MTL::Library* pLibrary = MetalRenderer::getInstance().getDevice()->newDefaultLibrary();
-    using NS::StringEncoding::UTF8StringEncoding;
-    {
-        MTL::Function* fn = pLibrary->newFunction(NS::String::string("rayKernel", UTF8StringEncoding));
-        MTL::ComputePipelineDescriptor *d = MTL::ComputePipelineDescriptor::alloc()->init();
-        d->setThreadGroupSizeIsMultipleOfThreadExecutionWidth(true);
-        d->setComputeFunction(fn);
-        d->setLabel(NS::String::string("rayKernel", UTF8StringEncoding));
-        
-        NS::Error* pError = nullptr;
-        genRaysPipeline = MetalRenderer::getInstance().getDevice()->newComputePipelineState(d, MTL::PipelineOptionNone, NULL, &pError);
-        if (!genRaysPipeline) {
-            __builtin_printf("%s", pError->localizedDescription()->utf8String());
-            assert(false);
-        }
-        
-        fn->release();
-        d->release();
-    }
+    genRaysPipeline = createPipeline("rayKernel", pLibrary);
+    shadePipeline = createPipeline("shadeKernel", pLibrary);
+    
     pLibrary->release();
     pPool->release();
 }
@@ -52,7 +57,7 @@ void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t v
 void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
     MTL::Buffer *uniformsBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(sizeof(Uniforms), MTL::ResourceStorageModeManaged);
     std::memcpy(uniformsBuffer->contents(), &uniforms, sizeof(Uniforms));
-    rayBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(rayStride * uniforms.width * uniforms.height,
+    rayBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(RAY_STRIDE * uniforms.width * uniforms.height,
                                                                     MTL::ResourceStorageModePrivate);
     
     MTL::Texture *randomTexture;
@@ -109,10 +114,23 @@ void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms)
     targetTexture->autorelease();
 }
 
+void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
+    enc->setBuffer(intersectionBuffer, 0, 0);
+    enc->setComputePipelineState(shadePipeline);
+    MTL::Size threadsPerThreadgroup = MTL::Size(8, 8, 1);
+    MTL::Size threadgroups = MTL::Size((uniforms.width  + threadsPerThreadgroup.width  - 1) / threadsPerThreadgroup.width,
+                                       (uniforms.height + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
+                                       1);
+    
+    enc->dispatchThreads(threadgroups, threadsPerThreadgroup);
+    enc->endEncoding();
+}
+
 void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     if (!accelStructureIsBuilt) {
         return;
     }
+    intersectionBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(uniforms.width * uniforms.height * sizeof(MPSIntersectionDistancePrimitiveIndexCoordinates), MTL::ResourceStorageModePrivate);
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
     generateRays(cenc, uniforms);
     intersector->encodeIntersection(cmdBuffer,
@@ -121,6 +139,9 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
                                     0,
                                     intersectionBuffer,
                                     0,
-                                    1,
-                                    (MTL::MPSAccelerationStructure *) accelStructure);
+                                    uniforms.width * uniforms.height,
+                                    (MTL::MPSAccelerationStructure *) accelStructure);     
+    cenc = cmdBuffer->computeCommandEncoder();
+    shade(cenc, uniforms);
+    intersectionBuffer->autorelease();
 }

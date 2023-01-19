@@ -102,24 +102,6 @@ void MetalRenderer::buildShaders() {
     using NS::StringEncoding::UTF8StringEncoding;
 
     MTL::Library* pLibrary = _pDevice->newDefaultLibrary();
-
-    {
-        MTL::Function* fn = pLibrary->newFunction(NS::String::string("shadeKernel", UTF8StringEncoding));
-        MTL::ComputePipelineDescriptor *d = MTL::ComputePipelineDescriptor::alloc()->init();
-        d->setThreadGroupSizeIsMultipleOfThreadExecutionWidth(true);
-        d->setComputeFunction(fn);
-        d->setLabel(NS::String::string("shadeKernel", UTF8StringEncoding));
-        
-        NS::Error* pError = nullptr;
-        _pRayTracingCPSO = _pDevice->newComputePipelineState(d, MTL::PipelineOptionNone, NULL, &pError);
-        if (!_pRayTracingCPSO) {
-            __builtin_printf("%s", pError->localizedDescription()->utf8String());
-            assert(false);
-        }
-        
-        fn->release();
-        d->release();
-    }
     
     {
         MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader2D", UTF8StringEncoding) );
@@ -183,6 +165,23 @@ void MetalRenderer::buildShaders() {
         NS::Error* pError = nullptr;
         _pVertexAlphaBlendingPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_pVertexAlphaBlendingPSO) {
+            __builtin_printf("%s", pError->localizedDescription()->utf8String());
+            assert(false);
+        }
+        pVertexFn->release();
+        pFragFn->release();
+        pDesc->release();
+    }
+
+    {
+        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("debugVertexShader", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("debugFragFunc", UTF8StringEncoding) );
+        
+        MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, true);
+        pDesc->setLabel(NS::String::string("debug", UTF8StringEncoding));
+        NS::Error* pError = nullptr;
+        _pDebugPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
+        if (!_pDebugPSO) {
             __builtin_printf("%s", pError->localizedDescription()->utf8String());
             assert(false);
         }
@@ -641,7 +640,7 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
         vertexBufferOffset += it->second.getVertices().size();
     }
     
-    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount);
+//    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount);
     
     vertexBuffer->autorelease();
     worldPolygonsByTexture.clear();
@@ -681,6 +680,29 @@ void MetalRenderer::renderSprites(MTL::RenderCommandEncoder *enc, vector_uint2 v
     sprites.clear();
 }
 
+void MetalRenderer::renderCameraDirection(MTL::RenderCommandEncoder *enc, const Uniforms &uniforms) {
+    enc->setRenderPipelineState(_pDebugPSO);
+    std::array<Vertex, 6> vertices;
+    auto orig = uniforms.camera.position;
+    orig[0] -= 5 * (uniforms.camera.forward[1] > 0 ? 1 : -1);
+    orig[1] += 15;
+    
+    vertices[0].position = orig;
+    vertices[1].position = uniforms.camera.right * 1000;
+        
+    vertices[2].position = orig;
+    vertices[3].position = uniforms.camera.forward * 1000;
+
+    vertices[4].position = orig;
+    vertices[5].position = uniforms.camera.up * 1000;
+    
+    enc->setVertexBytes(vertices.data(), sizeof(Vertex) * vertices.size(), VertexInputIndex::VertexInputIndexVertices);
+    enc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
+    auto translation = matrix_identity_float4x4;
+    enc->setVertexBytes(&translation, sizeof(translation), VertexInputIndex::VertexInputIndexTransModelMatrix);    
+    enc->drawPrimitives(MTL::PrimitiveTypeLine, NS::UInteger(0), NS::UInteger(vertices.size()));
+}
+
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -703,7 +725,7 @@ void MetalRenderer::encodeMetalCommands() {
     uniforms.camera.up[1] = vup[1];
     uniforms.camera.up[2] = vup[2];
 
-    rayTracer->encode(pCmd, uniforms);
+//    rayTracer->encode(pCmd, uniforms);
     
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     MetalRenderer* pRenderer = this;
@@ -713,9 +735,10 @@ void MetalRenderer::encodeMetalCommands() {
     
     MTL::RenderPassDescriptor* pRpd = createRenderPassDescriptor();
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
-    
+            
     pEnc->setDepthStencilState(_pDepthStencilState);
     pEnc->setCullMode(MTL::CullModeBack);
+    
     vector_uint2 viewportSize = {static_cast<unsigned int>(_width), static_cast<unsigned int>(_height)};
     renderWorld(pEnc, viewportSize);
     renderEntities(pEnc, viewportSize);
@@ -724,6 +747,7 @@ void MetalRenderer::encodeMetalCommands() {
     skyBox->render(pEnc, viewportSize, origin, mtl_newrefdef, mvpMatrix, _pVertexPSO);
     // render GUI with disabled depth test
     pEnc->setDepthStencilState(_pNoDepthTest);
+    renderCameraDirection(pEnc, uniforms);
     renderGUI(pEnc, viewportSize);
     pEnc->endEncoding();
 

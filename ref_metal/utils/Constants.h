@@ -19,5 +19,6 @@
 #define ON_EPSILON 0.1 /* point on plane side epsilon */
 
 #define RAY_MASK_PRIMARY 3
+#define RAY_STRIDE 48
 
 #endif /* Constants_h */
