@@ -37,6 +37,8 @@ RayTracer::RayTracer() {
     intersector = MTL::MPSRayIntersector::alloc()->init();
     intersector->setRayDataType(MTL::MPSRayDataType::OriginMaskDirectionMaxDistance);
     intersector->setRayStride(RAY_STRIDE);
+    intersector->setRayMaskOptions(MTL::MPSRayMaskOptionsPrimitive);
+    intersector->setIntersectionDataType(MTL::MPSIntersectionDataType::DistancePrimitiveIndexCoordinates);
     accelStructure = MTL::MPSTriangleAccelerationStructure::alloc()->init();
     
     MTL::Library* pLibrary = MetalRenderer::getInstance().getDevice()->newDefaultLibrary();
@@ -48,10 +50,18 @@ RayTracer::RayTracer() {
 }
 
 void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount) {
+    for (int i = 0; i < vertexCount/3; i++) {
+        masks.push_back(TRIANGLE_MASK_GEOMETRY);
+    }
+    triangleMasksBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(masks.size() * sizeof(uint32_t), MTL::ResourceStorageModeManaged);
+    std::memcpy(triangleMasksBuffer->contents(), masks.data(), masks.size() * sizeof(uint32_t));
+    accelStructure->setMaskBuffer(triangleMasksBuffer);
     accelStructure->setVertexBuffer(vertexBuffer);
     accelStructure->setTriangleCount(vertexCount/3);
     accelStructure->rebuild();
     accelStructureIsBuilt = true;
+    
+    triangleMasksBuffer->autorelease();
 }
 
 void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
@@ -100,11 +110,9 @@ void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms)
     enc->setTexture(targetTexture, 1);
     enc->setComputePipelineState(genRaysPipeline);
     
-    MTL::Size threadsPerThreadgroup = MTL::Size(8, 8, 1);
-    MTL::Size threadgroups = MTL::Size((uniforms.width  + threadsPerThreadgroup.width  - 1) / threadsPerThreadgroup.width,
-                                       (uniforms.height + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
-                                       1);
-    
+    MTL::Size threadsPerThreadgroup = MTL::Size(32, 1, 1);
+    MTL::Size threadgroups = MTL::Size(uniforms.width, uniforms.height, 1);
+
     enc->dispatchThreads(threadgroups, threadsPerThreadgroup);
     enc->endEncoding();
     
@@ -117,10 +125,8 @@ void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms)
 void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
     enc->setBuffer(intersectionBuffer, 0, 0);
     enc->setComputePipelineState(shadePipeline);
-    MTL::Size threadsPerThreadgroup = MTL::Size(8, 8, 1);
-    MTL::Size threadgroups = MTL::Size((uniforms.width  + threadsPerThreadgroup.width  - 1) / threadsPerThreadgroup.width,
-                                       (uniforms.height + threadsPerThreadgroup.height - 1) / threadsPerThreadgroup.height,
-                                       1);
+    MTL::Size threadsPerThreadgroup = MTL::Size(32, 1, 1);
+    MTL::Size threadgroups = MTL::Size(uniforms.width, uniforms.height, 1);
     
     enc->dispatchThreads(threadgroups, threadsPerThreadgroup);
     enc->endEncoding();
@@ -140,7 +146,7 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
                                     intersectionBuffer,
                                     0,
                                     uniforms.width * uniforms.height,
-                                    (MTL::MPSAccelerationStructure *) accelStructure);     
+                                    accelStructure);
     cenc = cmdBuffer->computeCommandEncoder();
     shade(cenc, uniforms);
     intersectionBuffer->autorelease();

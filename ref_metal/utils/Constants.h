@@ -20,5 +20,7 @@
 
 #define RAY_MASK_PRIMARY 3
 #define RAY_STRIDE 48
+#define TRIANGLE_MASK_GEOMETRY 1
+#define TRIANGLE_MASK_LIGHT    2
 
 #endif /* Constants_h */

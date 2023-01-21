@@ -16,6 +16,7 @@ public:
     class MPSTriangleAccelerationStructure* init();
     void setVertexBuffer(const class Buffer* buffer);
     void setTriangleCount(NS::UInteger triangleCount);
+    void setMaskBuffer(const class Buffer* buffer);
     void rebuild();
 };
 
@@ -49,4 +50,10 @@ _MTL_INLINE void MTL::MPSTriangleAccelerationStructure::setTriangleCount(NS::UIn
 _MTL_INLINE void MTL::MPSTriangleAccelerationStructure::rebuild()
 {
     Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(rebuild));
+}
+
+// method: setMasksBuffer
+_MTL_INLINE void MTL::MPSTriangleAccelerationStructure::setMaskBuffer(const MTL::Buffer* buffer)
+{
+    Object::sendMessage<void>(this, _MTL_PRIVATE_SEL(setMaskBuffer_), buffer);
 }

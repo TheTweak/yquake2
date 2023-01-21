@@ -640,7 +640,7 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
         vertexBufferOffset += it->second.getVertices().size();
     }
     
-//    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount);
+    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount);
     
     vertexBuffer->autorelease();
     worldPolygonsByTexture.clear();
@@ -725,7 +725,7 @@ void MetalRenderer::encodeMetalCommands() {
     uniforms.camera.up[1] = vup[1];
     uniforms.camera.up[2] = vup[2];
 
-//    rayTracer->encode(pCmd, uniforms);
+    rayTracer->encode(pCmd, uniforms);
     
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     MetalRenderer* pRenderer = this;

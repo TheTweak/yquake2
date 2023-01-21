@@ -20,9 +20,12 @@ class RayTracer {
     
     MTL::Buffer *rayBuffer;
     MTL::Buffer *intersectionBuffer;
+    MTL::Buffer *triangleMasksBuffer;
     
     MTL::ComputePipelineState* genRaysPipeline;
     MTL::ComputePipelineState* shadePipeline;
+    
+    std::vector<uint32_t> masks;
     
     bool accelStructureIsBuilt;
     

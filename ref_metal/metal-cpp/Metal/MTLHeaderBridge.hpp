@@ -2054,4 +2054,10 @@ _MTL_PRIVATE_DEF_SEL(setRayDataType,
     "setRayDataType:");
 _MTL_PRIVATE_DEF_SEL(setRayStride,
     "setRayStride:");
+_MTL_PRIVATE_DEF_SEL(setIntersectionDataType,
+    "setIntersectionDataType:");
+_MTL_PRIVATE_DEF_SEL(setRayMaskOptions,
+    "setRayMaskOptions:");
+_MTL_PRIVATE_DEF_SEL(setMaskBuffer_,
+    "setMaskBuffer:");
 }
