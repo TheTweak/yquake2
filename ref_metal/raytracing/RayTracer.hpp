@@ -21,7 +21,8 @@ class RayTracer {
     MTL::Buffer *rayBuffer;
     MTL::Buffer *intersectionBuffer;
     MTL::Buffer *triangleMasksBuffer;
-    
+    MTL::Buffer *vertexBuffer;
+    MTL::Texture *targetTexture;    
     MTL::ComputePipelineState* genRaysPipeline;
     MTL::ComputePipelineState* shadePipeline;
     

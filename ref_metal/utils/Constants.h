@@ -23,4 +23,6 @@
 #define TRIANGLE_MASK_GEOMETRY 1
 #define TRIANGLE_MASK_LIGHT    2
 
+#define RT_TEXTURE_ARRAY_SIZE 100
+
 #endif /* Constants_h */

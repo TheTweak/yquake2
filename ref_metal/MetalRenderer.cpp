@@ -18,6 +18,7 @@
 #include <simd/simd.h>
 #include <SDL2/SDL_video.h>
 #include <cmath>
+#include <algorithm>
 
 #include "../src/client/vid/header/ref.h"
 #include "../src/client/refresh/ref_shared.h"
@@ -614,33 +615,67 @@ void MetalRenderer::drawParticles() {
     }
 }
 
-void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {    
     size_t vertexCount = 0;
+    size_t textureIndex = 0;
+    std::unordered_map<std::string, size_t> textureToIndex;
+    std::unordered_map<size_t, std::string> indexToTexture;
     for (auto it = worldPolygonsByTexture.begin(); it != worldPolygonsByTexture.end(); it++) {
         vertexCount += it->second.getVertices().size();
+        
+        if (auto jt = textureToIndex.find(it->first.textureName); jt == textureToIndex.end()) {
+            textureToIndex[it->first.textureName] = textureIndex;
+            indexToTexture[textureIndex] = it->first.textureName;
+            textureIndex++;
+        }
     }
     for (auto it = transparentWorldPolygonsByTexture.begin(); it != transparentWorldPolygonsByTexture.end(); it++) {
         vertexCount += it->second.getVertices().size();
+        
+        if (auto jt = textureToIndex.find(it->first.textureName); jt == textureToIndex.end()) {
+            textureToIndex[it->first.textureName] = textureIndex;
+            indexToTexture[textureIndex] = it->first.textureName;
+            textureIndex++;
+        }
     }
     
     if (vertexCount == 0) {
         return;
     }
     
+    // assert that number of unique textures used for all vertices is less than array size in the RayTracer shader
+    assert(textureIndex < RT_TEXTURE_ARRAY_SIZE);
+    
+    std::vector<MTL::Texture*> vertexTextures(textureIndex);
+    for (int i = 0; i < textureIndex; i++) {
+        vertexTextures[i] = TextureCache::getInstance().getTexture(indexToTexture.at(i));
+    }
+    
     MTL::Buffer *vertexBuffer = _pDevice->newBuffer(vertexCount * sizeof(Vertex), MTL::ResourceStorageModeShared);
 
+    std::vector<size_t> vertexTextureIndices(vertexCount);
     size_t vertexBufferOffset = 0;
     for (auto it = worldPolygonsByTexture.begin(); it != worldPolygonsByTexture.end(); it++) {
         it->second.render(enc, viewportSize, vertexBuffer, vertexBufferOffset);
+        
+        std::fill(vertexTextureIndices.begin() + vertexBufferOffset,
+                  vertexTextureIndices.begin() + vertexBufferOffset + it->second.getVertices().size(),
+                  textureToIndex.at(it->first.textureName));
+        
         vertexBufferOffset += it->second.getVertices().size();
     }
 
     for (auto it = transparentWorldPolygonsByTexture.begin(); it != transparentWorldPolygonsByTexture.end(); it++) {
         it->second.render(enc, viewportSize, vertexBuffer, vertexBufferOffset);
+        
+        std::fill(vertexTextureIndices.begin() + vertexBufferOffset,
+                  vertexTextureIndices.begin() + vertexBufferOffset + it->second.getVertices().size(),
+                  textureToIndex.at(it->first.textureName));
+
         vertexBufferOffset += it->second.getVertices().size();
     }
     
-    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount);
+    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount, vertexTextures);
     
     vertexBuffer->autorelease();
     worldPolygonsByTexture.clear();

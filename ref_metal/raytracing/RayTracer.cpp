@@ -57,6 +57,7 @@ void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t v
     std::memcpy(triangleMasksBuffer->contents(), masks.data(), masks.size() * sizeof(uint32_t));
     accelStructure->setMaskBuffer(triangleMasksBuffer);
     accelStructure->setVertexBuffer(vertexBuffer);
+    this->vertexBuffer = vertexBuffer;
     accelStructure->setTriangleCount(vertexCount/3);
     accelStructure->rebuild();
     accelStructureIsBuilt = true;
@@ -90,7 +91,7 @@ void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms)
         
         td->autorelease();
     }
-    MTL::Texture *targetTexture;
+    
     {
         MTL::TextureDescriptor *td = MTL::TextureDescriptor::alloc()->init();
         td->setWidth(uniforms.width);
@@ -119,12 +120,17 @@ void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms)
     rayBuffer->autorelease();
     uniformsBuffer->autorelease();
     randomTexture->autorelease();
-    targetTexture->autorelease();
 }
 
 void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
     enc->setBuffer(intersectionBuffer, 0, 0);
     enc->setComputePipelineState(shadePipeline);
+    enc->setTexture(targetTexture, 0);
+    enc->setBytes(&uniforms, sizeof(uniforms), 2);
+    enc->setBuffer(rayBuffer, 0, 1);
+    enc->setBuffer(vertexBuffer, 0, 3);
+    
+    
     MTL::Size threadsPerThreadgroup = MTL::Size(32, 1, 1);
     MTL::Size threadgroups = MTL::Size(uniforms.width, uniforms.height, 1);
     
@@ -140,7 +146,7 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
     generateRays(cenc, uniforms);
     intersector->encodeIntersection(cmdBuffer,
-                                    MTL::MPSIntersectionType::Nearest,
+                                    MTL::MPSIntersectionType::Any,
                                     rayBuffer,
                                     0,
                                     intersectionBuffer,
@@ -149,5 +155,7 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
                                     accelStructure);
     cenc = cmdBuffer->computeCommandEncoder();
     shade(cenc, uniforms);
+    
     intersectionBuffer->autorelease();
+    targetTexture->autorelease();
 }

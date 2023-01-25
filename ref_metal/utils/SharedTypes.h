@@ -52,6 +52,7 @@ struct Particle {
 struct Vertex {
     vector_float3 position;
     vector_float2 texCoordinate;
+    size_t textureIndex;
 };
 
 struct Camera {

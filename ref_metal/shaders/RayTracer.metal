@@ -142,8 +142,22 @@ kernel void rayKernel(uint2 tid [[thread_position_in_grid]],
 }
 
 kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
-                        device Intersection *intersections)
+                        device Intersection *intersections,
+                        device Ray *rays,
+                        constant Uniforms &uniforms,
+                        constant Vertex *vertexArray,
+                        texture2d<half, access::write> dstTex,
+                        array<texture2d<half, access::sample>, RT_TEXTURE_ARRAY_SIZE> vertexTextures)
 {
-    
+    if (tid.x < uniforms.width && tid.y < uniforms.height) {
+        unsigned int rayIdx = tid.y * uniforms.width + tid.x;
+        device Ray &ray = rays[rayIdx];
+        device Intersection &intersection = intersections[rayIdx];
+                
+        if (intersection.distance >= 0.0f) {
+            // distance is positive if ray hit something
+            dstTex.write(half4(0.0f, 1.0f, 0.0f, 0.0f), tid);
+        }
+    }
 }
 
