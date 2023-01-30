@@ -26,6 +26,9 @@ class RayTracer {
     MTL::ComputePipelineState* genRaysPipeline;
     MTL::ComputePipelineState* shadePipeline;
     
+    std::vector<MTL::Texture*> shadeTextures;
+    size_t shadeTexturesCount = 0;
+    
     std::vector<uint32_t> masks;
     
     bool accelStructureIsBuilt;
@@ -34,7 +37,8 @@ class RayTracer {
     void shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
 public:
     RayTracer();
-    void rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount);
+    void rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount, std::vector<MTL::Texture*> shadeTextures,
+                                      size_t shadeTexturesCount);
     void encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms);
 };
 
