@@ -146,6 +146,7 @@ kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
                         device Ray *rays,
                         constant Uniforms &uniforms,
                         constant Vertex *vertexArray,
+                        constant size_t *vertexTextureIndices,
                         texture2d<half, access::write> dstTex [[ texture(0) ]],
                         const array<texture2d<half, access::sample>, RT_TEXTURE_ARRAY_SIZE> vertexTextures [[ texture(1) ]])
 {
@@ -157,7 +158,13 @@ kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
         if (intersection.distance >= 0.0f) {
             // distance is positive if ray hit something
             dstTex.write(half4(0.0f, 1.0f, 0.0f, 0.0f), tid);
-
+            
+            // 1. get primitive index from intersection
+            // 2. convert privimitive index to vertices indices
+            // 3. get texture index from vertex index
+            // 4. get texture from vertexTextures array
+            // 5. sample color from texture
+            
             constexpr sampler textureSampler (mag_filter::linear,
                                               min_filter::linear,
                                               address::repeat,

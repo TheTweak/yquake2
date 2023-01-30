@@ -50,7 +50,7 @@ RayTracer::RayTracer() {
 }
 
 void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount, std::vector<MTL::Texture*> shadeTextures,
-                                             size_t shadeTexturesCount) {
+                                             size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices) {
     for (int i = 0; i < vertexCount/3; i++) {
         masks.push_back(TRIANGLE_MASK_GEOMETRY);
     }
@@ -64,6 +64,7 @@ void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t v
     accelStructureIsBuilt = true;
     this->shadeTextures = std::move(shadeTextures);
     this->shadeTexturesCount = shadeTexturesCount;
+    this->vertexTextureIndices = vertexTextureIndices;
     
     triangleMasksBuffer->autorelease();
 }
@@ -132,11 +133,16 @@ void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
     enc->setBytes(&uniforms, sizeof(uniforms), 2);
     enc->setBuffer(rayBuffer, 0, 1);
     enc->setBuffer(vertexBuffer, 0, 3);
+    
+    MTL::Buffer *vertexTextureIndicesBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(sizeof(size_t) * vertexTextureIndices.size(), MTL::ResourceStorageModeManaged);
+    std::memcpy(vertexTextureIndicesBuffer->contents(), vertexTextureIndices.data(), sizeof(size_t) * vertexTextureIndices.size());
+    enc->setBuffer(vertexTextureIndicesBuffer, 0, 4);
+    vertexTextureIndicesBuffer->autorelease();
+    
     if (shadeTexturesCount > 0) {
         for (int i = 0; i < shadeTexturesCount; i++) {
             enc->setTexture(shadeTextures.at(i), i + 1);
         }
-//        enc->setTextures(shadeTextures.data(), NS::Range(1, shadeTexturesCount));
     }
     
     MTL::Size threadsPerThreadgroup = MTL::Size(32, 1, 1);

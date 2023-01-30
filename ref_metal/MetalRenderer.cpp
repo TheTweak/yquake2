@@ -675,7 +675,7 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
         vertexBufferOffset += it->second.getVertices().size();
     }
     
-    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount, vertexTextures, textureIndex);
+    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount, vertexTextures, textureIndex, vertexTextureIndices);
     
     vertexBuffer->autorelease();
     worldPolygonsByTexture.clear();
