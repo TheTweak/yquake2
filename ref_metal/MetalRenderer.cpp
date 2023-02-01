@@ -744,8 +744,8 @@ void MetalRenderer::encodeMetalCommands() {
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
     
     Uniforms uniforms;
-    uniforms.width = _width;
-    uniforms.height = _height;
+    uniforms.width = 512;
+    uniforms.height = 384;
     uniforms.frameIndex = _frameCount;
     uniforms.camera.position[0] = origin[0];
     uniforms.camera.position[1] = origin[1];
@@ -788,6 +788,9 @@ void MetalRenderer::encodeMetalCommands() {
 
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     generateMipmaps(blitCmdEnc);
+    if (rayTracer->getTargetTexture()) {
+        blitCmdEnc->copyFromTexture(rayTracer->getTargetTexture(), 0, 0, MTL::Origin(0, 0, 0), MTL::Size(uniforms.width, uniforms.height, 1), _pTexture, 0, 0, MTL::Origin(0, 0, 0));
+    }
     blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
     blitCmdEnc->endEncoding();
     pCmd->commit();

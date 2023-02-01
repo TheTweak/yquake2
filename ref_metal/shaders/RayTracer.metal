@@ -157,19 +157,36 @@ kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
 
         if (intersection.distance >= 0.0f) {
             // distance is positive if ray hit something
-            dstTex.write(half4(0.0f, 1.0f, 0.0f, 0.0f), tid);
             
             // 1. get primitive index from intersection
             // 2. convert privimitive index to vertices indices
+            int v0 = intersection.primitiveIndex * 3 + 0;
+            int v1 = intersection.primitiveIndex * 3 + 1;
+            int v2 = intersection.primitiveIndex * 3 + 2;
             // 3. get texture index from vertex index
+            size_t ti0 = vertexTextureIndices[v0];
+            size_t ti1 = vertexTextureIndices[v1];
+            size_t ti2 = vertexTextureIndices[v2];
             // 4. get texture from vertexTextures array
+            texture2d<half, access::sample> t0 = vertexTextures[ti0];
+            texture2d<half, access::sample> t1 = vertexTextures[ti1];
+            texture2d<half, access::sample> t2 = vertexTextures[ti2];
             // 5. sample color from texture
-            
             constexpr sampler textureSampler (mag_filter::linear,
                                               min_filter::linear,
                                               address::repeat,
                                               mip_filter::linear);
-            half4 color = vertexTextures[0].sample(textureSampler, intersection.coordinates);
+            half4 color0 = t0.sample(textureSampler, intersection.coordinates);
+            half4 color1 = t1.sample(textureSampler, intersection.coordinates);
+            half4 color2 = t2.sample(textureSampler, intersection.coordinates);
+            
+            // Barycentric coordinates sum to one
+            float3 uvw;
+            uvw.xy = intersection.coordinates;
+            uvw.z = 1.0f - uvw.x - uvw.y;
+            
+            half4 interpolatedColor = uvw.x * color0 + uvw.y * color1 + uvw.z * color2;
+            dstTex.write(interpolatedColor, tid);
         }
     }
 }

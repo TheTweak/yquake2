@@ -49,6 +49,10 @@ RayTracer::RayTracer() {
     pPool->release();
 }
 
+MTL::Texture* RayTracer::getTargetTexture() const {
+    return targetTexture;
+}
+
 void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount, std::vector<MTL::Texture*> shadeTextures,
                                              size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices) {
     for (int i = 0; i < vertexCount/3; i++) {
