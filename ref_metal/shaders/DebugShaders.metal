@@ -24,7 +24,7 @@ debugVertexShader(uint vertexID [[ vertex_id ]],
 {
     VertexRasteriserData out;
     Vertex v = vertexArray[vertexID];
-    out.position = *mvpMatrix * *transMatrix * float4(v.position, 1.0);    
+    out.position = *mvpMatrix * *transMatrix * float4(v.position, 1.0);
     return out;
 }
 

@@ -102,8 +102,9 @@ kernel void rayKernel(uint2 tid [[thread_position_in_grid]],
         device Ray & ray = rays[rayIdx];
         
         // Pixel coordinates for this thread
-        float2 pixel = (float2)tid;
+        float2 pixel = (float2) tid;
         
+        /*
         // Apply a random offset to random number index to decorrelate pixels
         unsigned int offset = randomTex.read(tid).x;
         
@@ -112,13 +113,14 @@ kernel void rayKernel(uint2 tid [[thread_position_in_grid]],
                           halton(offset + uniforms.frameIndex, 1));
         
         pixel += r;
+        */
         
         // Map pixel coordinates to -1..1
-        float2 uv = (float2)pixel / float2(uniforms.width, uniforms.height);
+        float2 uv = (float2) pixel / float2(uniforms.width, uniforms.height);
         uv = uv * 2.0f - 1.0f;
         
         constant Camera & camera = uniforms.camera;
-        
+                        
         // Rays start at the camera position
         ray.origin = camera.position;
         
@@ -176,9 +178,11 @@ kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
                                               min_filter::linear,
                                               address::repeat,
                                               mip_filter::linear);
-            half4 color0 = t0.sample(textureSampler, intersection.coordinates);
-            half4 color1 = t1.sample(textureSampler, intersection.coordinates);
-            half4 color2 = t2.sample(textureSampler, intersection.coordinates);
+            float3 projectedIntersectionCoord = uniforms.mvpMatrix * float3(intersection.coordinates.x, intersection.coordinates.y, 1.0);
+            float2 intersection2d = projectedIntersectionCoord.xy;
+            half4 color0 = t0.sample(textureSampler, intersection2d);
+            half4 color1 = t1.sample(textureSampler, intersection2d);
+            half4 color2 = t2.sample(textureSampler, intersection2d);
             
             // Barycentric coordinates sum to one
             float3 uvw;

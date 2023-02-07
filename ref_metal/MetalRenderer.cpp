@@ -719,21 +719,22 @@ void MetalRenderer::renderCameraDirection(MTL::RenderCommandEncoder *enc, const 
     enc->setRenderPipelineState(_pDebugPSO);
     std::array<Vertex, 6> vertices;
     auto orig = uniforms.camera.position;
-    orig[0] -= 5 * (uniforms.camera.forward[1] > 0 ? 1 : -1);
-    orig[1] += 15;
     
     vertices[0].position = orig;
-    vertices[1].position = uniforms.camera.right * 1000;
+    vertices[1].position = uniforms.camera.right;
         
     vertices[2].position = orig;
-    vertices[3].position = uniforms.camera.forward * 1000;
+    vertices[3].position = uniforms.camera.forward;
 
     vertices[4].position = orig;
-    vertices[5].position = uniforms.camera.up * 1000;
+    vertices[5].position = uniforms.camera.up;
     
     enc->setVertexBytes(vertices.data(), sizeof(Vertex) * vertices.size(), VertexInputIndex::VertexInputIndexVertices);
     enc->setVertexBytes(&mvpMatrix, sizeof(mvpMatrix), VertexInputIndex::VertexInputIndexMVPMatrix);
     auto translation = matrix_identity_float4x4;
+//    translation.columns[3][0] = modelOrigin[0];
+//    translation.columns[3][1] = modelOrigin[1];
+//    translation.columns[3][2] = modelOrigin[2];
     enc->setVertexBytes(&translation, sizeof(translation), VertexInputIndex::VertexInputIndexTransModelMatrix);    
     enc->drawPrimitives(MTL::PrimitiveTypeLine, NS::UInteger(0), NS::UInteger(vertices.size()));
 }
@@ -747,27 +748,34 @@ void MetalRenderer::encodeMetalCommands() {
     uniforms.width = 512;
     uniforms.height = 384;
     uniforms.frameIndex = _frameCount;
-    uniforms.camera.position[0] = origin[0];
-    uniforms.camera.position[1] = origin[1];
-    uniforms.camera.position[2] = origin[2];
+    uniforms.camera.position[0] = modelOrigin[0];
+//    uniforms.camera.position[0] = 0;
+    uniforms.camera.position[1] = modelOrigin[1];
+//    uniforms.camera.position[1] = 0;
+    uniforms.camera.position[2] = modelOrigin[2];
+//    uniforms.camera.position[2] = 0;
     uniforms.camera.right[0] = vright[0];
     uniforms.camera.right[1] = vright[1];
     uniforms.camera.right[2] = vright[2];
+    uniforms.camera.right = simd_normalize(uniforms.camera.right);
     uniforms.camera.forward[0] = vpn[0];
     uniforms.camera.forward[1] = vpn[1];
     uniforms.camera.forward[2] = vpn[2];
+    uniforms.camera.forward = simd_normalize(uniforms.camera.forward);
     uniforms.camera.up[0] = vup[0];
     uniforms.camera.up[1] = vup[1];
     uniforms.camera.up[2] = vup[2];
-
-    rayTracer->encode(pCmd, uniforms);
-    
+    uniforms.camera.up = simd_normalize(uniforms.camera.up);
+    uniforms.mvpMatrix = simd_matrix_from_rows(simd_make_float3(mvpMatrix.columns[0][0], mvpMatrix.columns[1][0], mvpMatrix.columns[2][0]),
+                                                     simd_make_float3(mvpMatrix.columns[0][1], mvpMatrix.columns[1][1], mvpMatrix.columns[2][1]),
+                                                     simd_make_float3(mvpMatrix.columns[0][2], mvpMatrix.columns[1][2], mvpMatrix.columns[2][2]));
+        
     dispatch_semaphore_wait(_semaphore, DISPATCH_TIME_FOREVER);
     MetalRenderer* pRenderer = this;
     pCmd->addCompletedHandler([pRenderer](MTL::CommandBuffer* pCommand) {
         dispatch_semaphore_signal(pRenderer->_semaphore);
     });
-    
+            
     MTL::RenderPassDescriptor* pRpd = createRenderPassDescriptor();
     MTL::RenderCommandEncoder* pEnc = pCmd->renderCommandEncoder(pRpd);
             
@@ -785,6 +793,7 @@ void MetalRenderer::encodeMetalCommands() {
     renderCameraDirection(pEnc, uniforms);
     renderGUI(pEnc, viewportSize);
     pEnc->endEncoding();
+    rayTracer->encode(pCmd, uniforms);
 
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     generateMipmaps(blitCmdEnc);

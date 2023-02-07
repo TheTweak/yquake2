@@ -76,6 +76,7 @@ struct Uniforms {
     unsigned int frameIndex;
     Camera camera;
     AreaLight light;
+    simd_float3x3 mvpMatrix;
 };
 
 struct MPSIntersectionDistancePrimitiveIndexCoordinates {

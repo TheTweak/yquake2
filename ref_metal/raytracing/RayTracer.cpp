@@ -35,7 +35,7 @@ RayTracer::RayTracer() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
     intersector = MTL::MPSRayIntersector::alloc()->init();
-    intersector->setRayDataType(MTL::MPSRayDataType::OriginMaskDirectionMaxDistance);
+    intersector->setRayDataType(MTL::MPSRayDataType::OriginMinDistanceDirectionMaxDistance);
     intersector->setRayStride(RAY_STRIDE);
     intersector->setRayMaskOptions(MTL::MPSRayMaskOptionsPrimitive);
     intersector->setIntersectionDataType(MTL::MPSIntersectionDataType::DistancePrimitiveIndexCoordinates);
@@ -164,7 +164,7 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
     generateRays(cenc, uniforms);
     intersector->encodeIntersection(cmdBuffer,
-                                    MTL::MPSIntersectionType::Any,
+                                    MTL::MPSIntersectionType::Nearest,
                                     rayBuffer,
                                     0,
                                     intersectionBuffer,
