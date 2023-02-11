@@ -81,8 +81,6 @@ static void                      ImGui_ImplMetal_DestroyBackendData() { IM_DELET
 
 static inline CFTimeInterval     GetMachAbsoluteTimeInSeconds()       { return static_cast<CFTimeInterval>(static_cast<double>(clock_gettime_nsec_np(CLOCK_UPTIME_RAW)) / 1e9); }
 
-#ifdef IMGUI_IMPL_METAL_CPP
-
 #pragma mark - Dear ImGui Metal C++ Backend API
 
 bool ImGui_ImplMetal_Init(MTL::Device* device)
@@ -114,8 +112,6 @@ bool ImGui_ImplMetal_CreateDeviceObjects(MTL::Device* device)
 {
     return ImGui_ImplMetal_CreateDeviceObjects((__bridge id<MTLDevice>)(device));
 }
-
-#endif // #ifdef IMGUI_IMPL_METAL_CPP
 
 #pragma mark - Dear ImGui Metal Backend API
 

@@ -36,6 +36,8 @@
 #include "utils/PolygonUtils.hpp"
 #include "legacy/BrushModel.hpp"
 #include "legacy/SpriteModel.hpp"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_metal.h"
 
 #pragma mark - Utils
 #pragma region Utils {
@@ -795,6 +797,19 @@ void MetalRenderer::encodeMetalCommands() {
     pEnc->endEncoding();
     rayTracer->encode(pCmd, uniforms);
 
+    // Imgui
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize.x = _width;
+    io.DisplaySize.y = _height;
+    
+    ImGui_ImplMetal_NewFrame(pRpd);
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+    
+    ImGui::Render();
+    ImDrawData *drawData = ImGui::GetDrawData();
+    ImGui_ImplMetal_RenderDrawData(drawData, pCmd, pEnc);
+    
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     generateMipmaps(blitCmdEnc);
     if (rayTracer->getTargetTexture()) {
@@ -804,7 +819,7 @@ void MetalRenderer::encodeMetalCommands() {
     blitCmdEnc->endEncoding();
     pCmd->commit();
     pCmd->waitUntilCompleted();
-    
+        
     uint32_t* pixels;
     int pitch;
     SDL_LockTexture(_pSdlTexture, NULL, (void**) &pixels, &pitch);
