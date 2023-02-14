@@ -40,7 +40,7 @@ void ImGui_ImplMetal_NewFrame(MTL::RenderPassDescriptor* renderPassDescriptor) {
     auto *bd = ImGui_ImplMetal_GetBackendData();
     IM_ASSERT(bd && bd->SharedMetalContext != nil && "No Metal context. Did you call ImGui_ImplMetal_Init() ?");
     
-    bd->SharedMetalContext->frameBufferDescriptor = FramebufferDescriptor(renderPassDescriptor);
+    bd->SharedMetalContext->frameBufferDescriptor = new FramebufferDescriptor(renderPassDescriptor);
     
     if (!bd->SharedMetalContext->depthStencilState) {
         ImGui_ImplMetal_CreateDeviceObjects(bd->SharedMetalContext->device);
@@ -101,20 +101,20 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData *drawData,
         return;
     }
     
-    MTL::RenderPipelineState *renderPipelineState = ctx->renderPipelineStateCache[ctx->frameBufferDescriptor];
+    MTL::RenderPipelineState *renderPipelineState = ctx->renderPipelineStateCache[*ctx->frameBufferDescriptor];
     if (!renderPipelineState) {
-        renderPipelineState = ctx->renderPipelineState(ctx->frameBufferDescriptor, commandBuffer->device());
+        renderPipelineState = ctx->renderPipelineState(*ctx->frameBufferDescriptor, commandBuffer->device());
         
-        ctx->renderPipelineStateCache[ctx->frameBufferDescriptor] = renderPipelineState;
+        ctx->renderPipelineStateCache[*ctx->frameBufferDescriptor] = renderPipelineState;
     }
     
     size_t vertexBufferLength = (size_t)drawData->TotalVtxCount * sizeof(ImDrawVert);
     size_t indexBufferLength = (size_t)drawData->TotalIdxCount * sizeof(ImDrawIdx);
     
-    MTL::Buffer *vertexBuffer = ctx->dequeueReusableBuffer(vertexBufferLength, commandBuffer->device());
-    MTL::Buffer *indexBuffer = ctx->dequeueReusableBuffer(indexBufferLength, commandBuffer->device());
+    MetalBuffer *vertexBuffer = ctx->dequeueReusableBuffer(vertexBufferLength, commandBuffer->device());
+    MetalBuffer *indexBuffer = ctx->dequeueReusableBuffer(indexBufferLength, commandBuffer->device());
     
-    ImGui_ImplMetal_SetupRenderState(drawData, commandBuffer, commandEncoder, renderPipelineState, vertexBuffer, 0);
+    ImGui_ImplMetal_SetupRenderState(drawData, commandBuffer, commandEncoder, renderPipelineState, vertexBuffer->buffer, 0);
     
     ImVec2 clip_off = drawData->DisplayPos;
     ImVec2 clip_scale = drawData->FramebufferScale;
@@ -125,8 +125,8 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData *drawData,
     {
         const ImDrawList* cmd_list = drawData->CmdLists[n];
 
-        std::memcpy((char*)vertexBuffer->contents() + vertexBufferOffset, cmd_list->VtxBuffer.Data, (size_t)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
-        std::memcpy((char*)indexBuffer->contents() + indexBufferOffset, cmd_list->IdxBuffer.Data, (size_t)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
+        std::memcpy((char*)vertexBuffer->buffer->contents() + vertexBufferOffset, cmd_list->VtxBuffer.Data, (size_t)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert));
+        std::memcpy((char*)indexBuffer->buffer->contents() + indexBufferOffset, cmd_list->IdxBuffer.Data, (size_t)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx));
 
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
@@ -136,7 +136,7 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData *drawData,
                 // User callback, registered via ImDrawList::AddCallback()
                 // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
                 if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-                    ImGui_ImplMetal_SetupRenderState(drawData, commandBuffer, commandEncoder, renderPipelineState, vertexBuffer, vertexBufferOffset);
+                    ImGui_ImplMetal_SetupRenderState(drawData, commandBuffer, commandEncoder, renderPipelineState, vertexBuffer->buffer, vertexBufferOffset);
                 else
                     pcmd->UserCallback(cmd_list, pcmd);
             }
@@ -172,7 +172,7 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData *drawData,
                 }
 
                 commandEncoder->setVertexBufferOffset(vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 0);
-                commandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, indexBuffer, indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
+                commandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, indexBuffer->buffer, indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
             }
         }
 
@@ -256,4 +256,90 @@ struct FramebufferDescriptorHash {
 
 bool FramebufferDescriptor::operator==(const FramebufferDescriptor &other) const {
     return std::make_tuple(sampleCount, colorPixelFormat, depthPixelFormat, stencilPixelFormat) == std::make_tuple(other.sampleCount, other.colorPixelFormat, other.depthPixelFormat, other.stencilPixelFormat);
+}
+
+MetalContext::MetalContext() {
+    lastBufferCachePurge = std::chrono::system_clock::now().time_since_epoch().count();
+}
+
+MetalBuffer* MetalContext::dequeueReusableBuffer(size_t length, MTL::Device* device) {
+    size_t now = std::chrono::system_clock::now().time_since_epoch().count();
+    
+    if (now - lastBufferCachePurge > 1) {
+        std::vector<MetalBuffer*> survivors;
+        for (auto *candidate : bufferCache) {
+            if (candidate->lastReuseTime > lastBufferCachePurge) {
+                survivors.push_back(candidate);
+            }
+        }
+        bufferCache = survivors;
+        lastBufferCachePurge = now;
+    }
+    
+    MetalBuffer *bestCandidate;
+    for (auto *candidate : bufferCache) {
+        if (candidate->buffer->length() >= length &&
+            (bestCandidate == NULL || bestCandidate->lastReuseTime > candidate->lastReuseTime)) {
+            bestCandidate = candidate;
+        }
+    }
+    
+    if (bestCandidate) {
+        auto it = std::remove(bufferCache.begin(), bufferCache.end(), bestCandidate);
+        bufferCache.erase(it, bufferCache.end());
+        return bestCandidate;
+    }
+    
+    auto *b = device->newBuffer(length, MTL::ResourceStorageModeShared);
+    return new MetalBuffer(b);
+}
+
+MTL::RenderPipelineState* MetalContext::renderPipelineState(FramebufferDescriptor fbDescriptor, MTL::Device *device) {
+    
+    using NS::StringEncoding::UTF8StringEncoding;
+
+    MTL::Library* pLibrary = device->newDefaultLibrary();
+    
+    MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader2D", UTF8StringEncoding) );
+    MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader2D", UTF8StringEncoding) );
+            
+    MTL::VertexDescriptor *vertexDescriptor = MTL::VertexDescriptor::alloc()->init();
+
+    vertexDescriptor->attributes()->object(0)->setOffset(IM_OFFSETOF(ImDrawVert, pos));
+    vertexDescriptor->attributes()->object(0)->setFormat(MTL::VertexFormatFloat2); // position
+    vertexDescriptor->attributes()->object(0)->setBufferIndex(0);
+    vertexDescriptor->attributes()->object(1)->setOffset(IM_OFFSETOF(ImDrawVert, uv));
+    vertexDescriptor->attributes()->object(1)->setFormat(MTL::VertexFormatFloat2); // texCoords
+    vertexDescriptor->attributes()->object(1)->setBufferIndex(0);
+    vertexDescriptor->attributes()->object(2)->setOffset(IM_OFFSETOF(ImDrawVert, col));
+    vertexDescriptor->attributes()->object(2)->setFormat(MTL::VertexFormatUChar4); // color
+    vertexDescriptor->attributes()->object(2)->setBufferIndex(0);
+    vertexDescriptor->layouts()->object(0)->setStepRate(1);
+    vertexDescriptor->layouts()->object(0)->setStepFunction(MTL::VertexStepFunctionPerVertex);
+    vertexDescriptor->layouts()->object(0)->setStride(sizeof(ImDrawVert));
+
+    MTL::RenderPipelineDescriptor* pipelineDescriptor = MTL::RenderPipelineDescriptor::alloc()->init();
+    pipelineDescriptor->setVertexFunction(pVertexFn);
+    pipelineDescriptor->setFragmentFunction(pFragFn);
+    pipelineDescriptor->setVertexDescriptor(vertexDescriptor);
+    pipelineDescriptor->setRasterSampleCount(frameBufferDescriptor->sampleCount);
+    pipelineDescriptor->colorAttachments()->object(0)->setPixelFormat(frameBufferDescriptor->colorPixelFormat);
+    pipelineDescriptor->colorAttachments()->object(0)->setBlendingEnabled(true);
+    pipelineDescriptor->colorAttachments()->object(0)->setRgbBlendOperation(MTL::BlendOperationAdd);
+    pipelineDescriptor->colorAttachments()->object(0)->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+    pipelineDescriptor->colorAttachments()->object(0)->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+    pipelineDescriptor->colorAttachments()->object(0)->setAlphaBlendOperation(MTL::BlendOperationAdd);
+    pipelineDescriptor->colorAttachments()->object(0)->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+    pipelineDescriptor->colorAttachments()->object(0)->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+    pipelineDescriptor->setDepthAttachmentPixelFormat(frameBufferDescriptor->depthPixelFormat);
+    pipelineDescriptor->setStencilAttachmentPixelFormat(frameBufferDescriptor->stencilPixelFormat);
+
+    pipelineDescriptor->setLabel(NS::String::string("im_gui", UTF8StringEncoding));
+    NS::Error* pError = nullptr;
+    auto result = device->newRenderPipelineState(pipelineDescriptor, &pError);
+    if (!result) {
+        __builtin_printf("%s", pError->localizedDescription()->utf8String());
+        assert(false);
+    }
+    return result;
 }

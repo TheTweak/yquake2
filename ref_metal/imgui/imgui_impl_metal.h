@@ -58,13 +58,13 @@ struct FramebufferDescriptor {
 struct MetalContext {
     MTL::Device *device;
     MTL::DepthStencilState *depthStencilState;
-    FramebufferDescriptor frameBufferDescriptor;
+    FramebufferDescriptor *frameBufferDescriptor;
     std::unordered_map<FramebufferDescriptor, MTL::RenderPipelineState*> renderPipelineStateCache;
     MTL::Texture *fontTexture;
-    std::vector<MTL::Buffer*> bufferCache;
+    std::vector<MetalBuffer*> bufferCache;
     double lastBufferCachePurge;
     
-    MTL::Buffer* dequeueReusableBuffer(size_t length, MTL::Device* device);
+    MetalBuffer* dequeueReusableBuffer(size_t length, MTL::Device* device);
     MTL::RenderPipelineState* renderPipelineState(FramebufferDescriptor fbDescriptor, MTL::Device *device);
     MetalContext();
 };
