@@ -243,16 +243,14 @@ FramebufferDescriptor::FramebufferDescriptor(MTL::RenderPassDescriptor *rpd) {
     stencilPixelFormat = rpd->stencilAttachment()->texture()->pixelFormat();
 }
 
-struct FramebufferDescriptorHash {
-    size_t operator()(const FramebufferDescriptor &key) const {
-        int sc = key.sampleCount & 0x3;
-        int cf = key.colorPixelFormat & 0x3FF;
-        int df = key.depthPixelFormat & 0x3FF;
-        int sf = key.stencilPixelFormat & 0x3FF;
-        size_t hash = (sf << 22) | (df << 12) | (cf << 2) | sc;
-        return hash;
-    }
-};
+size_t FramebufferDescriptorHash::operator()(const FramebufferDescriptor &key) const {
+    int sc = key.sampleCount & 0x3;
+    int cf = key.colorPixelFormat & 0x3FF;
+    int df = key.depthPixelFormat & 0x3FF;
+    int sf = key.stencilPixelFormat & 0x3FF;
+    size_t hash = (sf << 22) | (df << 12) | (cf << 2) | sc;
+    return hash;
+}
 
 bool FramebufferDescriptor::operator==(const FramebufferDescriptor &other) const {
     return std::make_tuple(sampleCount, colorPixelFormat, depthPixelFormat, stencilPixelFormat) == std::make_tuple(other.sampleCount, other.colorPixelFormat, other.depthPixelFormat, other.stencilPixelFormat);
@@ -276,7 +274,7 @@ MetalBuffer* MetalContext::dequeueReusableBuffer(size_t length, MTL::Device* dev
         lastBufferCachePurge = now;
     }
     
-    MetalBuffer *bestCandidate;
+    MetalBuffer *bestCandidate = NULL;
     for (auto *candidate : bufferCache) {
         if (candidate->buffer->length() >= length &&
             (bestCandidate == NULL || bestCandidate->lastReuseTime > candidate->lastReuseTime)) {

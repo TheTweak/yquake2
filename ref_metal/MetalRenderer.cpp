@@ -81,6 +81,9 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     rayTracer = std::make_unique<RayTracer>();
     
     pPool->release();
+    
+    ImGui::CreateContext();
+    ImGui_ImplMetal_Init(_pDevice);
 }
 
 MTL::Device* MetalRenderer::getDevice() {
@@ -741,6 +744,19 @@ void MetalRenderer::renderCameraDirection(MTL::RenderCommandEncoder *enc, const 
     enc->drawPrimitives(MTL::PrimitiveTypeLine, NS::UInteger(0), NS::UInteger(vertices.size()));
 }
 
+void renderImGui(int width, int height, MTL::RenderCommandEncoder *pEnc, MTL::CommandBuffer *pCmd,
+                 MTL::RenderPassDescriptor *pRpd) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize.x = width;
+    io.DisplaySize.y = height;
+    ImGui_ImplMetal_NewFrame(pRpd);
+    ImGui::NewFrame();
+    ImGui::ShowDemoWindow();
+    ImGui::Render();
+    ImDrawData *drawData = ImGui::GetDrawData();
+    ImGui_ImplMetal_RenderDrawData(drawData, pCmd, pEnc);
+}
+
 void MetalRenderer::encodeMetalCommands() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
 
@@ -792,23 +808,13 @@ void MetalRenderer::encodeMetalCommands() {
     skyBox->render(pEnc, viewportSize, origin, mtl_newrefdef, mvpMatrix, _pVertexPSO);
     // render GUI with disabled depth test
     pEnc->setDepthStencilState(_pNoDepthTest);
+    renderImGui(_width, _height, pEnc, pCmd, pRpd);
     renderCameraDirection(pEnc, uniforms);
     renderGUI(pEnc, viewportSize);
+        
     pEnc->endEncoding();
-    rayTracer->encode(pCmd, uniforms);
 
-    // Imgui
-    ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize.x = _width;
-    io.DisplaySize.y = _height;
-    
-    ImGui_ImplMetal_NewFrame(pRpd);
-    ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
-    
-    ImGui::Render();
-    ImDrawData *drawData = ImGui::GetDrawData();
-    ImGui_ImplMetal_RenderDrawData(drawData, pCmd, pEnc);
+    rayTracer->encode(pCmd, uniforms);
     
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     generateMipmaps(blitCmdEnc);

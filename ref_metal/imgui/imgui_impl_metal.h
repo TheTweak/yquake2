@@ -55,11 +55,15 @@ struct FramebufferDescriptor {
     bool operator==(const FramebufferDescriptor&) const;
 };
 
+struct FramebufferDescriptorHash {
+    size_t operator()(const FramebufferDescriptor &key) const;
+};
+
 struct MetalContext {
     MTL::Device *device;
     MTL::DepthStencilState *depthStencilState;
     FramebufferDescriptor *frameBufferDescriptor;
-    std::unordered_map<FramebufferDescriptor, MTL::RenderPipelineState*> renderPipelineStateCache;
+    std::unordered_map<FramebufferDescriptor, MTL::RenderPipelineState*, FramebufferDescriptorHash> renderPipelineStateCache;
     MTL::Texture *fontTexture;
     std::vector<MetalBuffer*> bufferCache;
     double lastBufferCachePurge;
