@@ -83,7 +83,6 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     pPool->release();
     
     ImGui::CreateContext();
-    ImGui_ImplMetal_Init(_pDevice);
 }
 
 MTL::Device* MetalRenderer::getDevice() {
@@ -787,7 +786,10 @@ void MetalRenderer::renderCameraDirection(MTL::RenderCommandEncoder *enc, const 
     enc->drawPrimitives(MTL::PrimitiveTypeLine, NS::UInteger(0), NS::UInteger(vertices.size()));
 }
 
-void MetalRenderer::createImGUIFontsTexture(vector_uint2 viewportSize) {
+void MetalRenderer::createImGUIFontsTexture() {
+    if (_pImGUIFontTexture != NULL) {
+        return;
+    }
     unsigned char* pixels;
     int width, height;
     ImGuiIO& io = ImGui::GetIO();
@@ -798,15 +800,21 @@ void MetalRenderer::createImGUIFontsTexture(vector_uint2 viewportSize) {
     auto *texture = _pDevice->newTexture(textureDescriptor);
     texture->replaceRegion(MTL::Region(0, 0, width, height), 0, pixels, width * 4);
     io.Fonts->SetTexID((void*)texture);
+    _pImGUIFontTexture = texture;
 }
 
 void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
     enc->setRenderPipelineState(_pImGUIPSO);
     ImGui::GetIO().DisplaySize.x = viewportSize[0];
     ImGui::GetIO().DisplaySize.y = viewportSize[1];
-    createImGUIFontsTexture(viewportSize);
+    createImGUIFontsTexture();
     ImGui::NewFrame();
-    ImGui::ShowDemoWindow();
+        
+    ImGui::SetNextWindowSize(ImVec2(128, 64), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Test Window", nullptr);
+    ImGui::Text("Test Text");
+    ImGui::End();
+    
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();
     
@@ -833,15 +841,19 @@ void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 vie
             if (pcmd->UserCallback) {
                 pcmd->UserCallback(cmdList, pcmd);
             } else {
-                idxBufferOffset += pcmd->IdxOffset;
-                vertexBufferOffset += pcmd->VtxOffset;
-
                 // The texture for the draw call is specified by pcmd->GetTexID().
                 // The vast majority of draw calls will use the Dear ImGui texture atlas, which value you have set yourself during initialization.
-                enc->setFragmentTexture((MTL::Texture*) pcmd->GetTexID(), 0);
+                
+                if (ImTextureID texId = pcmd->GetTexID()) {
+                    enc->setFragmentTexture((MTL::Texture*) texId, 0);
+                }
+                
                 enc->setVertexBufferOffset(vertexBufferOffset, 0);
                 
                 enc->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, mtlIndexBuffer, idxBufferOffset);
+                
+                idxBufferOffset += pcmd->IdxOffset;
+                vertexBufferOffset += pcmd->VtxOffset;
             }
         }
         mtlVertexBuffer->autorelease();
