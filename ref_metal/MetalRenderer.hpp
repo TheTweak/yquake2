@@ -38,6 +38,7 @@ private:
     MTL::RenderPipelineState* _pVertexPSO;
     MTL::RenderPipelineState* _pVertexAlphaBlendingPSO;
     MTL::RenderPipelineState* _pDebugPSO;
+    MTL::RenderPipelineState* _pImGUIPSO;
     MTL::Texture* _pTexture;
     SDL_Texture* _pSdlTexture;
     SDL_Renderer* _pRenderer;
@@ -114,6 +115,8 @@ private:
     void renderEntities(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderSprites(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void generateMipmaps(MTL::BlitCommandEncoder *enc);
+    void renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
+    void createImGUIFontsTexture(vector_uint2 viewportSize);
             
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn, bool blendingEnabled);
     MTL::RenderPassDescriptor* createRenderPassDescriptor();

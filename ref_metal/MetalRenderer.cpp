@@ -196,6 +196,49 @@ void MetalRenderer::buildShaders() {
         pDesc->release();
     }
     
+    {
+        MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertex_main", UTF8StringEncoding) );
+        MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("fragment_main", UTF8StringEncoding) );
+        
+        MTL::VertexDescriptor *vertexDescriptor = MTL::VertexDescriptor::alloc()->init();
+
+        vertexDescriptor->attributes()->object(0)->setOffset(IM_OFFSETOF(ImDrawVert, pos));
+        vertexDescriptor->attributes()->object(0)->setFormat(MTL::VertexFormatFloat2); // position
+        vertexDescriptor->attributes()->object(0)->setBufferIndex(0);
+        vertexDescriptor->attributes()->object(1)->setOffset(IM_OFFSETOF(ImDrawVert, uv));
+        vertexDescriptor->attributes()->object(1)->setFormat(MTL::VertexFormatFloat2); // texCoords
+        vertexDescriptor->attributes()->object(1)->setBufferIndex(0);
+        vertexDescriptor->attributes()->object(2)->setOffset(IM_OFFSETOF(ImDrawVert, col));
+        vertexDescriptor->attributes()->object(2)->setFormat(MTL::VertexFormatUChar4); // color
+        vertexDescriptor->attributes()->object(2)->setBufferIndex(0);
+        vertexDescriptor->layouts()->object(0)->setStepRate(1);
+        vertexDescriptor->layouts()->object(0)->setStepFunction(MTL::VertexStepFunctionPerVertex);
+        vertexDescriptor->layouts()->object(0)->setStride(sizeof(ImDrawVert));
+        
+        MTL::RenderPipelineDescriptor* pipelineDescriptor = createPipelineStateDescriptor(pVertexFn, pFragFn, true);
+        
+        pipelineDescriptor->colorAttachments()->object(0)->setBlendingEnabled(true);
+        pipelineDescriptor->colorAttachments()->object(0)->setRgbBlendOperation(MTL::BlendOperationAdd);
+        pipelineDescriptor->colorAttachments()->object(0)->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
+        pipelineDescriptor->colorAttachments()->object(0)->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+        pipelineDescriptor->colorAttachments()->object(0)->setAlphaBlendOperation(MTL::BlendOperationAdd);
+        pipelineDescriptor->colorAttachments()->object(0)->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
+        pipelineDescriptor->colorAttachments()->object(0)->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
+        
+        pipelineDescriptor->setVertexDescriptor(vertexDescriptor);
+        
+        pipelineDescriptor->setLabel(NS::String::string("imgui", UTF8StringEncoding));
+        NS::Error* pError = nullptr;
+        _pImGUIPSO = _pDevice->newRenderPipelineState(pipelineDescriptor, &pError);
+        if (!_pImGUIPSO) {
+            __builtin_printf("%s", pError->localizedDescription()->utf8String());
+            assert(false);
+        }
+        pVertexFn->release();
+        pFragFn->release();
+        pipelineDescriptor->release();
+    }
+    
     pLibrary->release();
     pPool->release();
 }
@@ -744,17 +787,66 @@ void MetalRenderer::renderCameraDirection(MTL::RenderCommandEncoder *enc, const 
     enc->drawPrimitives(MTL::PrimitiveTypeLine, NS::UInteger(0), NS::UInteger(vertices.size()));
 }
 
-void renderImGui(int width, int height, MTL::RenderCommandEncoder *pEnc, MTL::CommandBuffer *pCmd,
-                 MTL::RenderPassDescriptor *pRpd) {
+void MetalRenderer::createImGUIFontsTexture(vector_uint2 viewportSize) {
+    unsigned char* pixels;
+    int width, height;
     ImGuiIO& io = ImGui::GetIO();
-    io.DisplaySize.x = width;
-    io.DisplaySize.y = height;
-    ImGui_ImplMetal_NewFrame(pRpd);
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+    auto *textureDescriptor = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, width, height, false);
+    textureDescriptor->setUsage(MTL::TextureUsageShaderRead);
+    textureDescriptor->setStorageMode(MTL::StorageModeManaged);
+    auto *texture = _pDevice->newTexture(textureDescriptor);
+    texture->replaceRegion(MTL::Region(0, 0, width, height), 0, pixels, width * 4);
+    io.Fonts->SetTexID((void*)texture);
+}
+
+void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+    enc->setRenderPipelineState(_pImGUIPSO);
+    ImGui::GetIO().DisplaySize.x = viewportSize[0];
+    ImGui::GetIO().DisplaySize.y = viewportSize[1];
+    createImGUIFontsTexture(viewportSize);
     ImGui::NewFrame();
     ImGui::ShowDemoWindow();
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();
-    ImGui_ImplMetal_RenderDrawData(drawData, pCmd, pEnc);
+    
+    for (int i = 0; i < drawData->CmdListsCount; i++) {
+        const ImDrawList* cmdList = drawData->CmdLists[i];
+        
+        auto mtlVertexBuffer = _pDevice->newBuffer(cmdList->VtxBuffer.size() * sizeof(ImDrawVert), MTL::ResourceStorageModeShared);
+        auto mtlIndexBuffer = _pDevice->newBuffer(cmdList->IdxBuffer.size() * sizeof(ImDrawIdx), MTL::ResourceStorageModeShared);
+        
+        const ImDrawVert* vertexBuffer = cmdList->VtxBuffer.Data;  // vertex buffer generated by Dear ImGui
+        const ImDrawIdx* idxBuffer = cmdList->IdxBuffer.Data;   // index buffer generated by Dear ImGui
+        
+        std::memcpy(mtlVertexBuffer->contents(), vertexBuffer, cmdList->VtxBuffer.size() * sizeof(ImDrawVert));
+        std::memcpy(mtlIndexBuffer->contents(), idxBuffer, cmdList->IdxBuffer.size() * sizeof(ImDrawIdx));
+        
+        enc->setVertexBuffer(mtlVertexBuffer, 0, 0);
+        enc->setVertexBytes(&viewportSize, sizeof(viewportSize), 1);
+        
+        size_t idxBufferOffset = 0;
+        size_t vertexBufferOffset = 0;
+        
+        for (int cmd_i = 0; cmd_i < cmdList->CmdBuffer.Size; cmd_i++) {
+            const ImDrawCmd* pcmd = &cmdList->CmdBuffer[cmd_i];
+            if (pcmd->UserCallback) {
+                pcmd->UserCallback(cmdList, pcmd);
+            } else {
+                idxBufferOffset += pcmd->IdxOffset;
+                vertexBufferOffset += pcmd->VtxOffset;
+
+                // The texture for the draw call is specified by pcmd->GetTexID().
+                // The vast majority of draw calls will use the Dear ImGui texture atlas, which value you have set yourself during initialization.
+                enc->setFragmentTexture((MTL::Texture*) pcmd->GetTexID(), 0);
+                enc->setVertexBufferOffset(vertexBufferOffset, 0);
+                
+                enc->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, mtlIndexBuffer, idxBufferOffset);
+            }
+        }
+        mtlVertexBuffer->autorelease();
+        mtlIndexBuffer->autorelease();
+    }
 }
 
 void MetalRenderer::encodeMetalCommands() {
@@ -808,7 +900,7 @@ void MetalRenderer::encodeMetalCommands() {
     skyBox->render(pEnc, viewportSize, origin, mtl_newrefdef, mvpMatrix, _pVertexPSO);
     // render GUI with disabled depth test
     pEnc->setDepthStencilState(_pNoDepthTest);
-    renderImGui(_width, _height, pEnc, pCmd, pRpd);
+    renderImGUI(pEnc, viewportSize);
     renderCameraDirection(pEnc, uniforms);
     renderGUI(pEnc, viewportSize);
         

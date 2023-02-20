@@ -6,8 +6,10 @@
 //
 
 #include <chrono>
+#include <simd/simd.h>
 
 #include "imgui_impl_metal.h"
+#include "../utils/Constants.h"
 
 ImGui_ImplMetal_Data::ImGui_ImplMetal_Data() {
     SharedMetalContext = new MetalContext();
@@ -58,6 +60,7 @@ void ImGui_ImplMetal_SetupRenderState(ImDrawData *drawData,
     commandEncoder->setCullMode(MTL::CullModeNone);
     commandEncoder->setDepthStencilState(bd->SharedMetalContext->depthStencilState);
     
+    /*
     MTL::Viewport viewport = MTL::Viewport();
     viewport.originX = 0.0;
     viewport.originY = 0.0;
@@ -84,6 +87,9 @@ void ImGui_ImplMetal_SetupRenderState(ImDrawData *drawData,
     };
     
     commandEncoder->setVertexBytes(&ortho_projection, sizeof(ortho_projection), 1);
+    */
+    vector_uint2 viewportSize = {static_cast<unsigned int>(drawData->DisplaySize.x), static_cast<unsigned int>(drawData->DisplaySize.y)};
+    commandEncoder->setVertexBytes(&viewportSize, sizeof(viewportSize), 1);
     commandEncoder->setRenderPipelineState(renderPipelineState);
     commandEncoder->setVertexBuffer(vertexBuffer, 0, 0);
     commandEncoder->setVertexBufferOffset(vertexBufferOffset, 0);
@@ -156,6 +162,7 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData *drawData,
                 if (pcmd->ElemCount == 0) // drawIndexedPrimitives() validation doesn't accept this
                     continue;
 
+                /*
                 // Apply scissor/clipping rectangle
                 MTL::ScissorRect scissorRect =
                 {
@@ -165,14 +172,15 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData *drawData,
                     .height = NS::UInteger(clip_max.y - clip_min.y)
                 };
                 commandEncoder->setScissorRect(scissorRect);
-
+                 */
+                
                 // Bind texture, Draw
                 if (ImTextureID tex_id = pcmd->GetTexID()) {
                     commandEncoder->setFragmentTexture((MTL::Texture*) tex_id, 0);
                 }
 
                 commandEncoder->setVertexBufferOffset(vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 0);
-                commandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, indexBuffer->buffer, indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
+                commandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount / 3, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, indexBuffer->buffer, indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
             }
         }
 
@@ -198,7 +206,7 @@ bool ImGui_ImplMetal_CreateFontsTexture(MTL::Device *device) {
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-    auto *textureDescriptor = MTL::TextureDescriptor::texture2DDescriptor(MTL::PixelFormatRGBA8Unorm, width, height, false);
+    auto *textureDescriptor = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, width, height, false);
     textureDescriptor->setUsage(MTL::TextureUsageShaderRead);
     textureDescriptor->setStorageMode(MTL::StorageModeManaged);
     auto *texture = device->newTexture(textureDescriptor);
