@@ -830,14 +830,13 @@ void MetalRenderer::renderImGUI(MTL::CommandBuffer *cmd, vector_uint2 viewportSi
     pRpd->autorelease();
     enc->setRenderPipelineState(_pImGUIPSO);
     
-    ImGui::GetIO().DisplaySize.x = 500;
-    ImGui::GetIO().DisplaySize.y = 500;
+    ImGui::GetIO().DisplaySize.x = viewportSize.x;
+    ImGui::GetIO().DisplaySize.y = viewportSize.y;
     createImGUIFontsTexture();
     ImGui::NewFrame();
         
-    ImGui::SetNextWindowSize(ImVec2(500, 500));
+    ImGui::SetNextWindowSize(ImVec2(100, 100));
     ImGui::Begin("Test Window");
-    ImGui::Text("Test Text");
     ImGui::End();
     
     ImGui::Render();
