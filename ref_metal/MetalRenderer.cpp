@@ -17,6 +17,7 @@
 #include <MetalKit/MetalKit.hpp>
 #include <simd/simd.h>
 #include <SDL2/SDL_video.h>
+#include <SDL2/SDL_mouse.h>
 #include <cmath>
 #include <algorithm>
 
@@ -796,14 +797,34 @@ void MetalRenderer::createImGUIFontsTexture() {
 
 void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
     enc->setRenderPipelineState(_pImGUIPSO);
+
+    int mouseX, mouseY;
+    size_t buttonState = SDL_GetMouseState(&mouseX, &mouseY);
+    bool leftButton = buttonState & SDL_BUTTON(1);
+    bool rightButton = buttonState & SDL_BUTTON(3);
     
+    ImGui::GetIO().AddMousePosEvent((float) mouseX, (float) mouseY);
+    ImGui::GetIO().AddMouseButtonEvent(0, leftButton);
+    ImGui::GetIO().AddMouseButtonEvent(1, rightButton);
     ImGui::GetIO().DisplaySize.x = viewportSize.x;
     ImGui::GetIO().DisplaySize.y = viewportSize.y;
     createImGUIFontsTexture();
     
     ImGui::NewFrame();
-//    ImGui::Begin("Test Window");
-//    ImGui::End();
+    std::ostringstream ss;
+    ss << mouseX << " " << mouseY;
+    if (leftButton) {
+        ss << "left pressed ";
+    }
+    if (rightButton) {
+        ss << "right pressed";
+    }
+    const auto data = ss.str();
+    /*
+    ImGui::SetNextWindowSize(ImVec2(200, 50));
+    ImGui::Begin(data.data());
+    ImGui::End();
+    */
     
     ImGui::ShowDemoWindow();
     
