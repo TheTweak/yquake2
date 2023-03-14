@@ -47,6 +47,7 @@ private:
     MTL::DepthStencilState* _pNoDepthTest;
     MTL::Texture* _pDepthTexture;
     MTL::Texture* _pImGUIFontTexture;
+    MTL::Texture* _pImGUITexture;
     
     int _width = 0;
     int _height = 0;
@@ -116,7 +117,7 @@ private:
     void renderEntities(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderSprites(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void generateMipmaps(MTL::BlitCommandEncoder *enc);
-    void renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
+    void renderImGUI(MTL::CommandBuffer *cmd, vector_uint2 viewportSize);
     void createImGUIFontsTexture();
             
     MTL::RenderPipelineDescriptor* createPipelineStateDescriptor(MTL::Function* pVertexFn, MTL::Function* pFragFn, bool blendingEnabled);
