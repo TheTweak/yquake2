@@ -833,11 +833,11 @@ void MetalRenderer::renderImGUI(MTL::CommandBuffer *cmd, vector_uint2 viewportSi
     ImGui::GetIO().DisplaySize.x = viewportSize.x;
     ImGui::GetIO().DisplaySize.y = viewportSize.y;
     createImGUIFontsTexture();
+    
     ImGui::NewFrame();
-        
-    ImGui::SetNextWindowSize(ImVec2(100, 100));
     ImGui::Begin("Test Window");
     ImGui::End();
+//    ImGui::ShowDemoWindow();
     
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();
