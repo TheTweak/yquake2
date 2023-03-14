@@ -25,8 +25,7 @@ vertex VertexOut vertex_main(VertexIn in                 [[stage_in]],
     //  divide the pixel coordinates by half the size of the viewport.
     // Z is set to 0.0 and w to 1.0 because this is 2D sample.
     out.position = vector_float4(0.0, 0.0, 0.0, 1.0);
-//    out.position.xy = in.position / viewportSize;
-    out.position.xy = in.position / float2(500, 500);
+    out.position.xy = in.position / viewportSize;    
     out.position.y = -out.position.y;
     out.texCoords = in.texCoords;
     out.color = float4(0, 0, 0, 0);

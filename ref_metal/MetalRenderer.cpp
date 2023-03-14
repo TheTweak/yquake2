@@ -73,19 +73,6 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     
     _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, _width, _height);
     
-    {
-        MTL::TextureDescriptor *td = MTL::TextureDescriptor::alloc()->init();
-        td->setWidth(500);
-        td->setHeight(500);
-        td->setPixelFormat(PIXEL_FORMAT);
-        td->setTextureType(MTL::TextureType2D);
-        td->setStorageMode(MTL::StorageModePrivate);
-        td->setUsage(MTL::TextureUsageRenderTarget);
-        _pImGUITexture = MetalRenderer::getInstance().getDevice()->newTexture(td);
-        
-        td->autorelease();
-    }
-    
     buildShaders();
     buildDepthStencilState();
     TextureCache::getInstance().init(_pDevice);
@@ -228,18 +215,9 @@ void MetalRenderer::buildShaders() {
         vertexDescriptor->layouts()->object(0)->setStride(sizeof(ImDrawVert));
         
         MTL::RenderPipelineDescriptor* pDesc = createPipelineStateDescriptor(pVertexFn, pFragFn, true);
-        pDesc->setDepthAttachmentPixelFormat(MTL::PixelFormatInvalid);
-//        pipelineDescriptor->colorAttachments()->object(0)->setBlendingEnabled(true);
-//        pipelineDescriptor->colorAttachments()->object(0)->setRgbBlendOperation(MTL::BlendOperationAdd);
-//        pipelineDescriptor->colorAttachments()->object(0)->setSourceRGBBlendFactor(MTL::BlendFactorSourceAlpha);
-//        pipelineDescriptor->colorAttachments()->object(0)->setDestinationRGBBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-//        pipelineDescriptor->colorAttachments()->object(0)->setAlphaBlendOperation(MTL::BlendOperationAdd);
-//        pipelineDescriptor->colorAttachments()->object(0)->setSourceAlphaBlendFactor(MTL::BlendFactorOne);
-//        pipelineDescriptor->colorAttachments()->object(0)->setDestinationAlphaBlendFactor(MTL::BlendFactorOneMinusSourceAlpha);
-        
         pDesc->setVertexDescriptor(vertexDescriptor);
-        
         pDesc->setLabel(NS::String::string("imgui", UTF8StringEncoding));
+        
         NS::Error* pError = nullptr;
         _pImGUIPSO = _pDevice->newRenderPipelineState(pDesc, &pError);
         if (!_pImGUIPSO) {
@@ -816,18 +794,7 @@ void MetalRenderer::createImGUIFontsTexture() {
     _pImGUIFontTexture = texture;
 }
 
-void MetalRenderer::renderImGUI(MTL::CommandBuffer *cmd, vector_uint2 viewportSize) {
-    
-    MTL::RenderPassDescriptor* pRpd = MTL::RenderPassDescriptor::alloc()->init();
-    auto colorAttachmentDesc = pRpd->colorAttachments()->object(0);
-    colorAttachmentDesc->setTexture(_pImGUITexture);
-    colorAttachmentDesc->setLoadAction(MTL::LoadActionClear);
-    colorAttachmentDesc->setStoreAction(MTL::StoreActionStore);
-    colorAttachmentDesc->setClearColor(MTL::ClearColor(0.0f, 0.0f, 0.0f, 0));
-    pRpd->setRenderTargetArrayLength(1);
-    
-    MTL::RenderCommandEncoder *enc = cmd->renderCommandEncoder(pRpd);
-    pRpd->autorelease();
+void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
     enc->setRenderPipelineState(_pImGUIPSO);
     
     ImGui::GetIO().DisplaySize.x = viewportSize.x;
@@ -835,9 +802,10 @@ void MetalRenderer::renderImGUI(MTL::CommandBuffer *cmd, vector_uint2 viewportSi
     createImGUIFontsTexture();
     
     ImGui::NewFrame();
-    ImGui::Begin("Test Window");
-    ImGui::End();
-//    ImGui::ShowDemoWindow();
+//    ImGui::Begin("Test Window");
+//    ImGui::End();
+    
+    ImGui::ShowDemoWindow();
     
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();
@@ -882,9 +850,7 @@ void MetalRenderer::renderImGUI(MTL::CommandBuffer *cmd, vector_uint2 viewportSi
         }
         mtlVertexBuffer->autorelease();
         mtlIndexBuffer->autorelease();
-    }
-    
-    enc->endEncoding();
+    }        
 }
 
 void MetalRenderer::encodeMetalCommands() {
@@ -940,10 +906,9 @@ void MetalRenderer::encodeMetalCommands() {
     pEnc->setDepthStencilState(_pNoDepthTest);
 //    renderCameraDirection(pEnc, uniforms);
     renderGUI(pEnc, viewportSize);
+    renderImGUI(pEnc, viewportSize);
         
     pEnc->endEncoding();
-    
-    renderImGUI(pCmd, viewportSize);
 
 //    rayTracer->encode(pCmd, uniforms);
     
@@ -952,9 +917,7 @@ void MetalRenderer::encodeMetalCommands() {
     if (rayTracer->getTargetTexture()) {
         blitCmdEnc->copyFromTexture(rayTracer->getTargetTexture(), 0, 0, MTL::Origin(0, 0, 0), MTL::Size(uniforms.width, uniforms.height, 1), _pTexture, 0, 0, MTL::Origin(0, 0, 0));
     }
-    
-    blitCmdEnc->copyFromTexture(_pImGUITexture, 0, 0, MTL::Origin(0, 0, 0), MTL::Size(500, 500, 1), _pTexture, 0, 0, MTL::Origin(0, 0, 0));
-    
+        
     blitCmdEnc->synchronizeTexture(_pTexture, 0, 0);
     blitCmdEnc->endEncoding();
     pCmd->commit();
