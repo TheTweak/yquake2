@@ -622,7 +622,8 @@ GLimp_InitGraphics(int fullscreen, int *pwidth, int *pheight)
 	SetSDLIcon();
 
 	/* No cursor */
-	SDL_ShowCursor(0);
+//	SDL_ShowCursor(0);
+    SDL_ShowCursor(SDL_ENABLE);
 
 	initSuccessful = true;
 

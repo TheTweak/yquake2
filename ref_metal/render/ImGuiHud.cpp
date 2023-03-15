@@ -11,6 +11,22 @@
 #include "../utils/Constants.h"
 #include "../MetalRenderer.hpp"
 
+ImGuiHud::ImGuiHud() {
+    int cursorWidth = SDL_CURSOR_W;
+    int cursorHeight = SDL_CURSOR_H;
+    Uint8 cursorMask[cursorWidth * cursorHeight];
+    Uint8 cursorData[cursorWidth * cursorHeight];
+    for (int i = 0; i < cursorWidth; i++) {
+        for (int j = 0; j < cursorHeight; j++) {
+            cursorMask[i * j] = 1;
+            cursorData[i * j] = 0;
+        }
+    }
+
+    sdlCursor = SDL_CreateCursor(cursorData, cursorMask, cursorWidth, cursorHeight, 0, 0);
+    SDL_SetCursor(sdlCursor);
+}
+
 void ImGuiHud::createFontsTexture() {
     if (fontTexture != NULL) {
         return;
@@ -28,20 +44,52 @@ void ImGuiHud::createFontsTexture() {
     fontTexture = texture;
 }
 
-//void createSDLCursor() {
-//    int cursorWidth = SDL_CURSOR_W;
-//    int cursorHeight = SDL_CURSOR_H;
-//    Uint8 cursorMask[cursorWidth * cursorHeight];
-//    Uint8 cursorData[cursorWidth * cursorHeight];
-//    for (int i = 0; i < cursorWidth; i++) {
-//        for (int j = 0; j < cursorHeight; j++) {
-//            cursorMask[i * j] = 1;
-//            cursorData[i * j] = 0;
-//        }
-//    }
-//
-//    sdlCursor = SDL_CreateCursor(cursorData, cursorMask, cursorWidth, cursorHeight, 0, 0);
-//}
+void drawImGui() {
+    int mouseX, mouseY;
+    size_t buttonState = SDL_GetMouseState(&mouseX, &mouseY);
+    bool leftButton = buttonState & SDL_BUTTON(1);
+    bool rightButton = buttonState & SDL_BUTTON(3);
+            
+    std::ostringstream ss;
+    ss << "sdl mouse pos: " << mouseX << " " << mouseY;
+    if (leftButton) {
+        ss << " left pressed ";
+    }
+    if (rightButton) {
+        ss << " right pressed";
+    }
+    
+    ImGui::SetNextWindowSize(ImVec2(600, 300));
+    ImGui::Begin("Metal RTX");
+        
+    ss << "\nimgui mouse pos: " << ImGui::GetIO().MousePos.x << " " << ImGui::GetIO().MousePos.y;
+    ImGui::Text("%s", ss.str().data());
+    
+    if (ImGui::Button("OK")) {
+    }
+    if (ImGui::CollapsingHeader("Help")) {
+        ImGui::Text("ABOUT THIS DEMO:");
+        ImGui::BulletText("Sections below are demonstrating many aspects of the library.");
+        ImGui::BulletText("The \"Examples\" menu above leads to more demo contents.");
+        ImGui::BulletText("The \"Tools\" menu above gives access to: About Box, Style Editor,\n"
+                          "and Metrics/Debugger (general purpose Dear ImGui debugging tool).");
+        ImGui::Separator();
+
+        ImGui::Text("PROGRAMMER GUIDE:");
+        ImGui::BulletText("See the ShowDemoWindow() code in imgui_demo.cpp. <- you are here!");
+        ImGui::BulletText("See comments in imgui.cpp.");
+        ImGui::BulletText("See example applications in the examples/ folder.");
+        ImGui::BulletText("Read the FAQ at http://www.dearimgui.org/faq/");
+        ImGui::BulletText("Set 'io.ConfigFlags |= NavEnableKeyboard' for keyboard controls.");
+        ImGui::BulletText("Set 'io.ConfigFlags |= NavEnableGamepad' for gamepad controls.");
+        ImGui::Separator();
+        ImGui::Text("USER GUIDE:");
+    }
+    
+    ImGui::End();
+
+//    ImGui::ShowDemoWindow();
+}
 
 void ImGuiHud::render(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
     createFontsTexture();
@@ -50,8 +98,6 @@ void ImGuiHud::render(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize)
     size_t buttonState = SDL_GetMouseState(&mouseX, &mouseY);
     bool leftButton = buttonState & SDL_BUTTON(1);
     bool rightButton = buttonState & SDL_BUTTON(3);
-    SDL_ShowCursor(SDL_ENABLE);
-//    SDL_SetCursor(sdlCursor);
     
     ImGui::GetIO().AddMousePosEvent((float) mouseX, (float) mouseY);
     ImGui::GetIO().AddMouseButtonEvent(0, leftButton);
@@ -61,22 +107,8 @@ void ImGuiHud::render(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize)
     ImGui::GetIO().FontGlobalScale = 2.5;
             
     ImGui::NewFrame();
-    std::ostringstream ss;
-    ss << mouseX << " " << mouseY;
-    if (leftButton) {
-        ss << "left pressed ";
-    }
-    if (rightButton) {
-        ss << "right pressed";
-    }
-    const auto data = ss.str();
-    
-    ImGui::SetNextWindowSize(ImVec2(300, 300));
-    ImGui::Begin(data.data());
-    ImGui::Button("OK");
-    ImGui::End();
 
-//    ImGui::ShowDemoWindow();
+    drawImGui();
     
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();

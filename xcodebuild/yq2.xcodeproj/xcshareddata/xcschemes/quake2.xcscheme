@@ -57,6 +57,10 @@
             argument = "+set vid_renderer metal"
             isEnabled = "YES">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+set in_grab 0"
+            isEnabled = "YES">
+         </CommandLineArgument>
       </CommandLineArguments>
       <EnvironmentVariables>
          <EnvironmentVariable
