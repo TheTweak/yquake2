@@ -41,6 +41,7 @@ public:
     void rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount, std::vector<MTL::Texture*> shadeTextures,
                                       size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices);
     void encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms);
+    void updateImGui();
     MTL::Texture* getTargetTexture() const;
 };
 

@@ -44,48 +44,8 @@ void ImGuiHud::createFontsTexture() {
     fontTexture = texture;
 }
 
-void drawImGui() {
-    int mouseX, mouseY;
-    size_t buttonState = SDL_GetMouseState(&mouseX, &mouseY);
-    bool leftButton = buttonState & SDL_BUTTON(1);
-    bool rightButton = buttonState & SDL_BUTTON(3);
-            
-    std::ostringstream ss;
-    ss << "sdl mouse pos: " << mouseX << " " << mouseY;
-    if (leftButton) {
-        ss << " left pressed ";
-    }
-    if (rightButton) {
-        ss << " right pressed";
-    }
-    
-    ImGui::SetNextWindowSize(ImVec2(600, 300));
-    ImGui::Begin("Metal RTX");
-    ss << "\nimgui mouse pos: " << ImGui::GetIO().MousePos.x << " " << ImGui::GetIO().MousePos.y;
-    ImGui::Text("%s", ss.str().data());
-    
-    ImGui::End();
-
-//    ImGui::ShowDemoWindow();
-}
-
 void ImGuiHud::render(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
     createFontsTexture();
-    
-    int mouseX, mouseY;
-    size_t buttonState = SDL_GetMouseState(&mouseX, &mouseY);
-    bool leftButton = buttonState & SDL_BUTTON(1);
-    bool rightButton = buttonState & SDL_BUTTON(3);
-    
-    ImGui::GetIO().AddMousePosEvent((float) mouseX, (float) mouseY);
-    ImGui::GetIO().AddMouseButtonEvent(0, leftButton);
-    ImGui::GetIO().AddMouseButtonEvent(1, rightButton);
-    ImGui::GetIO().DisplaySize.x = viewportSize.x;
-    ImGui::GetIO().DisplaySize.y = viewportSize.y;
-            
-    ImGui::NewFrame();
-
-    drawImGui();
     
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();

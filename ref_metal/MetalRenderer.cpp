@@ -778,6 +778,22 @@ void MetalRenderer::renderCameraDirection(MTL::RenderCommandEncoder *enc, const 
 }
 
 void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+    imguiHud.createFontsTexture();
+    
+    int mouseX, mouseY;
+    size_t buttonState = SDL_GetMouseState(&mouseX, &mouseY);
+    bool leftButton = buttonState & SDL_BUTTON(1);
+    bool rightButton = buttonState & SDL_BUTTON(3);
+    
+    ImGui::GetIO().AddMousePosEvent((float) mouseX, (float) mouseY);
+    ImGui::GetIO().AddMouseButtonEvent(0, leftButton);
+    ImGui::GetIO().AddMouseButtonEvent(1, rightButton);
+    ImGui::GetIO().DisplaySize.x = viewportSize.x;
+    ImGui::GetIO().DisplaySize.y = viewportSize.y;
+    ImGui::NewFrame();
+    
+    rayTracer->updateImGui();
+    
     enc->setRenderPipelineState(_pImGUIPSO);
     imguiHud.render(enc, viewportSize);
 }
@@ -839,7 +855,7 @@ void MetalRenderer::encodeMetalCommands() {
         
     pEnc->endEncoding();
 
-//    rayTracer->encode(pCmd, uniforms);
+    rayTracer->encode(pCmd, uniforms);
     
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     generateMipmaps(blitCmdEnc);

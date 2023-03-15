@@ -177,3 +177,12 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     intersectionBuffer->autorelease();
     targetTexture->autorelease();
 }
+
+void RayTracer::updateImGui() {        
+    ImGui::SetNextWindowSize(ImVec2(600, 300));
+    
+    ImGui::Begin("Metal RTX");
+    ImGui::Text("Ray Tracer");
+    
+    ImGui::End();
+}
