@@ -119,7 +119,7 @@ void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms)
     enc->setTexture(targetTexture, 1);
     enc->setComputePipelineState(genRaysPipeline);
     
-    MTL::Size threadsPerThreadgroup = MTL::Size(32, 1, 1);
+    MTL::Size threadsPerThreadgroup = MTL::Size(this->threadsPerThreadGroupMultiplier * 32, 1, 1);
     MTL::Size threadgroups = MTL::Size(uniforms.width, uniforms.height, 1);
 
     enc->dispatchThreads(threadgroups, threadsPerThreadgroup);
@@ -149,11 +149,17 @@ void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
         }
     }
     
-    MTL::Size threadsPerThreadgroup = MTL::Size(32, 1, 1);
+    MTL::Size threadsPerThreadgroup = MTL::Size(this->threadsPerThreadGroupMultiplier * 32, 1, 1);
     MTL::Size threadgroups = MTL::Size(uniforms.width, uniforms.height, 1);
     
     enc->dispatchThreads(threadgroups, threadsPerThreadgroup);
     enc->endEncoding();
+}
+
+void RayTracer::updateImGui() {
+    const char* intersectionTypes[] = { "any", "nearest" };
+    ImGui::Combo("intersection type##comboIntersectionType", &intersectionType, intersectionTypes, IM_ARRAYSIZE(intersectionTypes));
+    ImGui::SliderInt("threads per thread group multiplier", &threadsPerThreadGroupMultiplier, 1, 8);
 }
 
 void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
@@ -164,8 +170,11 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     intersectionBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(uniforms.width * uniforms.height * sizeof(MPSIntersectionDistancePrimitiveIndexCoordinates), MTL::ResourceStorageModePrivate);
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
     generateRays(cenc, uniforms);
+    
+    static MTL::MPSIntersectionType intersectionTypes[] = {MTL::MPSIntersectionType::Any, MTL::MPSIntersectionType::Nearest};
+    
     intersector->encodeIntersection(cmdBuffer,
-                                    MTL::MPSIntersectionType::Nearest,
+                                    intersectionTypes[intersectionType],
                                     rayBuffer,
                                     0,
                                     intersectionBuffer,
@@ -178,8 +187,4 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     
     intersectionBuffer->autorelease();
     targetTexture->autorelease();
-}
-
-void RayTracer::updateImGui() {        
-
 }

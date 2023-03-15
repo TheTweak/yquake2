@@ -33,6 +33,8 @@ class RayTracer {
     std::vector<uint32_t> masks;
     
     bool accelStructureIsBuilt;
+    int intersectionType;
+    int threadsPerThreadGroupMultiplier = 1;
     
     void generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
     void shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
