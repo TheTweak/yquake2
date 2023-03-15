@@ -61,30 +61,8 @@ void drawImGui() {
     
     ImGui::SetNextWindowSize(ImVec2(600, 300));
     ImGui::Begin("Metal RTX");
-        
     ss << "\nimgui mouse pos: " << ImGui::GetIO().MousePos.x << " " << ImGui::GetIO().MousePos.y;
     ImGui::Text("%s", ss.str().data());
-    
-    if (ImGui::Button("OK")) {
-    }
-    if (ImGui::CollapsingHeader("Help")) {
-        ImGui::Text("ABOUT THIS DEMO:");
-        ImGui::BulletText("Sections below are demonstrating many aspects of the library.");
-        ImGui::BulletText("The \"Examples\" menu above leads to more demo contents.");
-        ImGui::BulletText("The \"Tools\" menu above gives access to: About Box, Style Editor,\n"
-                          "and Metrics/Debugger (general purpose Dear ImGui debugging tool).");
-        ImGui::Separator();
-
-        ImGui::Text("PROGRAMMER GUIDE:");
-        ImGui::BulletText("See the ShowDemoWindow() code in imgui_demo.cpp. <- you are here!");
-        ImGui::BulletText("See comments in imgui.cpp.");
-        ImGui::BulletText("See example applications in the examples/ folder.");
-        ImGui::BulletText("Read the FAQ at http://www.dearimgui.org/faq/");
-        ImGui::BulletText("Set 'io.ConfigFlags |= NavEnableKeyboard' for keyboard controls.");
-        ImGui::BulletText("Set 'io.ConfigFlags |= NavEnableGamepad' for gamepad controls.");
-        ImGui::Separator();
-        ImGui::Text("USER GUIDE:");
-    }
     
     ImGui::End();
 
@@ -104,7 +82,6 @@ void ImGuiHud::render(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize)
     ImGui::GetIO().AddMouseButtonEvent(1, rightButton);
     ImGui::GetIO().DisplaySize.x = viewportSize.x;
     ImGui::GetIO().DisplaySize.y = viewportSize.y;
-    ImGui::GetIO().FontGlobalScale = 2.5;
             
     ImGui::NewFrame();
 
@@ -112,6 +89,31 @@ void ImGuiHud::render(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize)
     
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();
+    
+    float L = drawData->DisplayPos.x;
+    float R = drawData->DisplayPos.x + drawData->DisplaySize.x;
+    float T = drawData->DisplayPos.y;
+    float B = drawData->DisplayPos.y + drawData->DisplaySize.y;
+    float N = 0.0;
+    float F = 1.0;
+    const float orthoProjection[4][4] =
+    {
+        { 2.0f/(R-L),   0.0f,           0.0f,   0.0f },
+        { 0.0f,         2.0f/(T-B),     0.0f,   0.0f },
+        { 0.0f,         0.0f,        1/(F-N),   0.0f },
+        { (R+L)/(L-R),  (T+B)/(B-T), N/(F-N),   1.0f },
+    };
+    
+    // Will project scissor/clipping rectangles into framebuffer space
+    ImVec2 clip_off = drawData->DisplayPos;         // (0,0) unless using multi-viewports
+    ImVec2 clip_scale = drawData->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+    
+    // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
+    int fb_width = (int)(drawData->DisplaySize.x * drawData->FramebufferScale.x);
+    int fb_height = (int)(drawData->DisplaySize.y * drawData->FramebufferScale.y);
+    if (fb_width <= 0 || fb_height <= 0 || drawData->CmdListsCount == 0) {
+        return;
+    }
     
     for (int i = 0; i < drawData->CmdListsCount; i++) {
         const ImDrawList* cmdList = drawData->CmdLists[i];
@@ -126,13 +128,33 @@ void ImGuiHud::render(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize)
         std::memcpy(mtlIndexBuffer->contents(), idxBuffer, cmdList->IdxBuffer.size() * sizeof(ImDrawIdx));
         
         enc->setVertexBuffer(mtlVertexBuffer, 0, 0);
-        enc->setVertexBytes(&viewportSize, sizeof(viewportSize), 1);
+        enc->setVertexBytes(&orthoProjection, sizeof(orthoProjection), 1);
         
         for (int cmd_i = 0; cmd_i < cmdList->CmdBuffer.Size; cmd_i++) {
             const ImDrawCmd* pcmd = &cmdList->CmdBuffer[cmd_i];
             if (pcmd->UserCallback) {
                 pcmd->UserCallback(cmdList, pcmd);
             } else {
+                
+                // Project scissor/clipping rectangles into framebuffer space
+                ImVec2 clip_min((pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y);
+                ImVec2 clip_max((pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y);
+
+                // Clamp to viewport as setScissorRect() won't accept values that are off bounds
+                if (clip_min.x < 0.0f) { clip_min.x = 0.0f; }
+                if (clip_min.y < 0.0f) { clip_min.y = 0.0f; }
+                if (clip_max.x > fb_width) { clip_max.x = (float)fb_width; }
+                if (clip_max.y > fb_height) { clip_max.y = (float)fb_height; }
+                if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y) {
+                    continue;
+                }
+                
+                MTL::ScissorRect scissorRect = MTL::ScissorRect();
+                scissorRect.x = clip_min.x;
+                scissorRect.y = clip_min.y;
+                scissorRect.width = clip_max.x - clip_min.x;
+                scissorRect.height = clip_max.y - clip_min.y;
+                enc->setScissorRect(scissorRect);
                 
                 if (ImTextureID texId = pcmd->GetTexID()) {
                     enc->setFragmentTexture((MTL::Texture*) texId, 0);
