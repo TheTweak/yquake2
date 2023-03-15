@@ -118,6 +118,7 @@ private:
     void renderEntities(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderSprites(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void generateMipmaps(MTL::BlitCommandEncoder *enc);
+    void updateImGUI(vector_uint2 viewportSize);
     void renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void createImGUIFontsTexture();
             

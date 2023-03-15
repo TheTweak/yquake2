@@ -777,7 +777,7 @@ void MetalRenderer::renderCameraDirection(MTL::RenderCommandEncoder *enc, const 
     enc->drawPrimitives(MTL::PrimitiveTypeLine, NS::UInteger(0), NS::UInteger(vertices.size()));
 }
 
-void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
+void MetalRenderer::updateImGUI(vector_uint2 viewportSize) {
     imguiHud.createFontsTexture();
     
     int mouseX, mouseY;
@@ -793,7 +793,9 @@ void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 vie
     ImGui::NewFrame();
     
     rayTracer->updateImGui();
-    
+}
+
+void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
     enc->setRenderPipelineState(_pImGUIPSO);
     imguiHud.render(enc, viewportSize);
 }
@@ -803,27 +805,87 @@ void MetalRenderer::encodeMetalCommands() {
 
     MTL::CommandBuffer* pCmd = _pCommandQueue->commandBuffer();
     
+    vector_uint2 viewportSize = {static_cast<unsigned int>(_width), static_cast<unsigned int>(_height)};
+    
+    updateImGUI(viewportSize);
+    
+    ImGui::SetNextWindowSize(ImVec2(600, 300));
+        
+    static float cameraPos[3] = {modelOrigin[0], modelOrigin[1], modelOrigin[2]};
+    static float cameraRight[3] = {vright[0], vright[1], vright[2]};
+    static float cameraForward[3] = {vpn[0], vpn[1], vpn[2]};
+    static float cameraUp[3] = {vup[0], vup[1], vup[2]};
+    
+    static bool rtIsOpen = true;
+    static bool camPosIsOpen = true;
+    static bool overrideCamPos = false;
+    static bool overrideCamRight = false;
+    static bool overrideCamFwd = false;
+    static bool overrideCamUp = false;
+    
+    ImGui::SetNextItemOpen(&rtIsOpen);
+    if (ImGui::CollapsingHeader("Ray Tracing")) {
+        ImGui::SetNextItemOpen(&camPosIsOpen);
+        if (ImGui::CollapsingHeader("camera position")) {
+            ImGui::Checkbox("enable##overrideCamPos", &overrideCamPos);
+            ImGui::SameLine();
+            ImGui::SliderFloat3("cam", cameraPos, -1000.0f, 1000.0f);
+                        
+            ImGui::Checkbox("enable##overrideCamRight", &overrideCamRight);
+            ImGui::SameLine();
+            ImGui::SliderFloat3("right", cameraRight, -1.0f, 1.0f);
+            
+            ImGui::Checkbox("enable##overrideCamFwd", &overrideCamFwd);
+            ImGui::SameLine();
+            ImGui::SliderFloat3("forward", cameraForward, -1.0f, 1.0f);
+            
+            ImGui::Checkbox("enable##overrideCamUp", &overrideCamUp);
+            ImGui::SameLine();
+            ImGui::SliderFloat3("up", cameraUp, -1.0f, 1.0f);
+        }
+    }
+    
     Uniforms uniforms;
     uniforms.width = 512;
     uniforms.height = 384;
     uniforms.frameIndex = _frameCount;
+
     uniforms.camera.position[0] = modelOrigin[0];
-//    uniforms.camera.position[0] = 0;
     uniforms.camera.position[1] = modelOrigin[1];
-//    uniforms.camera.position[1] = 0;
     uniforms.camera.position[2] = modelOrigin[2];
-//    uniforms.camera.position[2] = 0;
     uniforms.camera.right[0] = vright[0];
     uniforms.camera.right[1] = vright[1];
     uniforms.camera.right[2] = vright[2];
-    uniforms.camera.right = simd_normalize(uniforms.camera.right);
     uniforms.camera.forward[0] = vpn[0];
     uniforms.camera.forward[1] = vpn[1];
     uniforms.camera.forward[2] = vpn[2];
-    uniforms.camera.forward = simd_normalize(uniforms.camera.forward);
     uniforms.camera.up[0] = vup[0];
     uniforms.camera.up[1] = vup[1];
     uniforms.camera.up[2] = vup[2];
+    
+    if (overrideCamPos) {
+        uniforms.camera.position[0] = cameraPos[0];
+        uniforms.camera.position[1] = cameraPos[1];
+        uniforms.camera.position[2] = cameraPos[2];
+    }
+    if (overrideCamRight) {
+        uniforms.camera.right[0] = cameraRight[0];
+        uniforms.camera.right[1] = cameraRight[1];
+        uniforms.camera.right[2] = cameraRight[2];
+    }
+    if (overrideCamFwd) {
+        uniforms.camera.forward[0] = cameraForward[0];
+        uniforms.camera.forward[1] = cameraForward[1];
+        uniforms.camera.forward[2] = cameraForward[2];
+    }
+    if (overrideCamUp) {
+        uniforms.camera.up[0] = cameraUp[0];
+        uniforms.camera.up[1] = cameraUp[1];
+        uniforms.camera.up[2] = cameraUp[2];
+    }
+    
+    uniforms.camera.right = simd_normalize(uniforms.camera.right);
+    uniforms.camera.forward = simd_normalize(uniforms.camera.forward);
     uniforms.camera.up = simd_normalize(uniforms.camera.up);
     uniforms.mvpMatrix = simd_matrix_from_rows(simd_make_float3(mvpMatrix.columns[0][0], mvpMatrix.columns[1][0], mvpMatrix.columns[2][0]),
                                                      simd_make_float3(mvpMatrix.columns[0][1], mvpMatrix.columns[1][1], mvpMatrix.columns[2][1]),
@@ -840,8 +902,7 @@ void MetalRenderer::encodeMetalCommands() {
             
     pEnc->setDepthStencilState(_pDepthStencilState);
     pEnc->setCullMode(MTL::CullModeBack);
-    
-    vector_uint2 viewportSize = {static_cast<unsigned int>(_width), static_cast<unsigned int>(_height)};
+        
     renderWorld(pEnc, viewportSize);
     renderEntities(pEnc, viewportSize);
     particles->render(pEnc, viewportSize);

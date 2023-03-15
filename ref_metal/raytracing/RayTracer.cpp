@@ -160,6 +160,7 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     if (!accelStructureIsBuilt) {
         return;
     }
+    
     intersectionBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(uniforms.width * uniforms.height * sizeof(MPSIntersectionDistancePrimitiveIndexCoordinates), MTL::ResourceStorageModePrivate);
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
     generateRays(cenc, uniforms);
@@ -172,6 +173,7 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
                                     uniforms.width * uniforms.height,
                                     accelStructure);
     cenc = cmdBuffer->computeCommandEncoder();
+                    
     shade(cenc, uniforms);
     
     intersectionBuffer->autorelease();
@@ -179,10 +181,5 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
 }
 
 void RayTracer::updateImGui() {        
-    ImGui::SetNextWindowSize(ImVec2(600, 300));
-    
-    ImGui::Begin("Metal RTX");
-    ImGui::Text("Ray Tracer");
-    
-    ImGui::End();
+
 }
