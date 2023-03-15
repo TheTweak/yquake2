@@ -25,6 +25,7 @@
 #include "render/Polygon.hpp"
 #include "render/Sprite.hpp"
 #include "render/SkyBox.hpp"
+#include "render/ImGuiHud.hpp"
 #include "raytracing/RayTracer.hpp"
 
 typedef float vec4_t[4];
@@ -46,10 +47,7 @@ private:
     MTL::DepthStencilState* _pDepthStencilState;
     MTL::DepthStencilState* _pNoDepthTest;
     MTL::Texture* _pDepthTexture;
-    MTL::Texture* _pImGUIFontTexture;
-    
-    SDL_Cursor* sdlCursor;
-    
+            
     int _width = 0;
     int _height = 0;
     int _oldViewCluster;
@@ -86,6 +84,8 @@ private:
     std::unique_ptr<ConChars> conChars;
     std::unique_ptr<Particles> particles;
     std::unique_ptr<RayTracer> rayTracer;
+    ImGuiHud imguiHud;
+    
     dispatch_semaphore_t _semaphore;
     simd_float4x4 projectionMatrix;
     simd_float4x4 modelViewMatrix;
