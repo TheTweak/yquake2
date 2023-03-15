@@ -46,7 +46,9 @@ private:
     MTL::DepthStencilState* _pDepthStencilState;
     MTL::DepthStencilState* _pNoDepthTest;
     MTL::Texture* _pDepthTexture;
-    MTL::Texture* _pImGUIFontTexture;    
+    MTL::Texture* _pImGUIFontTexture;
+    
+    SDL_Cursor* sdlCursor;
     
     int _width = 0;
     int _height = 0;

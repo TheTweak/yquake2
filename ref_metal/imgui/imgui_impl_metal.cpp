@@ -180,7 +180,7 @@ void ImGui_ImplMetal_RenderDrawData(ImDrawData *drawData,
                 }
 
                 commandEncoder->setVertexBufferOffset(vertexBufferOffset + pcmd->VtxOffset * sizeof(ImDrawVert), 0);
-                commandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount / 3, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, indexBuffer->buffer, indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
+                commandEncoder->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, indexBuffer->buffer, indexBufferOffset + pcmd->IdxOffset * sizeof(ImDrawIdx));
             }
         }
 

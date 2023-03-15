@@ -25,4 +25,7 @@
 
 #define RT_TEXTURE_ARRAY_SIZE 100
 
+#define SDL_CURSOR_W 8
+#define SDL_CURSOR_H 8
+
 #endif /* Constants_h */

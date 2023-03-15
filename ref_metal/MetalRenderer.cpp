@@ -84,6 +84,19 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     pPool->release();
     
     ImGui::CreateContext();
+    
+    int cursorWidth = SDL_CURSOR_W;
+    int cursorHeight = SDL_CURSOR_H;
+    Uint8 cursorMask[cursorWidth * cursorHeight];
+    Uint8 cursorData[cursorWidth * cursorHeight];
+    for (int i = 0; i < cursorWidth; i++) {
+        for (int j = 0; j < cursorHeight; j++) {
+            cursorMask[i * j] = 1;
+            cursorData[i * j] = 0;
+        }
+    }
+    
+    sdlCursor = SDL_CreateCursor(cursorData, cursorMask, cursorWidth, cursorHeight, 0, 0);
 }
 
 MTL::Device* MetalRenderer::getDevice() {
@@ -802,12 +815,15 @@ void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 vie
     size_t buttonState = SDL_GetMouseState(&mouseX, &mouseY);
     bool leftButton = buttonState & SDL_BUTTON(1);
     bool rightButton = buttonState & SDL_BUTTON(3);
+    SDL_ShowCursor(SDL_ENABLE);
+    SDL_SetCursor(sdlCursor);
     
     ImGui::GetIO().AddMousePosEvent((float) mouseX, (float) mouseY);
     ImGui::GetIO().AddMouseButtonEvent(0, leftButton);
     ImGui::GetIO().AddMouseButtonEvent(1, rightButton);
     ImGui::GetIO().DisplaySize.x = viewportSize.x;
     ImGui::GetIO().DisplaySize.y = viewportSize.y;
+    ImGui::GetIO().FontGlobalScale = 2.5;
     createImGUIFontsTexture();
     
     ImGui::NewFrame();
@@ -820,13 +836,13 @@ void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 vie
         ss << "right pressed";
     }
     const auto data = ss.str();
-    /*
-    ImGui::SetNextWindowSize(ImVec2(200, 50));
-    ImGui::Begin(data.data());
-    ImGui::End();
-    */
     
-    ImGui::ShowDemoWindow();
+    ImGui::SetNextWindowSize(ImVec2(300, 300));
+    ImGui::Begin(data.data());
+    ImGui::Button("OK");
+    ImGui::End();
+
+//    ImGui::ShowDemoWindow();
     
     ImGui::Render();
     ImDrawData *drawData = ImGui::GetDrawData();
@@ -846,9 +862,6 @@ void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 vie
         enc->setVertexBuffer(mtlVertexBuffer, 0, 0);
         enc->setVertexBytes(&viewportSize, sizeof(viewportSize), 1);
         
-        size_t idxBufferOffset = 0;
-        size_t vertexBufferOffset = 0;
-        
         for (int cmd_i = 0; cmd_i < cmdList->CmdBuffer.Size; cmd_i++) {
             const ImDrawCmd* pcmd = &cmdList->CmdBuffer[cmd_i];
             if (pcmd->UserCallback) {
@@ -860,13 +873,9 @@ void MetalRenderer::renderImGUI(MTL::RenderCommandEncoder *enc, vector_uint2 vie
                 if (ImTextureID texId = pcmd->GetTexID()) {
                     enc->setFragmentTexture((MTL::Texture*) texId, 0);
                 }
+                enc->setVertexBufferOffset(pcmd->VtxOffset * sizeof(ImDrawVert), 0);
                 
-                enc->setVertexBufferOffset(vertexBufferOffset, 0);
-                
-                enc->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, mtlIndexBuffer, idxBufferOffset);
-                
-                idxBufferOffset += pcmd->IdxOffset;
-                vertexBufferOffset += pcmd->VtxOffset;
+                enc->drawIndexedPrimitives(MTL::PrimitiveTypeTriangle, pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? MTL::IndexTypeUInt16 : MTL::IndexTypeUInt32, mtlIndexBuffer, pcmd->IdxOffset * sizeof(ImDrawIdx));
             }
         }
         mtlVertexBuffer->autorelease();
