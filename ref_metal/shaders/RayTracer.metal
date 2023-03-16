@@ -144,11 +144,11 @@ kernel void rayKernel(uint2 tid [[thread_position_in_grid]],
 }
 
 kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
-                        device Intersection *intersections,
-                        device Ray *rays,
-                        constant Uniforms &uniforms,
-                        constant Vertex *vertexArray,
-                        constant size_t *vertexTextureIndices,
+                        device Ray *rays [[buffer(1)]],
+                        device Intersection *intersections [[buffer(0)]],
+                        constant Uniforms &uniforms [[buffer(2)]],
+                        constant Vertex *vertexArray [[buffer(3)]],
+                        constant size_t *vertexTextureIndices [[buffer(4)]],
                         texture2d<half, access::write> dstTex [[ texture(0) ]],
                         const array<texture2d<half, access::sample>, RT_TEXTURE_ARRAY_SIZE> vertexTextures [[ texture(1) ]])
 {

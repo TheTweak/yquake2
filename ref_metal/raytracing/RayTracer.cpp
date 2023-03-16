@@ -76,8 +76,7 @@ void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t v
 void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
     MTL::Buffer *uniformsBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(sizeof(Uniforms), MTL::ResourceStorageModeManaged);
     std::memcpy(uniformsBuffer->contents(), &uniforms, sizeof(Uniforms));
-    rayBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(RAY_STRIDE * uniforms.width * uniforms.height,
-                                                                    MTL::ResourceStorageModePrivate);
+    rayBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(RAY_STRIDE * uniforms.width * uniforms.height, MTL::ResourceStorageModePrivate);
     
     MTL::Texture *randomTexture;
     {
@@ -131,11 +130,11 @@ void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms)
 }
 
 void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
-    enc->setBuffer(intersectionBuffer, 0, 0);
+    enc->setBuffer(intersectionBuffer, 0, 0);    
     enc->setComputePipelineState(shadePipeline);
     enc->setTexture(targetTexture, 0);
-    enc->setBytes(&uniforms, sizeof(uniforms), 2);
-    enc->setBuffer(rayBuffer, 0, 1);
+    enc->setBytes(&uniforms, sizeof(uniforms), 2);    
+    enc->setBuffer(rayBuffer, 0, 1);    
     enc->setBuffer(vertexBuffer, 0, 3);
     
     MTL::Buffer *vertexTextureIndicesBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(sizeof(size_t) * vertexTextureIndices.size(), MTL::ResourceStorageModeManaged);
