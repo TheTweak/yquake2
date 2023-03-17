@@ -70,9 +70,8 @@ MTL::AccelerationStructure* newAccelerationStructure(MTL::PrimitiveAccelerationS
     enc->endEncoding();
     cmdBuffer->commit();
     
-//    scratchBuffer->autorelease();
-//    enc->autorelease();
-//    cmdBuffer->autorelease();
+    scratchBuffer->autorelease();
+    accelStructure->autorelease();
     
     return accelStructure;
 }
@@ -96,6 +95,7 @@ void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t v
     this->shadeTexturesCount = shadeTexturesCount;
     this->vertexTextureIndices = vertexTextureIndices;
         
+    vertexBuffer->autorelease();
     pd->autorelease();
     gd->autorelease();
 }
@@ -138,6 +138,4 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
 
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
     shade(cenc, uniforms);
-    
-//    primitiveAccelerationStructure->autorelease();
 }

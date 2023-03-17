@@ -37,7 +37,7 @@ void ImGuiHud::createFontsTexture() {
     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
     auto *textureDescriptor = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, width, height, false);
     textureDescriptor->setUsage(MTL::TextureUsageShaderRead);
-    textureDescriptor->setStorageMode(MTL::StorageModeManaged);
+    textureDescriptor->setStorageMode(MTL::StorageModeShared);
     auto *texture = MetalRenderer::getInstance().getDevice()->newTexture(textureDescriptor);
     texture->replaceRegion(MTL::Region(0, 0, width, height), 0, pixels, width * 4);
     io.Fonts->SetTexID((void*)texture);
