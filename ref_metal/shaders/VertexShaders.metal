@@ -50,14 +50,15 @@ fragFunc(VertexRasteriserData in [[stage_in]],
     colorSample[3] = in.alpha;
     FragmentOutput out;
     out.color = float4(colorSample);
+    int lightIntensity = 2;
     if (in.staticLight[0] != 0) {
-        out.color[0] *= in.staticLight[0];
+        out.color[0] *= lightIntensity * in.staticLight[0];
     }
     if (in.staticLight[1] != 0) {
-        out.color[1] *= in.staticLight[1];
+        out.color[1] *= lightIntensity * in.staticLight[1];
     }
     if (in.staticLight[2] != 0) {
-        out.color[2] *= in.staticLight[2];
+        out.color[2] *= lightIntensity * in.staticLight[2];
     }
     if (*scaleDepth) {
         out.depth = in.position.z * 0.1;
