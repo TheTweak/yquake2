@@ -851,7 +851,7 @@ void MetalRenderer::encodeMetalCommands() {
     uniforms.camera.forward[2] = vpn[2];
     uniforms.camera.up[0] = vup[0];
     uniforms.camera.up[1] = vup[1];
-    uniforms.camera.up[2] = vup[2];
+    uniforms.camera.up[2] = -vup[2];
     
     if (overrideCamPos) {
         uniforms.camera.position[0] = cameraPos[0];

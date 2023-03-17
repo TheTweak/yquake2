@@ -156,6 +156,53 @@ kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
         unsigned int rayIdx = tid.y * uniforms.width + tid.x;
         device Ray &ray = rays[rayIdx];
         
+        metal::raytracing::intersector<metal::raytracing::triangle_data> i;
+        typename metal::raytracing::intersector<metal::raytracing::triangle_data>::result_type intersection;
+        
+        i.accept_any_intersection(false);
+        
+        metal::raytracing::ray r;
+        r.direction = ray.direction;
+        r.origin = ray.origin;
+        r.max_distance = ray.maxDistance;
+        
+        intersection = i.intersect(r, accelStructure);
+        
+        // Stop if the ray didn't hit anything and has bounced out of the scene.
+        if (intersection.type == metal::raytracing::intersection_type::none) {
+            return;
+        }
+
+        // 1. get primitive index from intersection
+        // 2. convert privimitive index to vertices indices
+        int v0 = intersection.primitive_id * 3 + 0;
+        int v1 = intersection.primitive_id * 3 + 1;
+        int v2 = intersection.primitive_id * 3 + 2;
+        // 3. get texture index from vertex index
+        size_t ti0 = vertexTextureIndices[v0];
+        size_t ti1 = vertexTextureIndices[v1];
+        size_t ti2 = vertexTextureIndices[v2];
+        // 4. get texture from vertexTextures array
+        texture2d<half, access::sample> t0 = vertexTextures[ti0];
+        texture2d<half, access::sample> t1 = vertexTextures[ti1];
+        texture2d<half, access::sample> t2 = vertexTextures[ti2];
+        // 5. sample color from texture
+        constexpr sampler textureSampler (mag_filter::linear,
+                                          min_filter::linear,
+                                          address::repeat,
+                                          mip_filter::linear);
+        
+        half4 color0 = t0.sample(textureSampler, vertexArray[v0].texCoordinate);
+        half4 color1 = t1.sample(textureSampler, vertexArray[v1].texCoordinate);
+        half4 color2 = t2.sample(textureSampler, vertexArray[v2].texCoordinate);
+        
+        // Barycentric coordinates sum to one
+        float2 uv = intersection.triangle_barycentric_coord;
+        float3 uvw = float3(uv, 1 - uv.x - uv.y);
+        
+        half4 interpolatedColor = uvw.x * color0 + uvw.y * color1 + uvw.z * color2;
+        dstTex.write(interpolatedColor, tid);
+                
         /*
         if (intersection.distance >= 0.0f) {
             // distance is positive if ray hit something
