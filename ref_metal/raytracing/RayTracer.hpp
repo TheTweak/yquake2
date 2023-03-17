@@ -15,11 +15,8 @@
 #include "../render/Renderable.hpp"
 
 class RayTracer {
-    MTL::Buffer *rayBuffer;
-    MTL::Buffer *triangleMasksBuffer;
     MTL::Buffer *vertexBuffer;
     MTL::Texture *targetTexture;    
-    MTL::ComputePipelineState* genRaysPipeline;
     MTL::ComputePipelineState* shadePipeline;
     
     MTL::AccelerationStructure* primitiveAccelerationStructure;
@@ -28,13 +25,12 @@ class RayTracer {
     std::vector<size_t> vertexTextureIndices;
     size_t shadeTexturesCount = 0;
     
-    std::vector<uint32_t> masks;
-    
     bool accelStructureIsBuilt;
     int intersectionType;
     int threadsPerThreadGroupMultiplier = 1;
-    
-    void generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
+    size_t targetTextureWidth = 400;
+    size_t targetTextureHeight = 300;
+        
     void shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms);
 public:
     RayTracer();

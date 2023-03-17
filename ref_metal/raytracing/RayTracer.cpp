@@ -34,9 +34,18 @@ MTL::ComputePipelineState *createPipeline(std::string name, MTL::Library *pLibra
 RayTracer::RayTracer() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
-    MTL::Library* pLibrary = MetalRenderer::getInstance().getDevice()->newDefaultLibrary();
-    genRaysPipeline = createPipeline("rayKernel", pLibrary);
+    MTL::Library* pLibrary = MetalRenderer::getInstance().getDevice()->newDefaultLibrary();    
     shadePipeline = createPipeline("shadeKernel", pLibrary);
+    
+    MTL::TextureDescriptor *td = MTL::TextureDescriptor::alloc()->init();
+    td->setWidth(targetTextureWidth);
+    td->setHeight(targetTextureHeight);
+    td->setPixelFormat(PIXEL_FORMAT);
+    td->setTextureType(MTL::TextureType2D);
+    td->setStorageMode(MTL::StorageModePrivate);
+    td->setUsage(MTL::TextureUsageShaderRead | MTL::TextureUsageShaderWrite);
+    targetTexture = MetalRenderer::getInstance().getDevice()->newTexture(td);
+    td->autorelease();
     
     pLibrary->release();
     pPool->release();
@@ -69,13 +78,7 @@ MTL::AccelerationStructure* newAccelerationStructure(MTL::PrimitiveAccelerationS
 }
 
 void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount, std::vector<MTL::Texture*> shadeTextures,
-                                             size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices, MTL::CommandQueue* cmdQueue) {
-    for (int i = 0; i < vertexCount/3; i++) {
-        masks.push_back(TRIANGLE_MASK_GEOMETRY);
-    }
-    triangleMasksBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(masks.size() * sizeof(uint32_t), MTL::ResourceStorageModeManaged);
-    std::memcpy(triangleMasksBuffer->contents(), masks.data(), masks.size() * sizeof(uint32_t));
-        
+                                             size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices, MTL::CommandQueue* cmdQueue) {        
     MTL::AccelerationStructureTriangleGeometryDescriptor *gd = MTL::AccelerationStructureTriangleGeometryDescriptor::alloc()->init();
     gd->setVertexBuffer(vertexBuffer);
     gd->setTriangleCount(vertexCount / 3);
@@ -92,74 +95,16 @@ void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t v
     this->shadeTextures = std::move(shadeTextures);
     this->shadeTexturesCount = shadeTexturesCount;
     this->vertexTextureIndices = vertexTextureIndices;
-    
-    triangleMasksBuffer->autorelease();
+        
     pd->autorelease();
     gd->autorelease();
 }
 
-void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
-    MTL::Buffer *uniformsBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(sizeof(Uniforms), MTL::ResourceStorageModeManaged);
-    std::memcpy(uniformsBuffer->contents(), &uniforms, sizeof(Uniforms));
-    rayBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(RAY_STRIDE * uniforms.width * uniforms.height, MTL::ResourceStorageModePrivate);
-    
-    MTL::Texture *randomTexture;
-    {
-        MTL::TextureDescriptor *td = MTL::TextureDescriptor::alloc()->init();
-        td->setWidth(uniforms.width);
-        td->setHeight(uniforms.height);
-        td->setPixelFormat(MTL::PixelFormatR32Uint);
-        td->setUsage(MTL::TextureUsageShaderRead);
-        td->setTextureType(MTL::TextureType2D);
-        td->setStorageMode(MTL::StorageModeShared);
-        randomTexture = MetalRenderer::getInstance().getDevice()->newTexture(td);
-        
-        uint32_t *randomValues = (uint32_t *) malloc(sizeof(uint32_t) * uniforms.width * uniforms.height);
-        for (int i = 0; i < uniforms.width * uniforms.height; i++) {
-            randomValues[i] = rand() % (1024 * 1024);
-        }
-        randomTexture->replaceRegion(MTL::Region(0, 0, uniforms.width, uniforms.height), 0, randomValues, sizeof(uint32_t) * uniforms.width);
-        free(randomValues);
-        
-        td->autorelease();
-    }
-    
-    {
-        MTL::TextureDescriptor *td = MTL::TextureDescriptor::alloc()->init();
-        td->setWidth(uniforms.width);
-        td->setHeight(uniforms.height);
-        td->setPixelFormat(PIXEL_FORMAT);
-        td->setTextureType(MTL::TextureType2D);
-        td->setStorageMode(MTL::StorageModePrivate);
-        td->setUsage(MTL::TextureUsageShaderRead | MTL::TextureUsageShaderWrite);
-        targetTexture = MetalRenderer::getInstance().getDevice()->newTexture(td);
-        
-        td->autorelease();
-    }
-    
-    enc->setBuffer(uniformsBuffer, 0, 0);
-    enc->setBuffer(rayBuffer, 0, 1);
-    enc->setTexture(randomTexture, 0);
-    enc->setTexture(targetTexture, 1);
-    enc->setComputePipelineState(genRaysPipeline);
-    
-    MTL::Size threadsPerThreadgroup = MTL::Size(this->threadsPerThreadGroupMultiplier * 32, 1, 1);
-    MTL::Size threadgroups = MTL::Size(uniforms.width, uniforms.height, 1);
-
-    enc->dispatchThreads(threadgroups, threadsPerThreadgroup);
-    enc->endEncoding();
-    
-    rayBuffer->autorelease();
-    uniformsBuffer->autorelease();
-    randomTexture->autorelease();
-}
-
-void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
+void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {    
     enc->setAccelerationStructure(primitiveAccelerationStructure, 0);
     enc->setComputePipelineState(shadePipeline);
     enc->setTexture(targetTexture, 0);
-    enc->setBytes(&uniforms, sizeof(uniforms), 2);    
-    enc->setBuffer(rayBuffer, 0, 1);    
+    enc->setBytes(&uniforms, sizeof(uniforms), 2);
     enc->setBuffer(vertexBuffer, 0, 3);
     
     MTL::Buffer *vertexTextureIndicesBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(sizeof(size_t) * vertexTextureIndices.size(), MTL::ResourceStorageModeManaged);
@@ -192,12 +137,7 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     }
 
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
-    generateRays(cenc, uniforms);
-    
-    cenc = cmdBuffer->computeCommandEncoder();
-                    
     shade(cenc, uniforms);
     
 //    primitiveAccelerationStructure->autorelease();
-    targetTexture->autorelease();
 }
