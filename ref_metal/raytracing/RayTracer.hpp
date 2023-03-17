@@ -15,16 +15,14 @@
 #include "../render/Renderable.hpp"
 
 class RayTracer {
-    MTL::MPSRayIntersector *intersector;
-    MTL::MPSTriangleAccelerationStructure *accelStructure;
-    
     MTL::Buffer *rayBuffer;
-    MTL::Buffer *intersectionBuffer;
     MTL::Buffer *triangleMasksBuffer;
     MTL::Buffer *vertexBuffer;
     MTL::Texture *targetTexture;    
     MTL::ComputePipelineState* genRaysPipeline;
     MTL::ComputePipelineState* shadePipeline;
+    
+    MTL::AccelerationStructure* primitiveAccelerationStructure;
     
     std::vector<MTL::Texture*> shadeTextures;
     std::vector<size_t> vertexTextureIndices;
@@ -41,7 +39,7 @@ class RayTracer {
 public:
     RayTracer();
     void rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount, std::vector<MTL::Texture*> shadeTextures,
-                                      size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices);
+                                      size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices, MTL::CommandQueue* cmdQueue);
     void encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms);
     void updateImGui();
     MTL::Texture* getTargetTexture() const;

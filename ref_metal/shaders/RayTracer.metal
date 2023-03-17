@@ -145,7 +145,7 @@ kernel void rayKernel(uint2 tid [[thread_position_in_grid]],
 
 kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
                         device Ray *rays [[buffer(1)]],
-                        device Intersection *intersections [[buffer(0)]],
+                        metal::raytracing::primitive_acceleration_structure accelStructure [[buffer(0)]],
                         constant Uniforms &uniforms [[buffer(2)]],
                         constant Vertex *vertexArray [[buffer(3)]],
                         constant size_t *vertexTextureIndices [[buffer(4)]],
@@ -155,8 +155,8 @@ kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
     if (tid.x < uniforms.width && tid.y < uniforms.height) {
         unsigned int rayIdx = tid.y * uniforms.width + tid.x;
         device Ray &ray = rays[rayIdx];
-        device Intersection &intersection = intersections[rayIdx];
-
+        
+        /*
         if (intersection.distance >= 0.0f) {
             // distance is positive if ray hit something
             
@@ -192,6 +192,7 @@ kernel void shadeKernel(uint2 tid [[thread_position_in_grid]],
             half4 interpolatedColor = uvw.x * color0 + uvw.y * color1 + uvw.z * color2;
             dstTex.write(interpolatedColor, tid);
         }
+        */
     }
 }
 

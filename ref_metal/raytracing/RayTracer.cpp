@@ -34,13 +34,6 @@ MTL::ComputePipelineState *createPipeline(std::string name, MTL::Library *pLibra
 RayTracer::RayTracer() {
     NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     
-    intersector = MTL::MPSRayIntersector::alloc()->init();
-    intersector->setRayDataType(MTL::MPSRayDataType::OriginMinDistanceDirectionMaxDistance);
-    intersector->setRayStride(RAY_STRIDE);
-    intersector->setRayMaskOptions(MTL::MPSRayMaskOptionsPrimitive);
-    intersector->setIntersectionDataType(MTL::MPSIntersectionDataType::DistancePrimitiveIndexCoordinates);
-    accelStructure = MTL::MPSTriangleAccelerationStructure::alloc()->init();
-    
     MTL::Library* pLibrary = MetalRenderer::getInstance().getDevice()->newDefaultLibrary();
     genRaysPipeline = createPipeline("rayKernel", pLibrary);
     shadePipeline = createPipeline("shadeKernel", pLibrary);
@@ -53,24 +46,56 @@ MTL::Texture* RayTracer::getTargetTexture() const {
     return targetTexture;
 }
 
+MTL::AccelerationStructure* newAccelerationStructure(MTL::PrimitiveAccelerationStructureDescriptor* desc,
+                                                     MTL::CommandQueue* cmdQueue) {
+    MTL::AccelerationStructureSizes sizes = MetalRenderer::getInstance().getDevice()->accelerationStructureSizes(desc);
+    MTL::AccelerationStructure* accelStructure = MetalRenderer::getInstance().getDevice()->newAccelerationStructure(sizes.accelerationStructureSize);
+    
+    MTL::Buffer* scratchBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(sizes.buildScratchBufferSize, MTL::ResourceStorageModePrivate);
+    MTL::CommandBuffer* cmdBuffer = cmdQueue->commandBuffer();
+    MTL::AccelerationStructureCommandEncoder* enc = cmdBuffer->accelerationStructureCommandEncoder();
+//    MTL::Buffer* compactedSizeBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(sizeof(uint32_t), MTL::ResourceStorageModeShared);
+    
+    enc->buildAccelerationStructure(accelStructure, desc, scratchBuffer, 0);
+//    enc->writeCompactedAccelerationStructureSize(accelStructure, compactedSizeBuffer, 0);
+    enc->endEncoding();
+    cmdBuffer->commit();
+    
+//    scratchBuffer->autorelease();
+//    enc->autorelease();
+//    cmdBuffer->autorelease();
+    
+    return accelStructure;
+}
+
 void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount, std::vector<MTL::Texture*> shadeTextures,
-                                             size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices) {
+                                             size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices, MTL::CommandQueue* cmdQueue) {
     for (int i = 0; i < vertexCount/3; i++) {
         masks.push_back(TRIANGLE_MASK_GEOMETRY);
     }
     triangleMasksBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(masks.size() * sizeof(uint32_t), MTL::ResourceStorageModeManaged);
     std::memcpy(triangleMasksBuffer->contents(), masks.data(), masks.size() * sizeof(uint32_t));
-    accelStructure->setMaskBuffer(triangleMasksBuffer);
-    accelStructure->setVertexBuffer(vertexBuffer);
-    this->vertexBuffer = vertexBuffer;
-    accelStructure->setTriangleCount(vertexCount/3);
-    accelStructure->rebuild();
+        
+    MTL::AccelerationStructureTriangleGeometryDescriptor *gd = MTL::AccelerationStructureTriangleGeometryDescriptor::alloc()->init();
+    gd->setVertexBuffer(vertexBuffer);
+    gd->setTriangleCount(vertexCount / 3);
+    gd->setVertexStride(sizeof(Vertex));
+    CFTypeRef descriptors[] = { (CFTypeRef)(gd) };
+    NS::Array* pGeoDescriptors = (NS::Array*)(CFArrayCreate(kCFAllocatorDefault, descriptors, sizeof(descriptors)/sizeof(gd), &kCFTypeArrayCallBacks));
+    
+    MTL::PrimitiveAccelerationStructureDescriptor *pd = MTL::PrimitiveAccelerationStructureDescriptor::alloc()->init();
+    pd->setGeometryDescriptors(pGeoDescriptors);
+    primitiveAccelerationStructure = newAccelerationStructure(pd, cmdQueue);
     accelStructureIsBuilt = true;
+    
+    this->vertexBuffer = vertexBuffer;
     this->shadeTextures = std::move(shadeTextures);
     this->shadeTexturesCount = shadeTexturesCount;
     this->vertexTextureIndices = vertexTextureIndices;
     
     triangleMasksBuffer->autorelease();
+    pd->autorelease();
+    gd->autorelease();
 }
 
 void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
@@ -130,7 +155,7 @@ void RayTracer::generateRays(MTL::ComputeCommandEncoder *enc, Uniforms uniforms)
 }
 
 void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {
-    enc->setBuffer(intersectionBuffer, 0, 0);    
+    enc->setAccelerationStructure(primitiveAccelerationStructure, 0);
     enc->setComputePipelineState(shadePipeline);
     enc->setTexture(targetTexture, 0);
     enc->setBytes(&uniforms, sizeof(uniforms), 2);    
@@ -165,25 +190,14 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
     if (!accelStructureIsBuilt) {
         return;
     }
-    
-    intersectionBuffer = MetalRenderer::getInstance().getDevice()->newBuffer(uniforms.width * uniforms.height * sizeof(MPSIntersectionDistancePrimitiveIndexCoordinates), MTL::ResourceStorageModePrivate);
+
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
     generateRays(cenc, uniforms);
     
-    static MTL::MPSIntersectionType intersectionTypes[] = {MTL::MPSIntersectionType::Any, MTL::MPSIntersectionType::Nearest};
-    
-    intersector->encodeIntersection(cmdBuffer,
-                                    intersectionTypes[intersectionType],
-                                    rayBuffer,
-                                    0,
-                                    intersectionBuffer,
-                                    0,
-                                    uniforms.width * uniforms.height,
-                                    accelStructure);
     cenc = cmdBuffer->computeCommandEncoder();
                     
     shade(cenc, uniforms);
     
-    intersectionBuffer->autorelease();
+//    primitiveAccelerationStructure->autorelease();
     targetTexture->autorelease();
 }
