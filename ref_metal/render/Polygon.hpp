@@ -23,6 +23,7 @@ class Polygon: public Renderable {
     float alpha;
     bool triangle = true;
     bool clamp = false;
+    simd_float3 staticLight = simd_make_float3(0, 0, 0);
     
     MTL::RenderPipelineState *pipelineState;
 public:
@@ -33,6 +34,7 @@ public:
     void setClamp(bool clamp);
     void setMVP(simd_float4x4 mvp);
     void addVertex(Vertex v);
+    void setStaticLight(float r, float g, float b);
     const std::vector<Vertex>& getVertices() const;
     void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize) override;
     void render(MTL::RenderCommandEncoder*, vector_uint2 viewportSize, MTL::Buffer *vertexBuffer, size_t vertexBufferOffset);

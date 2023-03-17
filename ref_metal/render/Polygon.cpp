@@ -48,6 +48,7 @@ void Polygon::render(MTL::RenderCommandEncoder *encoder, vector_uint2 viewportSi
     encoder->setVertexBytes(inputMvp, sizeof(*inputMvp), VertexInputIndex::VertexInputIndexMVPMatrix);
     encoder->setVertexBytes(&translation, sizeof(translation), VertexInputIndex::VertexInputIndexTransModelMatrix);
     encoder->setVertexBytes(&alpha, sizeof(alpha), VertexInputIndex::VertexInputIndexAlpha);
+    encoder->setVertexBytes(&staticLight, sizeof(staticLight), VertexInputIndex::VertexInputIndexStaticLight);
     encoder->setFragmentTexture(TextureCache::getInstance().getTexture(textureName), TextureIndex::TextureIndexBaseColor);
     encoder->setFragmentBytes(&clamp, sizeof(clamp), TextureIndex::TextureIndexScaleDepth);
     encoder->setDepthClipMode(clamp ? MTL::DepthClipModeClamp : MTL::DepthClipModeClip);
@@ -71,4 +72,10 @@ void Polygon::render(MTL::RenderCommandEncoder* encoder, vector_uint2 viewportSi
 
 const std::vector<Vertex>& Polygon::getVertices() const {
     return vertices;
+}
+
+void Polygon::setStaticLight(float r, float g, float b) {
+    staticLight[0] = r;
+    staticLight[1] = g;
+    staticLight[2] = b;
 }

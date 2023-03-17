@@ -252,6 +252,7 @@ Polygon* AliasModel::createPolygon(entity_t* entity, cplane_t frustum[4], Legacy
                 }
             }
         }
+        aliasModel->setStaticLight(shadelight[0], shadelight[1], shadelight[2]);
         return aliasModel;
     }
 }
