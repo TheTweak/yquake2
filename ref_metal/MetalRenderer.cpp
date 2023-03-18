@@ -54,7 +54,6 @@ MetalRenderer::MetalRenderer() {
 }
 
 void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Renderer *pRenderer, MTL::Resource* pLayer) {
-    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     _pRenderer = pRenderer;
     _pMetalLayer = pLayer;
     _pDevice = pDevice->retain();
@@ -64,12 +63,14 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     auto *textureDesc = MTL::TextureDescriptor::texture2DDescriptor(PIXEL_FORMAT, _width, _height, false);
     textureDesc->setUsage(MTL::TextureUsageRenderTarget);
     _pTexture = _pDevice->newTexture(textureDesc);
+    textureDesc->release();
     
     auto *dTextureDesc = MTL::TextureDescriptor::texture2DDescriptor(MTL::PixelFormatDepth32Float, _width, _height, false);
     dTextureDesc->setUsage(MTL::TextureUsageRenderTarget);
     dTextureDesc->setStorageMode(MTL::StorageModeMemoryless);
     _pDepthTexture = _pDevice->newTexture(dTextureDesc);
     _pDepthTexture->setLabel(NS::MakeConstantString("depth buffer"));
+    dTextureDesc->release();
     
     _pSdlTexture = SDL_CreateTexture(pRenderer, SDL_PIXELFORMAT_BGRA32, SDL_TEXTUREACCESS_STREAMING, _width, _height);
     
@@ -79,9 +80,7 @@ void MetalRenderer::InitMetal(MTL::Device *pDevice, SDL_Window *pWindow, SDL_Ren
     conChars = std::make_unique<ConChars>(_p2dPSO);
     particles = std::make_unique<Particles>(_pParticlePSO);
     rayTracer = std::make_unique<RayTracer>();
-    
-    pPool->release();
-    
+            
     ImGui::CreateContext();
 }
 
@@ -103,11 +102,9 @@ void MetalRenderer::buildDepthStencilState() {
 }
 
 void MetalRenderer::buildShaders() {
-    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
     using NS::StringEncoding::UTF8StringEncoding;
 
     MTL::Library* pLibrary = _pDevice->newDefaultLibrary();
-    
     {
         MTL::Function* pVertexFn = pLibrary->newFunction( NS::String::string("vertexShader2D", UTF8StringEncoding) );
         MTL::Function* pFragFn = pLibrary->newFunction( NS::String::string("samplingShader2D", UTF8StringEncoding) );
@@ -230,7 +227,6 @@ void MetalRenderer::buildShaders() {
     }
     
     pLibrary->release();
-    pPool->release();
 }
 
 bool MetalRenderer::Init() {
@@ -689,12 +685,12 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
         vertexTextures[i] = TextureCache::getInstance().getTexture(indexToTexture.at(i));
     }
     
-    MTL::Buffer *vertexBuffer = _pDevice->newBuffer(vertexCount * sizeof(Vertex), MTL::ResourceStorageModeShared);
+    _pVertexBuffer = _pDevice->newBuffer(vertexCount * sizeof(Vertex), MTL::ResourceStorageModeShared);
 
     std::vector<size_t> vertexTextureIndices(vertexCount);
     size_t vertexBufferOffset = 0;
     for (auto it = worldPolygonsByTexture.begin(); it != worldPolygonsByTexture.end(); it++) {
-        it->second.render(enc, viewportSize, vertexBuffer, vertexBufferOffset);
+        it->second.render(enc, viewportSize, _pVertexBuffer, vertexBufferOffset);
         
         std::fill(vertexTextureIndices.begin() + vertexBufferOffset,
                   vertexTextureIndices.begin() + vertexBufferOffset + it->second.getVertices().size(),
@@ -704,7 +700,7 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
     }
 
     for (auto it = transparentWorldPolygonsByTexture.begin(); it != transparentWorldPolygonsByTexture.end(); it++) {
-        it->second.render(enc, viewportSize, vertexBuffer, vertexBufferOffset);
+        it->second.render(enc, viewportSize, _pVertexBuffer, vertexBufferOffset);
         
         std::fill(vertexTextureIndices.begin() + vertexBufferOffset,
                   vertexTextureIndices.begin() + vertexBufferOffset + it->second.getVertices().size(),
@@ -713,9 +709,9 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
         vertexBufferOffset += it->second.getVertices().size();
     }
     
-    rayTracer->rebuildAccelerationStructure(vertexBuffer, vertexCount, vertexTextures, textureIndex, vertexTextureIndices, _pCommandQueue);
-    
-    vertexBuffer->autorelease();
+    rayTracer->rebuildAccelerationStructure(_pVertexBuffer, vertexCount, vertexTextures, textureIndex, vertexTextureIndices, _pCommandQueue);
+
+    _pVertexBuffer->release();
     worldPolygonsByTexture.clear();
     transparentWorldPolygonsByTexture.clear();
 }
@@ -905,9 +901,9 @@ void MetalRenderer::encodeMetalCommands() {
     renderImGUI(pEnc, viewportSize);
         
     pEnc->endEncoding();
-
-    rayTracer->encode(pCmd, uniforms);
     
+    rayTracer->encode(pCmd, uniforms);
+        
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     generateMipmaps(blitCmdEnc);
     if (rayTracer->getTargetTexture()) {
@@ -918,7 +914,7 @@ void MetalRenderer::encodeMetalCommands() {
     blitCmdEnc->endEncoding();
     pCmd->commit();
     pCmd->waitUntilCompleted();
-        
+    
     uint32_t* pixels;
     int pitch;
     SDL_LockTexture(_pSdlTexture, NULL, (void**) &pixels, &pitch);
@@ -926,6 +922,8 @@ void MetalRenderer::encodeMetalCommands() {
     SDL_UnlockTexture(_pSdlTexture);
     SDL_RenderCopy(_pRenderer, _pSdlTexture, NULL, NULL);
     SDL_RenderPresent(_pRenderer);
+        
+    rayTracer->release();
     pPool->release();
 }
 

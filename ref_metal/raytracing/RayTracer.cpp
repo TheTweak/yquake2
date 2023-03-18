@@ -32,8 +32,6 @@ MTL::ComputePipelineState *createPipeline(std::string name, MTL::Library *pLibra
 }
 
 RayTracer::RayTracer() {
-    NS::AutoreleasePool* pPool = NS::AutoreleasePool::alloc()->init();
-    
     MTL::Library* pLibrary = MetalRenderer::getInstance().getDevice()->newDefaultLibrary();    
     shadePipeline = createPipeline("shadeKernel", pLibrary);
     
@@ -45,10 +43,9 @@ RayTracer::RayTracer() {
     td->setStorageMode(MTL::StorageModePrivate);
     td->setUsage(MTL::TextureUsageShaderRead | MTL::TextureUsageShaderWrite);
     targetTexture = MetalRenderer::getInstance().getDevice()->newTexture(td);
-    td->autorelease();
     
+    td->release();
     pLibrary->release();
-    pPool->release();
 }
 
 MTL::Texture* RayTracer::getTargetTexture() const {
@@ -69,15 +66,13 @@ MTL::AccelerationStructure* newAccelerationStructure(MTL::PrimitiveAccelerationS
 //    enc->writeCompactedAccelerationStructureSize(accelStructure, compactedSizeBuffer, 0);
     enc->endEncoding();
     cmdBuffer->commit();
-    
-    scratchBuffer->autorelease();
-    accelStructure->autorelease();
+    scratchBuffer->release();
     
     return accelStructure;
 }
 
 void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t vertexCount, std::vector<MTL::Texture*> shadeTextures,
-                                             size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices, MTL::CommandQueue* cmdQueue) {        
+                                             size_t shadeTexturesCount, std::vector<size_t> vertexTextureIndices, MTL::CommandQueue* cmdQueue) {
     MTL::AccelerationStructureTriangleGeometryDescriptor *gd = MTL::AccelerationStructureTriangleGeometryDescriptor::alloc()->init();
     gd->setVertexBuffer(vertexBuffer);
     gd->setTriangleCount(vertexCount / 3);
@@ -88,16 +83,16 @@ void RayTracer::rebuildAccelerationStructure(MTL::Buffer *vertexBuffer, size_t v
     MTL::PrimitiveAccelerationStructureDescriptor *pd = MTL::PrimitiveAccelerationStructureDescriptor::alloc()->init();
     pd->setGeometryDescriptors(pGeoDescriptors);
     primitiveAccelerationStructure = newAccelerationStructure(pd, cmdQueue);
-    accelStructureIsBuilt = true;
     
     this->vertexBuffer = vertexBuffer;
     this->shadeTextures = std::move(shadeTextures);
     this->shadeTexturesCount = shadeTexturesCount;
     this->vertexTextureIndices = vertexTextureIndices;
-        
-    vertexBuffer->autorelease();
-    pd->autorelease();
-    gd->autorelease();
+
+    pd->release();
+    gd->release();
+    
+    accelStructureIsBuilt = true;
 }
 
 void RayTracer::shade(MTL::ComputeCommandEncoder *enc, Uniforms uniforms) {    
@@ -138,4 +133,12 @@ void RayTracer::encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms) {
 
     MTL::ComputeCommandEncoder *cenc = cmdBuffer->computeCommandEncoder();
     shade(cenc, uniforms);
+}
+
+void RayTracer::release() {
+    if (accelStructureIsBuilt) {
+        primitiveAccelerationStructure->release();
+        vertexBuffer->release();
+    }
+    accelStructureIsBuilt = false;
 }

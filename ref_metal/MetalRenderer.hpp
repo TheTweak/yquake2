@@ -47,6 +47,7 @@ private:
     MTL::DepthStencilState* _pDepthStencilState;
     MTL::DepthStencilState* _pNoDepthTest;
     MTL::Texture* _pDepthTexture;
+    MTL::Buffer* _pVertexBuffer;
             
     int _width = 0;
     int _height = 0;

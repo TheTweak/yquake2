@@ -58,7 +58,7 @@
             isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+set in_grab 0"
+            argument = "+set in_grab 3"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

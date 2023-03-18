@@ -39,6 +39,7 @@ public:
     void encode(MTL::CommandBuffer *cmdBuffer, Uniforms uniforms);
     void updateImGui();
     MTL::Texture* getTargetTexture() const;
+    void release();
 };
 
 #endif /* RayTracer_hpp */
