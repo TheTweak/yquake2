@@ -27,6 +27,7 @@
 #include "render/SkyBox.hpp"
 #include "render/ImGuiHud.hpp"
 #include "raytracing/RayTracer.hpp"
+#include "render/WorldGeometry.h"
 
 typedef float vec4_t[4];
 
@@ -114,7 +115,7 @@ private:
     void drawNullModel(entity_t*);
     void drawParticles();
     
-    void renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
+    WorldGeometry renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderEntities(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);
     void renderSprites(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize);

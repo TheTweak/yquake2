@@ -649,39 +649,45 @@ void MetalRenderer::drawParticles() {
     }
 }
 
-void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {    
+WorldGeometry MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
     size_t vertexCount = 0;
-    size_t textureIndex = 0;
+    size_t textureCount = 0;
     std::unordered_map<std::string, size_t> textureToIndex;
     std::unordered_map<size_t, std::string> indexToTexture;
     for (auto it = worldPolygonsByTexture.begin(); it != worldPolygonsByTexture.end(); it++) {
         vertexCount += it->second.getVertices().size();
         
         if (auto jt = textureToIndex.find(it->first.textureName); jt == textureToIndex.end()) {
-            textureToIndex[it->first.textureName] = textureIndex;
-            indexToTexture[textureIndex] = it->first.textureName;
-            textureIndex++;
+            textureToIndex[it->first.textureName] = textureCount;
+            indexToTexture[textureCount] = it->first.textureName;
+            textureCount++;
         }
     }
     for (auto it = transparentWorldPolygonsByTexture.begin(); it != transparentWorldPolygonsByTexture.end(); it++) {
         vertexCount += it->second.getVertices().size();
         
         if (auto jt = textureToIndex.find(it->first.textureName); jt == textureToIndex.end()) {
-            textureToIndex[it->first.textureName] = textureIndex;
-            indexToTexture[textureIndex] = it->first.textureName;
-            textureIndex++;
+            textureToIndex[it->first.textureName] = textureCount;
+            indexToTexture[textureCount] = it->first.textureName;
+            textureCount++;
         }
     }
     
     if (vertexCount == 0) {
-        return;
+        return {
+            nil,
+            0,
+            0,
+            std::vector<MTL::Texture*>(0),
+            std::vector<size_t>(0)
+        };
     }
     
     // assert that number of unique textures used for all vertices is less than array size in the RayTracer shader
-    assert(textureIndex < RT_TEXTURE_ARRAY_SIZE);
+    assert(textureCount < RT_TEXTURE_ARRAY_SIZE);
     
-    std::vector<MTL::Texture*> vertexTextures(textureIndex);
-    for (int i = 0; i < textureIndex; i++) {
+    std::vector<MTL::Texture*> vertexTextures(textureCount);
+    for (int i = 0; i < textureCount; i++) {
         vertexTextures[i] = TextureCache::getInstance().getTexture(indexToTexture.at(i));
     }
     
@@ -708,12 +714,18 @@ void MetalRenderer::renderWorld(MTL::RenderCommandEncoder *enc, vector_uint2 vie
 
         vertexBufferOffset += it->second.getVertices().size();
     }
-    
-    rayTracer->rebuildAccelerationStructure(_pVertexBuffer, vertexCount, vertexTextures, textureIndex, vertexTextureIndices, _pCommandQueue);
-
+        
     _pVertexBuffer->release();
     worldPolygonsByTexture.clear();
     transparentWorldPolygonsByTexture.clear();
+    
+    return {
+        _pVertexBuffer,
+        vertexCount,
+        textureCount,
+        vertexTextures,
+        vertexTextureIndices
+    };
 }
 
 void MetalRenderer::renderGUI(MTL::RenderCommandEncoder *enc, vector_uint2 viewportSize) {
@@ -889,7 +901,7 @@ void MetalRenderer::encodeMetalCommands() {
     pEnc->setDepthStencilState(_pDepthStencilState);
     pEnc->setCullMode(MTL::CullModeBack);
         
-    renderWorld(pEnc, viewportSize);
+    WorldGeometry wg = renderWorld(pEnc, viewportSize);
     renderEntities(pEnc, viewportSize);
     particles->render(pEnc, viewportSize);
     renderSprites(pEnc, viewportSize);
@@ -898,11 +910,10 @@ void MetalRenderer::encodeMetalCommands() {
     pEnc->setDepthStencilState(_pNoDepthTest);
 //    renderCameraDirection(pEnc, uniforms);
     renderGUI(pEnc, viewportSize);
-    renderImGUI(pEnc, viewportSize);
-        
+    renderImGUI(pEnc, viewportSize);        
     pEnc->endEncoding();
     
-    rayTracer->encode(pCmd, uniforms);
+    rayTracer->encode(pCmd, uniforms, wg, _pCommandQueue);
         
     auto blitCmdEnc = pCmd->blitCommandEncoder();
     generateMipmaps(blitCmdEnc);
@@ -923,7 +934,6 @@ void MetalRenderer::encodeMetalCommands() {
     SDL_RenderCopy(_pRenderer, _pSdlTexture, NULL, NULL);
     SDL_RenderPresent(_pRenderer);
         
-    rayTracer->release();
     pPool->release();
 }
 
